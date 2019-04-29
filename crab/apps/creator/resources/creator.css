@@ -1,0 +1,53 @@
+#newRig,
+#editRig,
+#buildRig,
+#addComponent,
+#addBehaviour,
+#removeBehaviour,
+#moveBehaviourUp,
+#moveBehaviourDown,
+#removeComponent{
+    border: 1px solid black;
+    background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(_FOREGROUND_, 30), stop:1 rgba(_FOREGROUND_, 10));
+	padding: 0px 5px 0px 5px;
+    min-height: 20px;
+
+    background-image: url(_SQUARES_PNG_);
+    background-position: top right;
+    background-origin: content;
+    background-repeat: repeat-xy;
+}
+
+#newRig:pressed,
+#editRig:pressed,
+#buildRig:pressed,
+#addComponent:pressed,
+#addBehaviour:pressed,
+#removeBehaviour:pressed,
+#moveBehaviourUp:pressed,
+#moveBehaviourDown:pressed,
+#removeComponent:pressed {
+    background-color: rgb(_HIGHLIGHT_);
+}
+
+#newRig:hover,
+#editRig:hover,
+#buildRig:hover,
+#addComponent:hover,
+#addBehaviour:hover,
+#removeBehaviour:hover,
+#moveBehaviourUp:hover,
+#moveBehaviourDown:hover,
+#removeComponent:hover,
+#newRig:released,
+#editRig:released,
+#buildRig:released,
+#addComponent:released,
+#addBehaviour:released,
+#removeBehaviour:released,
+#moveBehaviourUp:released,
+#moveBehaviourDown:released,
+#removeComponent:released {
+    background-color: rgba(_FOREGROUND_, 50);
+    color: rgb(20, 20, 20);
+}
