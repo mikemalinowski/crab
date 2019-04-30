@@ -3,6 +3,7 @@ import qute
 import functools
 
 import pymel.core as pm
+from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
 
 from ... import meta
@@ -475,12 +476,13 @@ class CrabCreator(qute.QWidget):
         """
 
         # -- Local method used a value-changed callback
-        def storeChange(identifier, option, new_value):
+        # noinspection PyUnusedLocal
+        def storeChange(identifier, option, widget, *args, **kwargs):
             data_block = self.rig.assigned_behaviours()
 
             for idx, data in enumerate(data_block):
                 if data['id'] == identifier:
-                    data['options'][option] = new_value
+                    data['options'][option] = qute.deriveValue(widget)
 
             self.rig.store_behaviour_data(data_block)
 
@@ -519,6 +521,7 @@ class CrabCreator(qute.QWidget):
                     storeChange,
                     behaviour_data['id'],
                     name,
+                    widget,
                 )
             )
 
@@ -568,7 +571,6 @@ class CrabCreator(qute.QWidget):
         self.ui.editRig.setIcon(qute.QIcon(get_resource('edit.png')))
         self.ui.newRig.setIcon(qute.QIcon(get_resource('new.png')))
 
-
         self.ui.removeBehaviour.setIcon(qute.QIcon(get_resource('remove.png')))
         self.ui.moveBehaviourDown.setIcon(qute.QIcon(get_resource('down.png')))
         self.ui.moveBehaviourUp.setIcon(qute.QIcon(get_resource('up.png')))
@@ -576,8 +578,15 @@ class CrabCreator(qute.QWidget):
 
 # ------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
+class DockableCreator(MayaQWidgetDockableMixin, qute.QMainWindow):
+    def __init__(self, *args, **kwargs):
+        super(DockableCreator, self).__init__(*args, **kwargs)
+
+
+# ------------------------------------------------------------------------------
+# noinspection PyUnresolvedReferences
 def launch():
-    window = qute.QMainWindow(parent=qute.mainWindow())
+    window = DockableCreator(parent=qute.mainWindow())
     widget = CrabCreator(parent=window)
 
     # -- Update the geometry of the window to the last stored
@@ -587,5 +596,4 @@ def launch():
     # -- Set the window properties
     window.setWindowTitle('Crab')
 
-    window.show()
-
+    window.show(dockable=True)
