@@ -40,6 +40,7 @@ META = 'META'
 ORG = 'ORG'
 CONTROL = 'CTL'
 ZERO = 'ZRO'
+OFFSET = 'OFF'
 SKELETON = 'SKL'
 
 

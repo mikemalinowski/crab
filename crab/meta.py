@@ -255,6 +255,7 @@ def find(label, meta_root):
 
     return []
 
+
 # ------------------------------------------------------------------------------
 def get_identifier(node):
     """
@@ -268,6 +269,7 @@ def get_identifier(node):
     :return: str 
     """
     return get_meta_node(node).attr(config.META_IDENTIFIER).get()
+
 
 # ------------------------------------------------------------------------------
 def get_type(node):
@@ -283,6 +285,7 @@ def get_type(node):
     """
     return get_meta_node(node).attr(config.META_TYPE).get()
 
+
 # ------------------------------------------------------------------------------
 def get_version(node):
     """
@@ -296,6 +299,7 @@ def get_version(node):
     :return: int 
     """
     return get_meta_node(node).attr(config.META_VERSION).get()
+
 
 # ------------------------------------------------------------------------------
 def get_options(node):

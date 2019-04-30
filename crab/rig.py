@@ -6,6 +6,7 @@ import pymel.core as pm
 from . import meta
 from . import utils
 from . import config
+from . import create
 from . import process
 from . import component
 from . import constants
@@ -100,7 +101,7 @@ class Rig(object):
         :return: crab.Rig instance
         """
         # -- Create the node which all others will go under
-        rig_root = utils.create(
+        rig_root = create.generic(
             node_type='transform',
             prefix=config.RIG_ROOT,
             description=name or 'CrabRig',
@@ -110,7 +111,7 @@ class Rig(object):
         # -- Create our sub-category nodes. These allow us to create
         # -- clear distinctions between our control rig, skeleton and
         # -- guides.
-        control_root = utils.create(
+        control_root = create.generic(
             node_type='transform',
             prefix=config.ORG,
             description='ControlRig',
@@ -118,7 +119,7 @@ class Rig(object):
             parent=rig_root,
         )
 
-        skeleton_root = utils.create(
+        skeleton_root = create.generic(
             node_type='transform',
             prefix=config.ORG,
             description='Skeleton',
@@ -126,7 +127,7 @@ class Rig(object):
             parent=rig_root,
         )
 
-        guide_root = utils.create(
+        guide_root = create.generic(
             node_type='transform',
             prefix=config.ORG,
             description='Guide',
@@ -171,7 +172,10 @@ class Rig(object):
             'GuideRoot',
             rig_root,
         )
-        
+
+        # -- Select the rig root
+        pm.select(skeleton_root)
+
         # -- Debug build information
         log.debug('Created new Crab Rig')
 
@@ -203,18 +207,9 @@ class Rig(object):
         
         :return: component plugin instance
         """
-
-        # -- If we are not specifically given a parent we use
-        # -- the selection
-        try:
-            parent = parent or self.find('SkeletonRoot')[0]
-
-        except IndexError:
-            log.error(
-                'No parent given when trying to add a guide. Please pass a '
-                'node or select a node.'
-            )
-            return None
+        # -- Get the skeleton root
+        skeleton_root = self.find('SkeletonRoot')[0]
+        parent = parent or skeleton_root
 
         # -- Attempt to get the segment class
         if component_type not in self.components.identifiers():

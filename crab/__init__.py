@@ -80,6 +80,12 @@ new_rig.build()
 # -- state
 new_rig.edit()
 ```
+
+
+Todo:
+    * Mirror Component
+    * Layers Post Process
+    * Space Switch Post Process
 """
 from .rig import Rig
 from .component import Component
@@ -88,6 +94,8 @@ from .process import Process
 
 from . import config
 from . import utils
+from . import shapeio
+from . import create
 
 from .apps import creator
 

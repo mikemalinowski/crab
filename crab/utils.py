@@ -4,6 +4,9 @@ live under any bespoke module
 """
 import pymel.core as pm
 
+from . import config
+from . import shapeio
+
 
 # ------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
@@ -101,75 +104,26 @@ def get_side(given_name):
     """
     return given_name.split('_')[3]
 
-
 # ------------------------------------------------------------------------------
-def create(node_type,
-           prefix,
-           description,
-           side,
-           parent=None,
-           xform=None,
-           match_to=None):
+def find_above(node, substring):
     """
-    Convenience function for creating a node, generating the name using
-    the unique name method and giving the ability to assign the parent and
-    transform.
+    Looks for the parent with the given substring in the name
 
-    :param node_type: Type of node to create, such as 'transform'
-    :type node_type: str
-    
-    :param prefix: Prefix to assign to the node name
-    :type prefix: str
-    
-    :param description: Descriptive section of the name
-    :type description: str
-    
-    :param side: Tag for the location to be used during the name generation
-    :type side: str
-    
-    :param parent: Optional parent to assign to the node
-    :type parent: pm.nt.DagNode
-    
-    :param xform: Optional worldSpace matrix to apply to the object
-    :type xform: pm.dt.Matrix
-    
-    :param match_to: Optional node to match in worldspace
-    :type match_to: pm.nt.DagNode
-    
-    :return: pm.nt.DependNode
+    :param node: Node to search from
+    :type node: pm.nt.DagNode
+
+    :param substring: String to look for in a node name
+    :type substring: str
+
+    :return: pm.nt.DagNode
     """
-    # -- Create the node
-    node = pm.createNode(node_type)
+    while node:
+        if substring in node.name():
+            return node
 
-    # -- Name it based on our naming convention
-    node.rename(
-        name(
-            prefix=prefix,
-            description=description,
-            side=side,
-        ),
-    )
+        node = node.getParent()
 
-    # -- Parent the node if we're given a parent
-    if parent:
-        node.setParent(parent)
-
-    # -- If we're given a matrix utilise that
-    if xform:
-        node.setMatrix(
-            xform,
-            worldSpace=True,
-        )
-
-    # -- Match the object to the target object if one
-    # -- is given.
-    if match_to:
-        node.setMatrix(
-            match_to.getMatrix(worldSpace=True),
-            worldSpace=True,
-        )
-
-    return node
+    return None
 
 
 # ------------------------------------------------------------------------------

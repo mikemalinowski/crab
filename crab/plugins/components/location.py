@@ -3,22 +3,22 @@ import pymel.core as pm
 
 
 # ------------------------------------------------------------------------------
-class SingularComponent(crab.Component):
+class LocationComponent(crab.Component):
     """
     A segment represents a single rig element capable of building
     a guide along with a rig over that guide.
     """
 
-    identifier = 'Singular'
+    identifier = 'Location'
     version = 1
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
-        super(SingularComponent, self).__init__(*args, **kwargs)
+        super(LocationComponent, self).__init__(*args, **kwargs)
 
+        self.options.description = 'Location'
         self.options.lock = 'sx;sy;sz'
         self.options.hide = 'v;sx;sy;sz'
-        self.options.shape = 'cube'
 
     # --------------------------------------------------------------------------
     def create_skeleton(self, parent):
@@ -26,12 +26,14 @@ class SingularComponent(crab.Component):
         This should create your guide representation for your segment.
         The parent will be a pre-constructed crabSegment transform node.
 
-        :param parent:  
-        :return: 
+        :param parent:
+        :return:
         """
         # -- Create the joint for this singular
-        root_joint = crab.create.joint(
-            description=self.options.description,
+        root_joint = crab.create.generic(
+            node_type='joint',
+            prefix=crab.config.SKELETON,
+            description='%s' % self.options.description,
             side=self.options.side,
             parent=parent,
             match_to=parent,
@@ -62,12 +64,22 @@ class SingularComponent(crab.Component):
         root_joint = skeleton_component.find('RootJoint')[0]
 
         # -- Create a transform to use as a control
-        node = crab.create.control(
-            description=self.options.description,
+        root_control = crab.create.control(
+            description='Rig%s' % self.options.description,
             side=self.options.side,
             parent=parent,
             match_to=root_joint,
-            shape=self.options.shape,
+            shape='cog',
+            lock_list=self.options.lock,
+            hide_list=self.options.hide,
+        )
+
+        location_control = crab.create.control(
+            description='%s' % self.options.description,
+            side=self.options.side,
+            parent=root_control,
+            match_to=root_control,
+            shape='arrow_z',
             lock_list=self.options.lock,
             hide_list=self.options.hide,
         )
@@ -79,8 +91,16 @@ class SingularComponent(crab.Component):
         # -- control
         self.bind(
             root_joint,
-            node,
+            root_control,
+            constrain=False,
+        )
+
+        # -- Constrain the joint to the location
+        pm.parentConstraint(
+            location_control,
+            root_joint,
+            mo=False,
         )
 
         # -- Select our tip joint
-        pm.select(node)
+        pm.select(root_control)

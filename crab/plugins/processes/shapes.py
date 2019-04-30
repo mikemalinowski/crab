@@ -185,4 +185,6 @@ def apply(node, data):
 
         shapes.append(shape)
 
+    pm.select(node)
+
     return shapes

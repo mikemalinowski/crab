@@ -8,6 +8,7 @@ import pymel.core as pm
 
 from . import meta
 from . import utils
+from . import create
 from . import config
 
 
@@ -167,18 +168,19 @@ class Component(object):
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences,PyMethodMayBeStatic
-    def bind(self, skeletal_joint, control, **kwargs):
+    def bind(self, skeletal_joint, control, constrain=True, **kwargs):
         """
         Creates a constraint binding between the skeletal joint and the control
         such that the skeletal joint will be driven by the control and this 
         control will act as the parent for any child components below this
         skeletal joint.
         """
-        pm.parentConstraint(
-            control,
-            skeletal_joint,
-            **kwargs
-        )
+        if constrain:
+            pm.parentConstraint(
+                control,
+                skeletal_joint,
+                **kwargs
+            )
 
         # -- Add a binding link between the skeletal joint and
         # -- the control
@@ -227,7 +229,7 @@ class Component(object):
         :return: newly created node (pm.nt.DagNode) 
         """
         # -- Create the node
-        node = utils.create(
+        node = create.generic(
             node_type='transform',
             prefix=config.RIG_COMPONENT,
             description=self.options.description,
@@ -262,7 +264,7 @@ class Component(object):
         :return: newly created node (pm.nt.DagNode) 
         """
         # -- Create the node
-        node = utils.create(
+        node = create.generic(
             node_type='transform',
             prefix=config.GUIDE_COMPONENT,
             description=self.options.description,
