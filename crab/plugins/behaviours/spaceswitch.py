@@ -42,7 +42,7 @@ class SpaceSwitch(crab.Behaviour):
             ]
 
         # -- Add the targets parent
-        spaces.insert(0, target.getParent())
+        spaces.insert(0, crab.utils.hierarchy.find_above(target, crab.config.ORG))
         labels.insert(0, 'Parent')
 
         # -- Add a spacer attribute
@@ -62,7 +62,7 @@ class SpaceSwitch(crab.Behaviour):
             # -- Create a constraint
             cns = pm.parentConstraint(
                 space,
-                target,
+                crab.utils.hierarchy.find_above(target, crab.config.ZERO),
                 maintainOffset=True,
             )
 
