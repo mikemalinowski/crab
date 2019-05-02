@@ -53,6 +53,7 @@ class SpaceSwitch(crab.Behaviour):
             'spaces',
             at='enum',
             enumName=':'.join(labels),
+            k=True,
         )
         space_attr = target.attr('spaces')
 
