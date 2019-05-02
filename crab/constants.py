@@ -14,4 +14,4 @@ PLUGIN_LOCATIONS = [
 
 
 # ------------------------------------------------------------------------------
-PLUGIN_ENVIRONMENT_VARIABLE = 'DROPLET_PLUGIN_PATHS'
+PLUGIN_ENVIRONMENT_VARIABLE = 'CRAB_PLUGIN_PATHS'

@@ -4,7 +4,6 @@ import factories
 import pymel.core as pm
 
 from . import meta
-from . import utils
 from . import config
 from . import create
 from . import process

@@ -1,6 +1,5 @@
 import pymel.core as pm
 
-from . import utils
 from . import config
 from . import shapeio
 
@@ -11,7 +10,7 @@ def joint(description,
           parent=None,
           xform=None,
           match_to=None,
-          radius=10):
+          radius=3):
     """
     Creates a joint, ensuring the right parenting and radius
     :param node_type: Type of node to create, such as 'transform'
@@ -52,6 +51,16 @@ def joint(description,
         match_to=match_to,
     )
 
+    # -- Get the world transform so we can zero all the joint orients
+    ws_mat4 = new_joint.getMatrix(worldSpace=True)
+
+    new_joint.jointOrientX.set(0)
+    new_joint.jointOrientY.set(0)
+    new_joint.jointOrientZ.set(0)
+
+    # -- Now restore the ws mat4
+    new_joint.setMatrix(ws_mat4)
+
     # -- Set the joint radius
     new_joint.radius.set(radius)
 
@@ -69,7 +78,8 @@ def control(description,
             match_to=None,
             shape=None,
             lock_list=None,
-            hide_list=None):
+            hide_list=None,
+            rotation_order=None):
     """
     Creates a control structure - which is a structure which conforms to the
     following hierarchy:
@@ -148,6 +158,13 @@ def control(description,
             if attr_to_lock:
                 parent.attr(attr_to_lock).lock()
 
+    # -- Now expose the rotation order
+    parent.rotateOrder.set(k=True)
+
+    parent.rotateOrder.set(
+        rotation_order or config.DEFAULT_CONTROL_ROTATION_ORDER
+    )
+
     return parent
 
 
@@ -196,16 +213,12 @@ def generic(node_type,
 
     # -- Name it based on our naming convention
     node.rename(
-        utils.name(
+        config.name(
             prefix=prefix,
             description=description,
             side=side,
         ),
     )
-
-    # -- Parent the node if we're given a parent
-    if parent:
-        node.setParent(parent)
 
     # -- If we're given a matrix utilise that
     if xform:
@@ -221,6 +234,10 @@ def generic(node_type,
             match_to.getMatrix(worldSpace=True),
             worldSpace=True,
         )
+
+    # -- Parent the node if we're given a parent
+    if parent:
+        node.setParent(parent)
 
     if shape:
         shapeio.apply(node, shape)

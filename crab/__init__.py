@@ -81,11 +81,8 @@ new_rig.build()
 new_rig.edit()
 ```
 
-
 Todo:
-    * Mirror Component
-    * Layers Post Process
-    * Space Switch Post Process
+    * Shapes need to be cleared before being remade
 """
 from .rig import Rig
 from .component import Component

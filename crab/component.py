@@ -114,7 +114,7 @@ class Component(object):
 
         # -- All the options should be defined within this
         # -- dictionary
-        self.options = utils.AttributeDict()
+        self.options = utils.types.AttributeDict()
         self.options.description = 'unknown'
         self.options.side = config.MIDDLE
 

@@ -9,7 +9,6 @@ plugins the component represents.
 The metanodes also serve as a tagging feature, allowing objects in the 
 scene to be tagged with a label and therefore found again by that label.
 """
-from . import utils
 from . import config
 
 import json
@@ -42,10 +41,10 @@ def create(meta_type, connect_to, **kwargs):
     # -- Create the node marker
     meta_node = pm.createNode('network')
     meta_node.rename(
-        utils.name(
+        config.name(
             prefix=config.META,
-            description=utils.get_description(connect_to.name()),
-            side=utils.get_side(connect_to.name()),
+            description=config.get_description(connect_to.name()),
+            side=config.get_side(connect_to.name()),
         )
     )
 

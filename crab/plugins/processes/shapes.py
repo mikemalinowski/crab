@@ -3,6 +3,7 @@ import crab
 import pymel.core as pm
 
 
+# ------------------------------------------------------------------------------
 class ShapeStoreProcess(crab.Process):
     """
     This is an example only plugin showing what a process plugin might
@@ -90,6 +91,14 @@ class ShapeStoreProcess(crab.Process):
             if not pm.objExists(data['node']):
                 continue
 
+            # -- Get the node in question
+            node = pm.PyNode(data['node'])
+
+            # -- Remove any pre-existing shapes
+            if node.getShapes():
+                pm.delete(node.getShapes())
+
+            # -- Now apply our new shapes
             apply(
                 pm.PyNode(data['node']),
                 data,

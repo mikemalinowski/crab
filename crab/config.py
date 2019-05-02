@@ -1,3 +1,4 @@
+import pymel.core as pm
 
 
 # ------------------------------------------------------------------------------
@@ -33,6 +34,11 @@ RIG_COMPONENT = 'CMP'
 GUIDE_COMPONENT = 'GCM'
 META = 'META'
 
+# ------------------------------------------------------------------------------
+# -- This is a group of layer names
+HIDDEN_LAYER = 'Hidden'
+CONTROL_LAYER = 'Controls'
+SKELETON_LAYER = 'Skeleton'
 
 # ------------------------------------------------------------------------------
 # -- This is a list of pre-fixes for general use within a crab plugin
@@ -42,6 +48,7 @@ CONTROL = 'CTL'
 ZERO = 'ZRO'
 OFFSET = 'OFF'
 SKELETON = 'SKL'
+MECHANICAL = 'MEC'
 
 
 # ------------------------------------------------------------------------------
@@ -55,3 +62,105 @@ FRONT = 'FR'
 BACK = 'BK'
 TOP = 'TP'
 BOTTOM = 'BT'
+
+
+# ------------------------------------------------------------------------------
+# -- Defines attribute defaults
+DEFAULT_CONTROL_ROTATION_ORDER = 5
+
+
+# ------------------------------------------------------------------------------
+# noinspection PyUnresolvedReferences
+def name(prefix, description, side, counter=1):
+    """
+    Generates a unique name with the given naming parts
+
+    :param prefix: Typically this is used to denote usage type. Note that this
+        should not be 'node type' but should be representative of what the node
+        is actually being used for in the rig.
+    :type prefix: str
+
+    :param description: This is the descriptive element of the rig and should
+        ideally be upper camel case.
+    :type description: str
+
+    :param side: This is the location of the element, such as LF, RT  or MD etc
+    :type side: str
+
+    :param counter: To ensure all names are unique we use a counter. By default
+        all counters start at 1, but you may override this.
+    :type counter: int
+
+    :return:
+    """
+    while True:
+        candidate = '%s_%s_%s_%s' % (
+            prefix.upper(),
+            description,
+            counter,
+            side.upper(),
+        )
+
+        # -- If the name is unique, return it
+        if not pm.objExists(candidate):
+            return candidate
+
+        # -- The name already exists, so increment our
+        # -- counter
+        counter += 1
+
+
+# ------------------------------------------------------------------------------
+def get_prefix(given_name):
+    """
+    Assuming the given name adheres to the naming convention of crab this
+    will extract the prefix element of the name.
+
+    :param given_name: Name to extract from
+    :type given_name: str or pm.nt.DependNode
+
+    :return: str
+    """
+    return str(given_name).split(':')[-1].split('_')[0]
+
+
+# ------------------------------------------------------------------------------
+def get_description(given_name):
+    """
+    Assuming the given name adheres to the naming convention of crab this
+    will extract the descriptive element of the name.
+
+    :param given_name: Name to extract from
+    :type given_name: str or pm.nt.DependNode
+
+    :return: str
+    """
+    return str(given_name).split(':')[-1].split('_')[1]
+
+
+# ------------------------------------------------------------------------------
+def get_counter(given_name):
+    """
+    Assuming the given name adheres to the naming convention of crab this
+    will extract the counter element of the name.
+
+    :param given_name: Name to extract from
+    :type given_name: str or pm.nt.DependNode
+
+    :return: int
+    """
+    return int(str(given_name).split(':')[-1].split('_')[2])
+
+
+# ------------------------------------------------------------------------------
+def get_side(given_name):
+    """
+    Assuming the given name adheres to the naming convention of crab this
+    will extract the side/location element of the name.
+
+    :param given_name: Name to extract from
+    :type given_name: str or pm.nt.DependNode
+
+    :return: str
+    """
+    return str(given_name).split(':')[-1].split('_')[3]
