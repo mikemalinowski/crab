@@ -88,11 +88,14 @@ from .rig import Rig
 from .component import Component
 from .behaviour import Behaviour
 from .process import Process
+from .tools import RigTool
+from .tools import AnimTool
 
 from . import config
 from . import utils
 from . import shapeio
 from . import create
+from . import tools
 
 from .apps import creator
 

@@ -19,7 +19,6 @@ def add_separator_attr(node):
 
     node.addAttr(
         name_to_use,
-        niceName='-' * 12,
         k=True,
     )
 
@@ -47,6 +46,9 @@ def add_to_layer(nodes, layer_name):
             name=layer_name,
             empty=True,
         )
+
+    if not nodes:
+        return
 
     # -- If the nodes is a list a single node we should convert
     # -- that to a list

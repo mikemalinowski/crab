@@ -56,7 +56,7 @@ class LocationComponent(crab.Component):
         return True
 
     # --------------------------------------------------------------------------
-    def create_rig(self, parent, skeleton_component):
+    def create_rig(self, parent, skeleton_component, guide_component):
 
         # -- We're given the skeleton component instance, so we can
         # -- utilise the find method to find the joint we need to build

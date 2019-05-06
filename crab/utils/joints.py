@@ -6,6 +6,15 @@ from . import hierarchy
 
 
 # ------------------------------------------------------------------------------
+def zero(joint):
+    for axis in ['X', 'Y', 'Z']:
+        joint.attr('rotate%s' % axis).set(0)
+        joint.attr('translate%s' % axis).set(0)
+        joint.attr('scale%s' % axis).set(1)
+        joint.attr('jointOrient%s' % axis).set(0)
+
+
+# ------------------------------------------------------------------------------
 def replicate_chain(from_this, to_this, parent, world=True):
     """
     Replicates the joint chain exactly

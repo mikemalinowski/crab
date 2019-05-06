@@ -4,6 +4,7 @@ import factories
 import pymel.core as pm
 
 from . import meta
+from . import utils
 from . import config
 from . import create
 from . import process
@@ -134,6 +135,14 @@ class Rig(object):
             parent=rig_root,
         )
 
+        geometry_root = create.generic(
+            node_type='transform',
+            prefix=config.ORG,
+            description='Geometry',
+            side=config.MIDDLE,
+            parent=rig_root,
+        )
+
         # -- Add the behaviour attribute to the rig node, this is where
         # -- we store a list of all the behaviours assigned to the rig
         rig_root.addAttr(
@@ -169,6 +178,12 @@ class Rig(object):
         meta.tag(
             guide_root,
             'GuideRoot',
+            rig_root,
+        )
+
+        meta.tag(
+            geometry_root,
+            'GeometryRoot',
             rig_root,
         )
 
@@ -221,40 +236,55 @@ class Rig(object):
             return None
 
         # -- Instance the segment and update its options
-        plugin = self.components.request(component_type, version=version)()
+        plugin_type = self.components.request(component_type, version=version)
+        plugin = plugin_type()
         plugin.options.update(options)
 
         # -- Now we request the segment to build its guide
         result = plugin.create_skeleton(parent=parent)
 
-        # -- We assume failure if we do not get a positive return
-        # -- value, in which case log an error
         if not result:
-            log.error(
-                'The %s segment failed to create its guide successfully' % (
-                component_type,
-                ),
+            return plugin
+
+        with utils.contexts.RestoredSelection():
+            # -- Get the guide root
+            guide_root = self.find('GuideRoot')[0]
+
+            # -- Create the guide, generating a guide root and passing
+            # -- that through as the parent
+            guide_base = plugin.create_guide_base(guide_root, plugin.root)
+            guide_plugin = plugin_type(guide_base)
+            guide_plugin.options.update(options)
+
+            guide_plugin.create_guide(
+                parent=guide_base,
+                skeleton_component=plugin_type(plugin.root)
             )
-            return None
 
-        # -- Add a debug message to denote the success of the
-        # -- component addition
-        log.debug('Successfully created component of type: %s' % component_type)
+            # -- We assume failure if we do not get a positive return
+            # -- value, in which case log an error
+            if not result:
+                log.error(
+                    'The %s segment failed to create its guide successfully' % (
+                        component_type,
+                    ),
+                )
+                return None
 
-        return plugin
+            # -- Add a debug message to denote the success of the
+            # -- component addition
+            log.debug('Successfully created component of type: %s' % component_type)
+
+            return plugin
 
     # --------------------------------------------------------------------------
-    def edit(self, create_guides=True):
+    def edit(self):
         """
         Puts the rig into an editable state - removing the control rig
         and exposing the skeleton as well as triggering any guides.
         
         During this process all the stored process plugins will have their
         snapshot and pre functions called.
-        
-        :param create_guides: If True the guide creation code will be
-            executed for each component. 
-        :type create_guides: bool
         
         :return: True if the rig enters edit mode successfully
         """
@@ -276,34 +306,9 @@ class Rig(object):
         for proc in self.processes.plugins():
             proc(self).pre()
 
-        # -- Next we need to give any components the opportunity to build
-        # -- any supporting guides
-        if create_guides:
-
-            # -- Log the fact that we're building guides
-            log.debug('Building guide setups.')
-
-            # -- Get the guide root
-            guide_root = self.find('GuideRoot')[0]
-
-            for component_root in self.skeleton_roots():
-
-                # -- Get the plugin for this component
-                plugin = self.components.request(
-                    plugin_identifier=meta.get_identifier(component_root),
-                    version=meta.get_version(component_root),
-                )
-
-                # -- Instance the plugin and update its options
-                # -- with the options stored in the meta node
-                plugin_instance = plugin(component_root)
-                plugin_instance.options.update(meta.get_options(component_root))
-
-                # -- Create the guide, generating a guide root and passing
-                # -- that through as the parent
-                plugin_instance.create_guide(
-                    parent=plugin_instance.create_guide_base(guide_root),
-                )
+        # -- Show all guides
+        for guide_root in self.find('GuideRoot')[0].getChildren():
+            guide_root.visibility.set(True)
 
         return True
 
@@ -321,11 +326,7 @@ class Rig(object):
         log.info('Commencing rig build.')
 
         # -- Ensure the rig is in an editable state
-        self.edit(create_guides=False)
-
-        # -- Remove any guides before building
-        # -- the control rig
-        pm.delete(self.guide_roots())
+        self.edit()
 
         # -- Finally we can start cycling components and requested
         # -- a control build
@@ -335,12 +336,13 @@ class Rig(object):
             component_type = meta.get_identifier(component_root)
 
             # -- Check we have a plugin to build that type
-            if not component_type in self.components.identifiers():
+            if component_type not in self.components.identifiers():
                 raise Exception('No plugin found for %s' % component_type)
 
             # -- Instance a plugin for access to all the
             # -- skeletal elements
-            skeleton_plugin = self.components.request(component_type)(component_root)
+            skeleton_plugin = self.components.request(component_type)()
+            skeleton_plugin.define_root(component_root)
 
             # -- Instance a plugin for the rig
             rig_plugin = self.components.request(component_type)()
@@ -362,6 +364,7 @@ class Rig(object):
             rig_plugin.create_rig(
                 parent=rig_plugin.create_control_base(rig_parent),
                 skeleton_component=skeleton_plugin,
+                guide_component=skeleton_plugin.guide(),
             )
 
         # -- Now we need to apply any behaviours
@@ -375,6 +378,10 @@ class Rig(object):
 
             # -- Finally apply the behaviour
             behaviour_plugin.apply()
+
+        # -- Hide all guides
+        for guide_root in self.find('GuideRoot')[0].getChildren():
+            guide_root.visibility.set(False)
 
         # -- Now the rig has been fully built we can run any post build
         # -- processes
@@ -409,11 +416,11 @@ class Rig(object):
         :return: 
         """
         # -- Check to ensure we have a control rig
-        if not self.control_roots():
-            log.warning('Cannot apply behaviours when not in rig mode')
+        # if not self.control_roots():
+        #     log.warning('Cannot apply behaviours when not in rig mode')
 
         # -- Ensure the behaviour is accessible
-        if not behaviour_type in self.behaviours.identifiers():
+        if behaviour_type not in self.behaviours.identifiers():
             log.error('%s could not be found.' % behaviour_type)
             return False
 

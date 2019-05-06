@@ -57,21 +57,21 @@ class Component(object):
         pass
 
     # --------------------------------------------------------------------------
-    def create_guide(self, parent):
+    def create_guide(self, parent, skeleton_component):
         """
         This function allows you to build a guide element. 
         
-        TODO: This mechanism still needs fully implemented and should
-            not yet be utilised.
-            
-        :param parent: Parent to place your guide under
-         
+        :param parent: Parent node to build the rig under
+        
+        :param skeleton_component: A Component instance representing the 
+            skeleton.
+             
         :return: 
         """
         pass
 
     # --------------------------------------------------------------------------
-    def create_rig(self, parent, skeleton_component):
+    def create_rig(self, parent, skeleton_component, guide_component):
         """
         This should create your animation rig for this segment. The parent
         will be a pre-constructed crabSegment transform node and the guide
@@ -124,17 +124,29 @@ class Component(object):
         # -- If we are given a node, we should look for the root
         # -- of the component from the node we're given.
         if node:
+            self.define_root(node)
 
-            # -- Define the root
-            self.root = meta.get_meta_root(node)
+    # --------------------------------------------------------------------------
+    def define_root(self, node, *args, **kwargs):
+        """
+        Finds the root node and updates the options of the class to those
+        off the root
 
-            # -- Now update the class options based on the options stored
-            # -- within the meta node
-            self.options.update(
-                json.loads(
-                    meta.get_meta_node(self.root).attr(config.META_OPTIONS).get(),
-                ),
-            )
+        :param node: Node to search from
+        :type node: pm.nt.Transform
+
+        :return: None
+        """
+        # -- Define the root
+        self.root = meta.get_meta_root(node)
+
+        # -- Now update the class options based on the options stored
+        # -- within the meta node
+        self.options.update(
+            json.loads(
+                meta.get_meta_node(self.root).attr(config.META_OPTIONS).get(),
+            ),
+        )
 
     # --------------------------------------------------------------------------
     def tag(self, target, label):
@@ -212,6 +224,12 @@ class Component(object):
             }
         )
 
+        # -- Add the guide options attribute
+        node.addAttr(
+            config.GUIDE_OPTIONS,
+            dt='string',
+        )
+
         # -- Update the root property of the class, to ensure its
         # -- always accessible
         self.root = node
@@ -232,7 +250,7 @@ class Component(object):
         node = create.generic(
             node_type='transform',
             prefix=config.RIG_COMPONENT,
-            description=self.options.description,
+            description=self.options.description or self.identifier,
             side=self.options.side,
             parent=parent,
             match_to=parent,
@@ -253,7 +271,7 @@ class Component(object):
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
-    def create_guide_base(self, parent):
+    def create_guide_base(self, parent, skeleton_root):
         """
         Convenience function for creating a root for your component. You should
         call this from within your create_guide function call.
@@ -267,14 +285,14 @@ class Component(object):
         node = create.generic(
             node_type='transform',
             prefix=config.GUIDE_COMPONENT,
-            description=self.options.description,
+            description=self.options.description or self.identifier,
             side=self.options.side,
             parent=parent,
             match_to=parent,
         )
 
         # -- Create the meta node, passing through all our options
-        meta.create(
+        meta_node = meta.create(
             config.COMPONENT_GUIDE_TYPE,
             node,
             **{
@@ -284,4 +302,24 @@ class Component(object):
             }
         )
 
+        # -- Add a guide link
+        meta_node.addAttr(
+            config.GUIDE_LINK,
+            at='message',
+        )
+
+        skeleton_root.message.connect(meta_node.attr(config.GUIDE_LINK))
+
         return node
+
+    # --------------------------------------------------------------------------
+    def guide(self):
+
+        # -- Check if the root has a guide link
+        for attr in self.root.message.outputs(plugs=True):
+            if attr.name(includeNode=False) == config.GUIDE_LINK:
+                connections = attr.node().attr(config.LINK).inputs()
+                if connections:
+                    return self.__class__(attr.node().attr(config.LINK).inputs()[0])
+
+        return None

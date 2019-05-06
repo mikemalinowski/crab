@@ -90,12 +90,12 @@ def apply(node, data):
     :type node: pm.nt.DagNode
 
     :param data: Shape data to apply
-    :type data: dict
+    :type data: dict or string
 
     :return: list(pm.nt.NurbsCurve, ...)
     """
     # -- If the data is a filepath we need to extract it
-    if isinstance(data, str):
+    if not isinstance(data, dict):
 
         # -- Check for a filepath
         if not os.path.exists(data):

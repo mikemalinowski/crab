@@ -8,6 +8,7 @@ from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
 from ... import meta
 from ... import rig
+from ... import tools
 
 
 # ------------------------------------------------------------------------------
@@ -64,6 +65,7 @@ class CrabCreator(qute.QWidget):
 
         # -- When we generate widgets on the fly to show as options
         # -- we need to track them, these lists are used for that purpose
+        self.tool_option_widgets = list()
         self.component_option_widgets = list()
         self.behaviour_option_widgets = list()
         self.applied_behaviour_option_widgets = list()
@@ -78,6 +80,7 @@ class CrabCreator(qute.QWidget):
         # -- Populate all our lists - both the lists which allow the user
         # -- to build new components as well as the lists showing what a rig
         # -- is mad up of
+        self.populateTools()
         self.populateComponents()
         self.populateBehaviours()
         self.populateAppliedComponents()
@@ -89,11 +92,14 @@ class CrabCreator(qute.QWidget):
         self.ui.buildRig.clicked.connect(self.build)
 
         # -- These are the signals for the editing buttons
+        self.ui.runTool.clicked.connect(self.runTool)
+        self.ui.toolList.itemDoubleClicked.connect(self.runTool)
         self.ui.addComponent.clicked.connect(self.add_component)
         self.ui.addBehaviour.clicked.connect(self.add_behaviour)
 
         # -- Call backs for the lists which expose components/behaviours
         # -- which can be added to a rig
+        self.ui.toolList.currentRowChanged.connect(self.populateToolOptions)
         self.ui.componentList.currentRowChanged.connect(self.populateComponentOptions)
         self.ui.behaviourList.currentRowChanged.connect(self.populateBehaviourOptions)
 
@@ -116,8 +122,8 @@ class CrabCreator(qute.QWidget):
     def edit(self):
         """
         Initiates an edit of the currently active crab rig in the scene.
-        
-        :return: None 
+
+        :return: None
         """
         self.rig.edit()
 
@@ -125,8 +131,8 @@ class CrabCreator(qute.QWidget):
     def build(self):
         """
         Initiates a build of the currently active crab rig in the scene
-        
-        :return: 
+
+        :return:
         """
         self.rig.build()
 
@@ -134,8 +140,8 @@ class CrabCreator(qute.QWidget):
     def new(self):
         """
         Creates a new crab rig, prompting for a name.
-        
-        :return: None 
+
+        :return: None
         """
         name, ok = qute.QInputDialog.getText(
             self,
@@ -162,8 +168,8 @@ class CrabCreator(qute.QWidget):
     def add_component(self):
         """
         Triggered when the user wants to add a component.
-        
-        :return: 
+
+        :return:
         """
         # -- If there is no selection we cannot do anything
         if not self.ui.componentList.currentItem():
@@ -192,8 +198,8 @@ class CrabCreator(qute.QWidget):
         Triggered when a user changes selection in the component list, this
         will generate widgets representing all the options for the selected
         component.
-        
-        :return: None 
+
+        :return: None
         """
         # -- If no component is selected we cannot do anything
         if not self.ui.componentList.currentItem():
@@ -234,15 +240,15 @@ class CrabCreator(qute.QWidget):
         """
         Populates the component list with all the components available
         from within the component library.
-        
-        :return: None 
+
+        :return: None
         """
         if not self.rig:
             return
 
         self.ui.componentList.clear()
 
-        for component_type in self.rig.components.identifiers():
+        for component_type in sorted(self.rig.components.identifiers()):
             self.ui.componentList.addItem(component_type)
 
     # --------------------------------------------------------------------------
@@ -250,8 +256,8 @@ class CrabCreator(qute.QWidget):
         """
         Populates the list which shows all the components applied to the
         rig.
-        
-        :return: None 
+
+        :return: None
         """
         if not self.rig:
             return
@@ -272,8 +278,8 @@ class CrabCreator(qute.QWidget):
         Triggered when the user selected an item from the applied
         component list, this will generate widgets representing all the
         options for the applied component.
-        
-        :return: 
+
+        :return:
         """
         if not self.ui.appliedComponentList.currentItem():
             return
@@ -311,11 +317,11 @@ class CrabCreator(qute.QWidget):
     # --------------------------------------------------------------------------
     def add_behaviour(self):
         """
-        Triggered when the user clicks to add a new behaviour, reading the 
+        Triggered when the user clicks to add a new behaviour, reading the
         option widget values and adding the behaviour to the currently active
         rig.
-        
-        :return: None 
+
+        :return: None
         """
         if not self.ui.behaviourList.currentItem():
             return
@@ -433,7 +439,7 @@ class CrabCreator(qute.QWidget):
 
         self.ui.behaviourList.clear()
 
-        for behaviour_type in self.rig.behaviours.identifiers():
+        for behaviour_type in sorted(self.rig.behaviours.identifiers()):
             self.ui.behaviourList.addItem(behaviour_type)
 
     # --------------------------------------------------------------------------
@@ -535,6 +541,85 @@ class CrabCreator(qute.QWidget):
             self.ui.appliedBehaviourOptionsLayout.addLayout(
                 qute.addLabel(widget, name),
             )
+
+    # --------------------------------------------------------------------------
+    # -- Tools
+    def populateTools(self):
+        """
+        Populates the tool list with all the tools available from the
+        tool library.
+
+        :return: None
+        """
+        self.ui.toolList.clear()
+
+        for tool in sorted(tools.rigging().identifiers()):
+            self.ui.toolList.addItem(tool)
+
+    # --------------------------------------------------------------------------
+    def populateToolOptions(self):
+        """
+        Triggered when the user selects a tool in teh tool panel. This
+        will dynamically generate ui elements for the options of the tool.
+
+        :return: None
+        """
+        if not self.ui.toolList.currentItem():
+            return
+
+        # -- Clear the current options
+        qute.emptyLayout(self.ui.toolOptionsLayout)
+        self.tool_option_widgets = list()
+
+        # -- Get the plugin
+        tool_plugin = tools.rigging().request(
+            self.ui.toolList.currentItem().text(),
+        )()
+
+        # -- Now create a widget for each option
+        for name, value in tool_plugin.options.items():
+
+            # -- Create a widget to represent this value
+            widget = qute.deriveWidget(value, '')
+            widget.setObjectName(name)
+
+            # -- Give a minimum width to create consistency
+            widget.setMinimumWidth(140)
+
+            self.tool_option_widgets.append(widget)
+
+            # -- Finally, add it into the layout
+            self.ui.toolOptionsLayout.addLayout(
+                qute.addLabel(widget, name),
+            )
+
+    # --------------------------------------------------------------------------
+    def runTool(self, *args, **kwargs):
+        """
+        Executes the currently selected tool with any options
+
+        :return:
+        """
+        if not self.ui.toolList.currentItem():
+            return None
+
+        # -- Get the values from all the option elements
+        options = dict()
+        for widget in self.tool_option_widgets:
+            options[widget.objectName()] = qute.deriveValue(widget)
+
+        # -- Get the plugin
+        tool_plugin = tools.rigging().request(
+            self.ui.toolList.currentItem().text(),
+        )()
+
+        # -- Update the plugin options with the items from the
+        # -- ui
+        tool_plugin.options.update(options)
+
+        # -- Execute the tool
+        tool_plugin.run()
+
     # --------------------------------------------------------------------------
     # -- These are general convenience functions for the ui
 

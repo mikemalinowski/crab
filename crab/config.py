@@ -23,6 +23,8 @@ META_OPTIONS = 'Options'
 BOUND = 'crabBinding'
 LINK = 'crabLink'
 BEHAVIOUR_DATA = 'crabBehaviours'
+GUIDE_LINK = 'crabGuideLink'
+GUIDE_OPTIONS = 'crabGuideOptions'
 
 
 # ------------------------------------------------------------------------------
@@ -39,6 +41,7 @@ META = 'META'
 HIDDEN_LAYER = 'Hidden'
 CONTROL_LAYER = 'Controls'
 SKELETON_LAYER = 'Skeleton'
+GEOMETRY_LAYER = 'Geometry'
 
 # ------------------------------------------------------------------------------
 # -- This is a list of pre-fixes for general use within a crab plugin
@@ -49,6 +52,10 @@ ZERO = 'ZRO'
 OFFSET = 'OFF'
 SKELETON = 'SKL'
 MECHANICAL = 'MEC'
+MATH = 'MATH'
+MARKER = 'LOC'
+GUIDE = 'GDE'
+PIVOT = 'PIV'
 
 
 # ------------------------------------------------------------------------------
@@ -63,6 +70,14 @@ BACK = 'BK'
 TOP = 'TP'
 BOTTOM = 'BT'
 
+
+# ------------------------------------------------------------------------------
+# -- Define colours based on categories
+LEFT_COLOR = [252, 48, 1]
+RIGHT_COLOR = [0, 162, 254]
+MIDDLE_COLOR = [254, 209, 0]
+NON_ANIMATABLE_COLOUR = [150, 150, 150]
+GUIDE_COLOR = [162, 222, 0]
 
 # ------------------------------------------------------------------------------
 # -- Defines attribute defaults
