@@ -1,3 +1,7 @@
+"""
+This module contains the Rig class which is typically the main
+entry point to accessing and editing rigs.
+"""
 import json
 import uuid
 import factories
@@ -304,7 +308,7 @@ class Rig(object):
         pm.delete(self.control_roots())
 
         for proc in self.processes.plugins():
-            proc(self).pre()
+            proc(self).post_edit()
 
         # -- Show all guides
         for guide_root in self.find('GuideRoot')[0].getChildren():
@@ -327,6 +331,9 @@ class Rig(object):
 
         # -- Ensure the rig is in an editable state
         self.edit()
+
+        for proc in self.processes.plugins():
+            proc(self).pre_build()
 
         # -- Finally we can start cycling components and requested
         # -- a control build
@@ -360,11 +367,13 @@ class Rig(object):
                     rig_parent = potential
                     break
 
+            guide_plugin = skeleton_plugin.guide()
+
             # -- Now request a build of the component
             rig_plugin.create_rig(
                 parent=rig_plugin.create_control_base(rig_parent),
                 skeleton_component=skeleton_plugin,
-                guide_component=skeleton_plugin.guide(),
+                guide_component=guide_plugin,
             )
 
         # -- Now we need to apply any behaviours
@@ -386,7 +395,7 @@ class Rig(object):
         # -- Now the rig has been fully built we can run any post build
         # -- processes
         for proc in self.processes.plugins():
-            proc(self).post()
+            proc(self).post_build()
 
     # --------------------------------------------------------------------------
     # noinspection PyTypeChecker

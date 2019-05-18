@@ -43,7 +43,7 @@ class Process(object):
         pass
 
     # --------------------------------------------------------------------------
-    def pre(self):
+    def post_edit(self):
         """
         This is called after the control is destroyed, leaving the skeleton
         bare. This is typically a good time to do any skeleton modifications
@@ -54,7 +54,17 @@ class Process(object):
         pass
 
     # --------------------------------------------------------------------------
-    def post(self):
+    def pre_build(self):
+        """
+        This is called after all the components and behaviours are built,
+        allowing  you to perform any actions against the rig as a whole.
+
+        :return:
+        """
+        pass
+
+    # --------------------------------------------------------------------------
+    def post_build(self):
         """
         This is called after all the components and behaviours are built, 
         allowing  you to perform any actions against the rig as a whole.

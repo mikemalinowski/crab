@@ -1,7 +1,7 @@
 import pymel.core as pm
 
+from crab.utils import shapes
 from . import config
-from . import shapeio
 
 
 # ------------------------------------------------------------------------------
@@ -13,9 +13,7 @@ def joint(description,
           radius=3):
     """
     Creates a joint, ensuring the right parenting and radius
-    :param node_type: Type of node to create, such as 'transform'
-    :type node_type: str
-
+    
     :param description: Descriptive section of the name
     :type description: str
 
@@ -51,15 +49,30 @@ def joint(description,
         match_to=match_to,
     )
 
-    # -- Get the world transform so we can zero all the joint orients
-    ws_mat4 = new_joint.getMatrix(worldSpace=True)
-
     new_joint.jointOrientX.set(0)
     new_joint.jointOrientY.set(0)
     new_joint.jointOrientZ.set(0)
 
-    # -- Now restore the ws mat4
-    new_joint.setMatrix(ws_mat4)
+    if parent:
+        new_joint.setMatrix(
+            parent.getMatrix(worldSpace=True),
+            worldSpace=True,
+        )
+
+    # -- If we're given a matrix utilise that
+    if xform:
+        new_joint.setMatrix(
+            xform,
+            worldSpace=True,
+        )
+
+    # -- Match the object to the target object if one
+    # -- is given.
+    if match_to:
+        new_joint.setMatrix(
+            match_to.getMatrix(worldSpace=True),
+            worldSpace=True,
+        )
 
     # -- Set the joint radius
     new_joint.radius.set(radius)
@@ -169,6 +182,31 @@ def control(description,
 
 
 # ------------------------------------------------------------------------------
+def org(description, side, parent=None):
+    """
+    Creates a simple org node
+
+    :param description: Descriptive section of the name
+    :type description: str
+
+    :param side: Tag for the location to be used during the name generation
+    :type side: str
+
+    :param parent: Optional parent to assign to the node
+    :type parent: pm.nt.DagNode
+
+    """
+    return generic(
+        prefix=config.ORG,
+        node_type='transform',
+        description=description,
+        side=side,
+        parent=parent,
+        match_to=parent,
+    )
+
+
+# ------------------------------------------------------------------------------
 def guide(description,
           side,
           parent=None,
@@ -201,6 +239,7 @@ def guide(description,
     :param follow: If given the node will be parent constrained
     :type follow: pm.nt.DagNode
     """
+
     prefixes = [
         config.ORG,
         config.ZERO,
@@ -339,6 +378,6 @@ def generic(node_type,
         node.setParent(parent)
 
     if shape:
-        shapeio.apply(node, shape)
+        shapes.apply(node, shape)
 
     return node

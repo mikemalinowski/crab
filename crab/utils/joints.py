@@ -15,7 +15,7 @@ def zero(joint):
 
 
 # ------------------------------------------------------------------------------
-def replicate_chain(from_this, to_this, parent, world=True):
+def replicate_chain(from_this, to_this, parent, world=True, replacements=None):
     """
     Replicates the joint chain exactly
     """
@@ -32,6 +32,15 @@ def replicate_chain(from_this, to_this, parent, world=True):
             joint_to_trace,
             parent=next_parent,
         )
+
+        if replacements:
+            for replace_this, with_this in replacements.items():
+                new_joint.rename(
+                    new_joint.name().replace(
+                        replace_this,
+                        with_this,
+                    ),
+                )
 
         # -- The first joint we always have to simply match
         # -- in worldspace if required
@@ -93,6 +102,39 @@ def replicate(joint, parent, description=None):
             )
 
     return new_joint
+
+
+# ------------------------------------------------------------------------------
+def reverse_chain(joints):
+    """
+    Reverses the hierarchy of the joint chain.
+
+    :param joints: List of joints in the chain to reverse
+
+    :return: the same list of joints in reverse order
+    """
+    # -- Store the base parent so we can reparent the chain
+    # -- back under it
+    base_parent = joints[0].getParent()
+
+    # -- Start by clearing all the hierarchy of the chain
+    for joint in joints:
+        joint.setParent(None)
+
+    # -- Now build up the hierarchy in the reverse order
+    for idx in range(len(joints)):
+        try:
+            joints[idx].setParent(joints[idx + 1])
+        except IndexError:
+            pass
+
+    # -- Finally we need to set the base parent once
+    # -- again
+    joints[-1].setParent(base_parent)
+
+    joints.reverse()
+
+    return joints
 
 
 # ------------------------------------------------------------------------------

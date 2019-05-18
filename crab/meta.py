@@ -79,7 +79,8 @@ def create(meta_type, connect_to, **kwargs):
         config.META_OPTIONS,
         dt='string',
     )
-    
+    meta_node.attr(config.META_OPTIONS).set('{}')
+
     for option, value in kwargs.items():
         if meta_node.hasAttr(option):
             meta_node.attr(option).set(value)

@@ -63,6 +63,11 @@ class CrabCreator(qute.QWidget):
             }
         )
 
+        # -- We hook up script jobs to allow the ui to auto refresh
+        # -- based on internal maya events
+        self.script_job_ids = list()
+        self._registerScriptJobs()
+
         # -- When we generate widgets on the fly to show as options
         # -- we need to track them, these lists are used for that purpose
         self.tool_option_widgets = list()
@@ -75,16 +80,12 @@ class CrabCreator(qute.QWidget):
         self._resolveIcons()
 
         # -- Create an instance of Crab
-        self.rig = self.get_rig()
+        self.rig = None
 
         # -- Populate all our lists - both the lists which allow the user
         # -- to build new components as well as the lists showing what a rig
         # -- is mad up of
-        self.populateTools()
-        self.populateComponents()
-        self.populateBehaviours()
-        self.populateAppliedComponents()
-        self.populateAppliedBehaviours()
+        self.refreshAll()
 
         # -- Hook up the signals and slots for the main build loop buttons
         self.ui.newRig.clicked.connect(self.new)
@@ -113,10 +114,19 @@ class CrabCreator(qute.QWidget):
         self.ui.moveBehaviourUp.clicked.connect(self.move_behaviour_up)
         self.ui.moveBehaviourDown.clicked.connect(self.move_behaviour_down)
 
-
     # --------------------------------------------------------------------------
     # -- This set of functions are all related to the new/edit/build
     # -- iteration workflow.
+
+    # --------------------------------------------------------------------------
+    def refreshAll(self):
+        self.rig = self.get_rig()
+
+        self.populateTools()
+        self.populateComponents()
+        self.populateBehaviours()
+        self.populateAppliedComponents()
+        self.populateAppliedBehaviours()
 
     # --------------------------------------------------------------------------
     def edit(self):
@@ -157,8 +167,7 @@ class CrabCreator(qute.QWidget):
         self.rig = rig.Rig.create(name=name)
 
         # -- Re-ppopulate the component lists
-        self.populateComponents()
-        self.populateBehaviours()
+        self.refreshAll()
 
     # --------------------------------------------------------------------------
     # -- This set of functions are focused on component editing
@@ -243,10 +252,10 @@ class CrabCreator(qute.QWidget):
 
         :return: None
         """
+        self.ui.componentList.clear()
+
         if not self.rig:
             return
-
-        self.ui.componentList.clear()
 
         for component_type in sorted(self.rig.components.identifiers()):
             self.ui.componentList.addItem(component_type)
@@ -259,10 +268,10 @@ class CrabCreator(qute.QWidget):
 
         :return: None
         """
+        self.ui.appliedComponentList.clear()
+
         if not self.rig:
             return
-
-        self.ui.appliedComponentList.clear()
 
         for component_root in self.rig.skeleton_roots():
             self.ui.appliedComponentList.addItem(
@@ -281,14 +290,16 @@ class CrabCreator(qute.QWidget):
 
         :return:
         """
-        if not self.ui.appliedComponentList.currentItem():
+        item = self.ui.appliedComponentList.currentItem()
+
+        if not item:
             return
 
         # -- Clear the current options
         qute.emptyLayout(self.ui.appliedComponentOptionsLayout)
 
         # -- We need to get the root from the name
-        root_name = self.ui.appliedComponentList.currentItem().text().split('(')[-1][:-1]
+        root_name = item.text().split('(')[-1][:-1]
 
         # -- Get the plugin
         component_plugin = self.rig.components.request(
@@ -434,10 +445,10 @@ class CrabCreator(qute.QWidget):
         
         :return: 
         """
+        self.ui.behaviourList.clear()
+
         if not self.rig:
             return
-
-        self.ui.behaviourList.clear()
 
         for behaviour_type in sorted(self.rig.behaviours.identifiers()):
             self.ui.behaviourList.addItem(behaviour_type)
@@ -448,12 +459,12 @@ class CrabCreator(qute.QWidget):
         Looks at all the behaviours in the rig and lists them in the behaviour
         list.
         
-        :return: 
+        :return:
         """
+        self.ui.appliedBehaviourList.clear()
+
         if not self.rig:
             return
-
-        self.ui.appliedBehaviourList.clear()
 
         for behaviour_data in self.rig.assigned_behaviours():
 
@@ -483,12 +494,12 @@ class CrabCreator(qute.QWidget):
 
         # -- Local method used a value-changed callback
         # noinspection PyUnusedLocal
-        def storeChange(identifier, option, widget, *args, **kwargs):
+        def storeChange(identifier, option, qwidget, *args, **kwargs):
             data_block = self.rig.assigned_behaviours()
 
             for idx, data in enumerate(data_block):
                 if data['id'] == identifier:
-                    data['options'][option] = qute.deriveValue(widget)
+                    data['options'][option] = qute.deriveValue(qwidget)
 
             self.rig.store_behaviour_data(data_block)
 
@@ -594,6 +605,7 @@ class CrabCreator(qute.QWidget):
             )
 
     # --------------------------------------------------------------------------
+    # noinspection PyUnusedLocal
     def runTool(self, *args, **kwargs):
         """
         Executes the currently selected tool with any options
@@ -660,6 +672,66 @@ class CrabCreator(qute.QWidget):
         self.ui.moveBehaviourDown.setIcon(qute.QIcon(get_resource('down.png')))
         self.ui.moveBehaviourUp.setIcon(qute.QIcon(get_resource('up.png')))
 
+    # --------------------------------------------------------------------------
+    def _registerScriptJobs(self):
+        """
+        Registers script jobs for maya events. If the events have already
+        been registered they will not be re-registered.
+        """
+        # -- Only register if they are not already registered
+        if self.script_job_ids:
+            return
+
+        # -- Define the list of events we will register a refresh
+        # -- with
+        events = [
+            'NewSceneOpened',
+            'SceneOpened',
+        ]
+
+        for event in events:
+            self.script_job_ids.append(
+                pm.scriptJob(
+                    event=[
+                        event,
+                        self.refreshAll,
+                    ]
+                )
+            )
+
+    # --------------------------------------------------------------------------
+    def _unregisterScriptJobs(self):
+        """
+        This will unregster all the events tied with this UI. It will
+        then clear any registered ID's stored within the class.
+        """
+        for job_id in self.script_job_ids:
+            pm.scriptJob(
+                kill=job_id,
+                force=True,
+            )
+
+        # -- Clear all our job ids
+        self.script_job_ids = list()
+
+    # --------------------------------------------------------------------------
+    # noinspection PyUnusedLocal
+    def showEvent(self, event):
+        """
+        Maya re-uses UI's, so we regsiter our events whenever the ui
+        is shown
+        """
+        self._registerScriptJobs()
+
+    # --------------------------------------------------------------------------
+    # noinspection PyUnusedLocal
+    def hideEvent(self, event):
+        """
+        Maya re-uses UI's, so we unregister the script job events whenever
+        the ui is not visible.
+        """
+        self._unregisterScriptJobs()
+
 
 # ------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
@@ -673,6 +745,9 @@ class DockableCreator(MayaQWidgetDockableMixin, qute.QMainWindow):
 def launch():
     window = DockableCreator(parent=qute.mainWindow())
     widget = CrabCreator(parent=window)
+
+    # -- Ensure its all up to date
+    widget.refreshAll()
 
     # -- Update the geometry of the window to the last stored
     # -- geometry

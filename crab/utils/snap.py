@@ -1,8 +1,12 @@
 import pymel.core as pm
 
+from . import access
+from .. import config
+from .. import create
+
 
 # ------------------------------------------------------------------------------
-def new(node, target, label=''):
+def new(node, target, label='', resets=None):
     """
     Creates a snap mapping from the given node to the target. The current
     offset between the two are stored during this process, allowing for that
@@ -58,6 +62,14 @@ def new(node, target, label=''):
     snap_node.offsetMatrix.set(
         offset_mat4,
     )
+
+    # -- If we're given any resets, hook them up now
+    if resets:
+        for node_to_zero in resets:
+            plug = snap_node.attr('nodesToZero').elementByLogicalIndex(
+                snap_node.attr('nodesToZero').numElements(),
+            )
+            node_to_zero.message.connect(plug)
 
     return snap_node
 
@@ -282,6 +294,11 @@ def snap(node, target, start_time=None, end_time=None, key=True):
     else:
         offset_matrix = pm.dt.Matrix()
 
+    # -- Get the list of nodes to reset
+    zero_these = list()
+    if snap_nodes[0].hasAttr('nodesToZero'):
+        zero_these = snap_nodes[0].nodesToZero.inputs()
+
     # -- Use the current time if we're not given specific
     # -- frame ranges
     start_time = start_time if start_time is not None else int(pm.currentTime())
@@ -298,6 +315,14 @@ def snap(node, target, start_time=None, end_time=None, key=True):
             offset_matrix,
         )
 
+        # -- Zero any nodes which require it
+        for node_to_zero in zero_these:
+            _zero_node(node_to_zero)
+
+            if key or start_time != end_time:
+                pm.setKeyframe(node_to_zero)
+
+        # -- Check if we need to key
         if key or start_time != end_time:
             pm.setKeyframe(node)
 
@@ -371,6 +396,7 @@ def snap_label(label=None, restrict_to=None, start_time=None, end_time=None, key
             if not nodes:
                 continue
 
+
             # -- Pull out the node as a named variable for
             # -- code clarity
             node = nodes[0]
@@ -382,6 +408,17 @@ def snap_label(label=None, restrict_to=None, start_time=None, end_time=None, key
                 snap_node.offsetMatrix.get(),
             )
 
+            # -- Get the list of nodes to reset
+            if snap_node.hasAttr('nodesToZero'):
+                zero_these = snap_node.nodesToZero.inputs()
+
+                # -- Zero any nodes which require it
+                for node_to_zero in zero_these:
+                    _zero_node(node_to_zero)
+
+                    if key or start_time != end_time:
+                        pm.setKeyframe(node_to_zero)
+            
             # -- Key the match if we need to
             if key or start_time != end_time:
                 pm.setKeyframe(node)
@@ -395,10 +432,11 @@ def _new_node():
     
     :return: pm.nt.Network
     """
-
-    snap_node = pm.createNode(
-        'network',
-        name='snap',
+    snap_node = create.generic(
+        node_type='network',
+        prefix=config.SNAP,
+        description='Meta',
+        side=config.SIDELESS,
     )
 
     # -- Add an attribute to ensure we can always identify 
@@ -431,6 +469,14 @@ def _new_node():
         dt='matrix',
     )
 
+    # -- Define a list of items which should be reset whenever
+    # -- this snap is acted upon
+    snap_node.addAttr(
+        'nodesToZero',
+        at='message',
+        multi=True,
+    )
+
     return snap_node
 
 
@@ -457,3 +503,43 @@ def _set_worldspace_matrix(node, target, offset_matrix):
         resolved_mat4,
         worldSpace=True,
     )
+
+
+# ------------------------------------------------------------------------------
+def _zero_node(node):
+    """
+    Zero's the nodes
+
+    :param node:
+    :return:
+    """
+    for attr in node.listAttr(k=True):
+
+        attr_name = attr.name(includeNode=False)
+
+        if 'scale' in attr_name:
+            value = 1.0
+
+        elif 'translate' in attr_name or 'rotate' in attr_name:
+            value = 0.0
+
+        else:
+            continue
+
+        try:
+            attr.set(value)
+        except:
+            pass
+
+    for attr in node.listAttr(k=True, ud=True):
+        value = pm.attributeQuery(
+            attr.name(includeNode=False),
+            node=node,
+            listDefault=True,
+        )
+
+        try:
+            attr.set(value)
+
+        except:
+            continue

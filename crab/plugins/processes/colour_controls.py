@@ -15,7 +15,7 @@ class ColorControlsProcess(crab.Process):
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
-    def post(self):
+    def post_build(self):
         """
         This is called after the entire rig has been built, so we will attempt
         to re-apply the shape information.

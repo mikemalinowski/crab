@@ -57,7 +57,7 @@ def calculate_upvector_position(point_a, point_b, point_c, length=0.5):
 
 # ------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
-def global_mirror(transforms=None, across=None, behaviour=True):
+def global_mirror(transforms=None, across=None, behaviour=True, remap=None):
     """ 
     This function is taken from github with a minor modification. The
     author and credit goes to Andreas Ranman.
@@ -128,7 +128,11 @@ def global_mirror(transforms=None, across=None, behaviour=True):
         stored_matrices[transform] = mtx
 
     for transform in stored_matrices:
-        pm.xform(transform, ws=True, m=stored_matrices[transform])
+        target = transform
+        if remap:
+            target = remap(transform)
+            
+        pm.xform(target, ws=True, m=stored_matrices[transform])
 
 
 # ------------------------------------------------------------------------------
@@ -148,7 +152,11 @@ def get_likely_mirror_plane(node):
 
     # -- We're only interested in a two dimensional plane, so pop
     # -- out the Y axis
-    position.pop(1)
+    if pm.upAxis(q=True, axis=True) == 'y':
+        position.pop(1)
+
+    else:
+        position.pop(2)
 
     # -- Of the X and Z plane, get the prominent one
     prominent_axis = position.index(max(position))
@@ -158,4 +166,3 @@ def get_likely_mirror_plane(node):
 
     else:
         return 'XZ'
-

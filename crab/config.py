@@ -56,6 +56,10 @@ MATH = 'MATH'
 MARKER = 'LOC'
 GUIDE = 'GDE'
 PIVOT = 'PIV'
+LOGIC = 'LGC'
+SNAP = 'SNP'
+IK = 'IKH'
+EFFECTOR = 'EFF'
 
 
 # ------------------------------------------------------------------------------
@@ -69,6 +73,7 @@ FRONT = 'FR'
 BACK = 'BK'
 TOP = 'TP'
 BOTTOM = 'BT'
+SIDELESS = 'NA'
 
 
 # ------------------------------------------------------------------------------
@@ -164,7 +169,13 @@ def get_counter(given_name):
 
     :return: int
     """
-    return int(str(given_name).split(':')[-1].split('_')[2])
+    parts = given_name.split('_')
+
+    for part in parts:
+        if part.isnumeric():
+            return int(part)
+
+    return None
 
 
 # ------------------------------------------------------------------------------
@@ -178,4 +189,9 @@ def get_side(given_name):
 
     :return: str
     """
-    return str(given_name).split(':')[-1].split('_')[3]
+    parts = given_name.split('_')
+
+    if not parts:
+        return ''
+
+    return parts[-1]
