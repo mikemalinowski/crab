@@ -18,6 +18,8 @@ Furthermore Crab offers tools to assist in the process of rigging along
 with a suite of tools geared toward the animator when interacting and
 animating a Crab rig.
 
+![alt text](https://raw.githubusercontent.com/mikemalinowski/crab/master/crab/resources/crab_overview.png)
+
 __WARNING:__
     ```
     This should be considered Pre-Release at this stage and comes packaged 
@@ -37,6 +39,8 @@ parts:
 
     * Extending Crab
 
+<br><br><br><br><br><br>
+![alt text](https://raw.githubusercontent.com/mikemalinowski/crab/master/crab/resources/breaker.png)
 ## Installing and Launching
 
 The easiest way to use crab is to download the crab directory from
@@ -67,6 +71,9 @@ crab.animator.launch()
 
 Providing the interfaces launch, crab has been successfully installed.
 
+
+<br><br><br><br><br><br>
+![alt text](https://raw.githubusercontent.com/mikemalinowski/crab/master/crab/resources/breaker.png)
 # Rigging With Crab
 
 Crab aims to make rigging easier and less repetative. It does this by
@@ -245,7 +252,7 @@ generation of the skeleton.
 The options of a behaviour __can__ be changed through this UI, as the
 behaviour does not exist other than when the rig is actually built.
 
-## Rig Iteraction
+## Rig Iteration
 
 The main key of Crab is to allow rigs to be generated, animated, edited
 tweaked and rebuilt. Therefore you can - at any stage - place the rig
@@ -257,7 +264,8 @@ In this regard a typical workflow might look like this:
 New Rig -> Add Components -> Build Rig -> Add Behaviours -> Rebuild Rig -> Test/Animate -> Re-Edit -> Build
 ```
 
-
+<br><br><br><br><br><br>
+![alt text](https://raw.githubusercontent.com/mikemalinowski/crab/master/crab/resources/breaker.png)
 # Crab Animation Tools
 
 Whilst a rig makes it easier for an animator to deform a mesh, they can
@@ -294,6 +302,9 @@ Examples of tools built-in include:
 Each tool offers different options based on what the tool does. This tool
 is currently in its infancy and is therefore currently quite minimal.
 
+
+<br><br><br><br><br><br>
+![alt text](https://raw.githubusercontent.com/mikemalinowski/crab/master/crab/resources/breaker.png)
 # Extending Crab
 
 This part of the documentation is intended for those who are interested
