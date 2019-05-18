@@ -26,6 +26,12 @@ __WARNING:__
     with only two components and one behaviour for experimentation purposes. 
     ```
 
+__NOTE:__
+    ```
+    This has a dependency on qute and factories. Both of which are available
+    on either pypi.org or https://github.com/mikemalinowski/ 
+    ```
+
 ## Using the documentation
 
 There are three types of users who are likely to utilise crab, these
