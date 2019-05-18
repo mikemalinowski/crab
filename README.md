@@ -137,7 +137,7 @@ animating.
 To create a rig, launch the _Creator_ tool using ```crab.creator.launch()```
 
 By default you will not see any available components - as there is no rig
-to add components to. Click the _New Rig_ button and you will be prompted
+to add components to. Click the _New Rig_ button <img src="https://raw.githubusercontent.com/mikemalinowski/crab/master/crab/resources/new_button.png" alt="drawing" width="30"/> and you will be prompted
 to give a name for your rig. The name is not of great importance and is
 simply used for the naming of the main root node (which you can manually
 edit if you need to).
@@ -154,7 +154,7 @@ your rig will be made up from as well as giving you the chance to
 proportion your rig.
 
 To create a skeletal component simply select a component from the
-_component list_ and then click the _add_ button. This will generate
+_component list_ and then click the _add_ <img src="https://raw.githubusercontent.com/mikemalinowski/crab/master/crab/resources/add_button.png" alt="drawing" width="30"/> button. This will generate
 the given component as a child of whatever joint you currently have
 selected. If you do not have anything selected the component will be
 built as a root component.
@@ -189,7 +189,7 @@ a build of the rig. This is the process of asking Crab to generate
 the control rig over the skeleton. As part of this process the skeleton
 is tied to the control rig.
 
-To trigger a rig build you can simply hit the _Build_ button. You will
+To trigger a rig build you can simply hit the _Build_ button <img src="https://raw.githubusercontent.com/mikemalinowski/crab/master/crab/resources/build_button.png" alt="drawing" width="30"/>. You will
 then see the controls generated over the skeleton.
 
 ### Editing the Controls
@@ -200,7 +200,7 @@ of any controls and these control changes will be retained during each
 rebuild of the rig.
 
 You may put the rig back into an editable state at any time by clicking
-the _Edit_ button. WHen back in edit mode you're free to re-adjust the
+the _Edit_ button <img src="https://raw.githubusercontent.com/mikemalinowski/crab/master/crab/resources/edit_button.png" alt="drawing" width="30"/>. When back in edit mode you're free to re-adjust the
 proportion of your skeleton or add and remove components.
 
 Clicking _Build_ when the rig is already built will simply place the rig
@@ -252,6 +252,8 @@ generation of the skeleton.
 The options of a behaviour __can__ be changed through this UI, as the
 behaviour does not exist other than when the rig is actually built.
 
+<img src="https://raw.githubusercontent.com/mikemalinowski/crab/master/crab/resources/crab_overview_tab.png" alt="drawing"/>
+
 ## Rig Iteration
 
 The main key of Crab is to allow rigs to be generated, animated, edited
@@ -291,14 +293,8 @@ The ui - at least for the moment - is a glorified list of tools. Selecting
 a tool in the list will show any options that tool exposes. You can then
 simply double click the tool to instigate it.
 
-Examples of tools built-in include:
-
-    * Select All Controls (Whole Scene)
-    * Select All Controls on Current Character
-    * Key All
-    * Select Opposite
-    * IKFK Snap
-
+<img src="https://raw.githubusercontent.com/mikemalinowski/crab/master/crab/resources/crab_animator.png" alt="drawing"/>
+<br>
 Each tool offers different options based on what the tool does. This tool
 is currently in its infancy and is therefore currently quite minimal.
 
