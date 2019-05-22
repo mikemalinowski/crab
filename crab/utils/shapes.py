@@ -115,10 +115,10 @@ def apply(node, data):
         if not os.path.exists(data):
             # -- Look for a filename in the shape dir
             data = find_shape(data)
-
+            
         # -- If the path still does not exist then we cannot do
         # -- anything with it
-        if not os.path.exists(data):
+        if not data or not os.path.exists(data):
             constants.log.warning('Could not find shape data for %s' % data)
             return None
 
@@ -194,23 +194,26 @@ def find_shape(name):
     :return: Absolute path to shape 
     """
 
-    if constants.PLUGIN_ENVIRONMENT_VARIABLE in os.environ:
-        paths = os.environ[constants.PLUGIN_ENVIRONMENT_VARIABLE].split(';')
+    # -- Define a list of locations to search for, starting by
+    # -- adding in our builtin shape locations
+    paths = [
+        os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            'shapes',
+        ),
+    ]
 
-        # -- Add in our built-in path
-        paths.append(
-            os.path.join(
-                os.path.dirname(os.path.dirname(__file__)),
-                'shapes',
-            ),
+    # -- If we have any paths defined by environment
+    # -- variables we should add them here
+    if constants.PLUGIN_ENVIRONMENT_VARIABLE in os.environ:
+        paths.extend(
+            os.environ[constants.PLUGIN_ENVIRONMENT_VARIABLE].split(';'),
         )
 
-        for path in paths:
-            print('testing path : %s' % path)
-            for root, _, files in os.walk(path):
-                for filename in files:
-                    if '%s.json' % name == filename:
-                        print(filename, root, os.path.join(root, filename))
-                        return os.path.join(root, filename)
+    for path in paths:
+        for root, _, files in os.walk(path):
+            for filename in files:
+                if '%s.json' % name == filename:
+                    return os.path.join(root, filename)
 
     return None
