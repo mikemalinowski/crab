@@ -39,7 +39,7 @@ class SingularComponent(crab.Component):
 
         # -- Define this joint as being the skeleton root for
         # -- this component
-        self.define_skeleton_root(root_joint)
+        self.mark_as_skeletal_root(root_joint)
 
         # -- We'll tag this joint with a label so we can easily
         # -- find it from within the create_rig function.
@@ -54,12 +54,12 @@ class SingularComponent(crab.Component):
         return True
 
     # --------------------------------------------------------------------------
-    def create_rig(self, parent, skeleton_component, guide_component):
+    def create_rig(self, parent):
 
         # -- We're given the skeleton component instance, so we can
         # -- utilise the find method to find the joint we need to build
         # -- a control against
-        root_joint = skeleton_component.find('RootJoint')[0]
+        root_joint = self.find_first('RootJoint')
 
         # -- Create a transform to use as a control
         node = crab.create.control(

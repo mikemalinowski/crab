@@ -31,15 +31,12 @@ class ShapeStoreProcess(crab.Process):
         """
         # -- Create an attribute on the rig node to store the shape
         # -- information on
-        if not self.rig.root.hasAttr('shapeInfo'):
-            self.rig.root.addAttr(
+        if not self.rig.node().hasAttr('shapeInfo'):
+            self.rig.node().addAttr(
                 'shapeInfo',
                 dt='string',
             )
-            self.rig.root.shapeInfo.set('{}')
-
-        # -- Get the control root
-        control_root = self.rig.find('ControlRoot')[0]
+            self.rig.node().shapeInfo.set('{}')
 
         # -- Define the data structure variable which we will
         # -- ultimately store
@@ -47,7 +44,7 @@ class ShapeStoreProcess(crab.Process):
 
         # -- Cycle over all the nodes in the control rig, skipping any
         # -- which do not look like controls
-        for node in control_root.getChildren(ad=True, type='transform'):
+        for node in self.rig.control_org().getChildren(ad=True, type='transform'):
             if node.name().startswith(crab.config.CONTROL):
 
                 # -- Attempt to read the shape data
@@ -60,7 +57,7 @@ class ShapeStoreProcess(crab.Process):
 
         # -- Store all the data into the rig so we can call
         # -- upon it at a later stage
-        self.rig.root.attr('shapeInfo').set(json.dumps(data_sets))
+        self.rig.node().attr('shapeInfo').set(json.dumps(data_sets))
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
@@ -73,13 +70,13 @@ class ShapeStoreProcess(crab.Process):
         """
         # -- If the rig node does not have the attribute we store
         # -- shape info on, then there is little more we can do.
-        if not self.rig.root.hasAttr('shapeInfo'):
+        if not self.rig.node().hasAttr('shapeInfo'):
             return
 
         # -- Read the stored data, and return if anything goes wrong
         try:
             shape_data = json.loads(
-                self.rig.root.attr('shapeInfo').get(),
+                self.rig.node().attr('shapeInfo').get(),
             )
 
         except ValueError:

@@ -206,11 +206,9 @@ def find_shape(name):
         )
 
         for path in paths:
-            print('testing path : %s' % path)
             for root, _, files in os.walk(path):
                 for filename in files:
                     if '%s.json' % name == filename:
-                        print(filename, root, os.path.join(root, filename))
                         return os.path.join(root, filename)
 
     return None

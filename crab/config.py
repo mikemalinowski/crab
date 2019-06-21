@@ -4,15 +4,11 @@ import pymel.core as pm
 # ------------------------------------------------------------------------------
 # -- This is a list of Component types. These are used in META nodes
 # -- to define the type of component (such as guide, skeleton etc)
-RIG_TYPE = 'Rig'
-COMPONENT_GUIDE_TYPE = 'ComponentGuide'
-COMPONENT_SKELETON_TYPE = 'ComponentSkeleton'
-COMPONENT_RIG_TYPE = 'ComponentRig'
+COMPONENT_MARKER = 'crabComponent'
 
 
 # ------------------------------------------------------------------------------
 # -- This is a list of names which define attributes on meta nodes.
-META_TYPE = 'crabType'
 META_IDENTIFIER = 'Identifier'
 META_VERSION = 'Version'
 META_OPTIONS = 'Options'
@@ -21,20 +17,15 @@ META_OPTIONS = 'Options'
 # -- This is a list of attribute names used by the internals of
 # -- crab to resolve relationships between objects
 BOUND = 'crabBinding'
-LINK = 'crabLink'
 BEHAVIOUR_DATA = 'crabBehaviours'
-GUIDE_LINK = 'crabGuideLink'
-GUIDE_OPTIONS = 'crabGuideOptions'
-
 
 # ------------------------------------------------------------------------------
-# -- This is a list of name prefixes for structural objects created
-# -- within a crab rig hierarchy
-RIG_ROOT = 'RIG'
-LABEL_REPOSITORY = 'LBL'
-RIG_COMPONENT = 'CMP'
-GUIDE_COMPONENT = 'GCM'
-META = 'META'
+RIG_ROOT_LINK_ATTR = 'crabRigHost'
+CONNECTION_PREFIX = 'crabRootConnection'
+SKELETON_ROOT_LINK_ATTR = '%sSkeleton' % CONNECTION_PREFIX
+CONTROL_ROOT_LINK_ATTR = '%sControls' % CONNECTION_PREFIX
+GUIDE_ROOT_LINK_ATTR = '%sGuide' % CONNECTION_PREFIX
+
 
 # ------------------------------------------------------------------------------
 # -- This is a group of layer names
@@ -42,6 +33,14 @@ HIDDEN_LAYER = 'Hidden'
 CONTROL_LAYER = 'Controls'
 SKELETON_LAYER = 'Skeleton'
 GEOMETRY_LAYER = 'Geometry'
+
+# ------------------------------------------------------------------------------
+# -- This is a list of name prefixes for structural objects created
+# -- within a crab rig hierarchy
+RIG_ROOT = 'RIG'
+RIG_COMPONENT = 'CMP'
+GUIDE_COMPONENT = 'GCM'
+META = 'META'
 
 # ------------------------------------------------------------------------------
 # -- This is a list of pre-fixes for general use within a crab plugin
@@ -60,7 +59,7 @@ LOGIC = 'LGC'
 SNAP = 'SNP'
 IK = 'IKH'
 EFFECTOR = 'EFF'
-
+CLUSTER = 'CLS'
 
 # ------------------------------------------------------------------------------
 # -- This is a list of suffixes for general use within a crab plugin

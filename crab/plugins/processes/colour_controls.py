@@ -22,10 +22,9 @@ class ColorControlsProcess(crab.Process):
 
         :return:
         """
-        control_root = self.rig.find('ControlRoot')[0]
         ignore_colour = crab.config.NON_ANIMATABLE_COLOUR
 
-        for control in control_root.getChildren(ad=True, type='transform'):
+        for control in self.rig.control_org().getChildren(ad=True, type='transform'):
 
             # -- Get the colour to assign to this shape
             colour = self.get_colour(control)

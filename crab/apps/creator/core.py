@@ -6,8 +6,7 @@ import pymel.core as pm
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
 
-from ... import meta
-from ... import rig
+from ... import core
 from ... import tools
 
 
@@ -164,7 +163,7 @@ class CrabCreator(qute.QWidget):
 
         # -- Create the crab rig, passing the result to the
         # -- rig property
-        self.rig = rig.Rig.create(name=name)
+        self.rig = core.Rig.create(name=name)
 
         # -- Re-ppopulate the component lists
         self.refreshAll()
@@ -222,7 +221,7 @@ class CrabCreator(qute.QWidget):
         qute.emptyLayout(self.ui.componentOptionsLayout)
 
         # -- Get the plugin from the component library
-        component_plugin = self.rig.components.request(
+        component_plugin = self.rig.factories.components.request(
             self.ui.componentList.currentItem().text(),
         )()
 
@@ -257,7 +256,7 @@ class CrabCreator(qute.QWidget):
         if not self.rig:
             return
 
-        for component_type in sorted(self.rig.components.identifiers()):
+        for component_type in sorted(self.rig.factories.components.identifiers()):
             self.ui.componentList.addItem(component_type)
 
     # --------------------------------------------------------------------------
@@ -268,16 +267,17 @@ class CrabCreator(qute.QWidget):
 
         :return: None
         """
+
         self.ui.appliedComponentList.clear()
 
         if not self.rig:
             return
 
-        for component_root in self.rig.skeleton_roots():
+        for component_instance in self.rig.components():
             self.ui.appliedComponentList.addItem(
                 '%s (%s)' % (
-                    meta.get_identifier(component_root),
-                    component_root.name(),
+                    component_instance.identifier,
+                    component_instance.skeletal_root().name(),
                 )
             )
 
@@ -302,9 +302,7 @@ class CrabCreator(qute.QWidget):
         root_name = item.text().split('(')[-1][:-1]
 
         # -- Get the plugin
-        component_plugin = self.rig.components.request(
-            meta.get_identifier(pm.PyNode(root_name))
-        )()
+        component_plugin = core.Component.get(pm.PyNode(root_name))
 
         # -- Now create a widget for each option
         for name, value in component_plugin.options.items():
@@ -415,7 +413,7 @@ class CrabCreator(qute.QWidget):
         qute.emptyLayout(self.ui.behaviourOptionsLayout)
 
         # -- Get the plugin
-        behaviour_plugin = self.rig.behaviours.request(
+        behaviour_plugin = self.rig.factories.behaviours.request(
             self.ui.behaviourList.currentItem().text(),
         )()
 
@@ -450,7 +448,7 @@ class CrabCreator(qute.QWidget):
         if not self.rig:
             return
 
-        for behaviour_type in sorted(self.rig.behaviours.identifiers()):
+        for behaviour_type in sorted(self.rig.factories.behaviours.identifiers()):
             self.ui.behaviourList.addItem(behaviour_type)
 
     # --------------------------------------------------------------------------
@@ -643,7 +641,7 @@ class CrabCreator(qute.QWidget):
         
         :return: crab.Rig 
         """
-        rigs = rig.Rig.all()
+        rigs = core.Rig.all()
 
         if not rigs:
             return None

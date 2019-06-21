@@ -1,6 +1,5 @@
 import pymel.core as pm
 
-from . import access
 from .. import config
 from .. import create
 

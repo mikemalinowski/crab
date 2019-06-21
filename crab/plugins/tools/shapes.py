@@ -136,7 +136,7 @@ class ShapeSelectRightTool(crab.RigTool):
 
 
 # ------------------------------------------------------------------------------
-class ShapeMirrorTool(crab.RigTool):
+class ShapeMirrorXTool(crab.RigTool):
 
     identifier = 'Shape : Mirror : X'
 
@@ -171,14 +171,14 @@ class ShapeMirrorTool(crab.RigTool):
                 print('%s does not have an alternate side' % source_node)
 
             # -- Read the shape data from the current side
-            shape_data = crab.utils.shapeio.read(source_node)
+            shape_data = crab.utils.shapes.read(source_node)
 
             # -- Clear the shapes on the other side
             if target_node.getShapes():
                 pm.delete(target_node.getShapes())
 
             # -- Apply the shapes to that side
-            crab.utils.shapeio.apply(target_node, shape_data)
+            crab.utils.shapes.apply(target_node, shape_data)
 
             # -- Invert the shape globally
             for source_shape, target_shape in zip(source_node.getShapes(), target_node.getShapes()):
@@ -205,6 +205,151 @@ class ShapeMirrorTool(crab.RigTool):
 
                 # -- Update teh curve to propagate the change
                 target_shape.updateCurve()
+
+
+# ------------------------------------------------------------------------------
+class ShapeMirrorYTool(crab.RigTool):
+
+    identifier = 'Shape : Mirror : Y'
+
+    # --------------------------------------------------------------------------
+    def run(self):
+        if not pm.selected():
+            return
+
+        for source_node in pm.selected()[:]:
+
+            target_node = None
+
+            # -- Look for the object in the alternate side
+            try:
+                if crab.config.LEFT in source_node.name():
+                    target_node = pm.PyNode(
+                        source_node.name().replace(
+                            crab.config.LEFT,
+                            crab.config.RIGHT,
+                        )
+                    )
+
+                else:
+                    target_node = pm.PyNode(
+                        source_node.name().replace(
+                            crab.config.RIGHT,
+                            crab.config.LEFT,
+                        )
+                    )
+
+            except:
+                print('%s does not have an alternate side' % source_node)
+
+            # -- Read the shape data from the current side
+            shape_data = crab.utils.shapes.read(source_node)
+
+            # -- Clear the shapes on the other side
+            if target_node.getShapes():
+                pm.delete(target_node.getShapes())
+
+            # -- Apply the shapes to that side
+            crab.utils.shapes.apply(target_node, shape_data)
+
+            # -- Invert the shape globally
+            for source_shape, target_shape in zip(source_node.getShapes(), target_node.getShapes()):
+
+                for idx in range(source_shape.numCVs()):
+
+                    # -- Get the worldspace position of the current cv
+                    source_pos = source_shape.getCV(
+                        idx,
+                        space='world',
+                    )
+
+                    # -- Set the position of the cv with the X axis
+                    # -- inverted
+                    target_shape.setCV(
+                        idx,
+                        [
+                            source_pos[0],
+                            source_pos[1] * -1,
+                            source_pos[2],
+                        ],
+                        space='world',
+                    )
+
+                # -- Update teh curve to propagate the change
+                target_shape.updateCurve()
+
+
+# ------------------------------------------------------------------------------
+class ShapeMirrorZTool(crab.RigTool):
+
+    identifier = 'Shape : Mirror : Z'
+
+    # --------------------------------------------------------------------------
+    def run(self):
+        if not pm.selected():
+            return
+
+        for source_node in pm.selected()[:]:
+
+            target_node = None
+
+            # -- Look for the object in the alternate side
+            try:
+                if crab.config.LEFT in source_node.name():
+                    target_node = pm.PyNode(
+                        source_node.name().replace(
+                            crab.config.LEFT,
+                            crab.config.RIGHT,
+                        )
+                    )
+
+                else:
+                    target_node = pm.PyNode(
+                        source_node.name().replace(
+                            crab.config.RIGHT,
+                            crab.config.LEFT,
+                        )
+                    )
+
+            except:
+                print('%s does not have an alternate side' % source_node)
+
+            # -- Read the shape data from the current side
+            shape_data = crab.utils.shapes.read(source_node)
+
+            # -- Clear the shapes on the other side
+            if target_node.getShapes():
+                pm.delete(target_node.getShapes())
+
+            # -- Apply the shapes to that side
+            crab.utils.shapes.apply(target_node, shape_data)
+
+            # -- Invert the shape globally
+            for source_shape, target_shape in zip(source_node.getShapes(), target_node.getShapes()):
+
+                for idx in range(source_shape.numCVs()):
+
+                    # -- Get the worldspace position of the current cv
+                    source_pos = source_shape.getCV(
+                        idx,
+                        space='world',
+                    )
+
+                    # -- Set the position of the cv with the X axis
+                    # -- inverted
+                    target_shape.setCV(
+                        idx,
+                        [
+                            source_pos[0],
+                            source_pos[1],
+                            source_pos[2] * -1,
+                        ],
+                        space='world',
+                    )
+
+                # -- Update teh curve to propagate the change
+                target_shape.updateCurve()
+
 
 # ------------------------------------------------------------------------------
 def invert_shapes(nodes, inversion_axis):

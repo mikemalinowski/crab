@@ -21,7 +21,5 @@ class BoneFilterProcess(crab.Process):
 
         :return: 
         """
-        control_root = self.rig.find('ControlRoot')[0]
-
-        for joint in control_root.getChildren(ad=True, type='joint'):
+        for joint in self.rig.control_org().getChildren(ad=True, type='joint'):
             joint.drawStyle.set(2)  # -- Hide

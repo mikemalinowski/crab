@@ -1,6 +1,5 @@
 import pymel.core as pm
 
-from .. import meta
 from .. import config
 
 
@@ -46,11 +45,12 @@ def component_nodes(node, match_string=None, node_type='transform'):
 
     :return: generator(pm.nt.DagNode, ...)
     """
-    return _filtered_children(
-        node=meta.get_meta_root(node),
-        match_string=match_string,
-        node_type=node_type,
-    )
+    return
+    # return _filtered_children(
+    #     node=get_component(node).control_root(),
+    #     match_string=match_string,
+    #     node_type=node_type,
+    # )
 
 
 # ------------------------------------------------------------------------------

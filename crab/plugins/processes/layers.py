@@ -10,7 +10,7 @@ class LayerProcess(crab.Process):
     """
 
     # -- Define the identifier for the plugin
-    identifier = 'Layer'
+    identifier = 'Layers'
     version = 1
 
     # --------------------------------------------------------------------------
@@ -22,29 +22,25 @@ class LayerProcess(crab.Process):
 
         :return:
         """
-        control_root = self.rig.find('ControlRoot')[0]
-        skeleton_root = self.rig.find('SkeletonRoot')[0]
-        geometry_root = self.rig.find('GeometryRoot')[0]
-
         # -- Ensure the layers exist
         crab.utils.organise.add_to_layer(None, crab.config.CONTROL_LAYER)
         crab.utils.organise.add_to_layer(None, crab.config.GEOMETRY_LAYER)
         crab.utils.organise.add_to_layer(None, crab.config.SKELETON_LAYER)
 
         # -- Add all the elements into the layers
-        for skeletal_joint in skeleton_root.getChildren(ad=True, type='joint'):
+        for skeletal_joint in self.rig.skeleton_org().getChildren(ad=True, type='joint'):
             crab.utils.organise.add_to_layer(
                 skeletal_joint,
                 crab.config.SKELETON_LAYER,
             )
 
-        for geometry in geometry_root.getChildren(ad=True, type='mesh'):
+        for geometry in self.rig.find_org('Geometry').getChildren(ad=True, type='mesh'):
             crab.utils.organise.add_to_layer(
                 geometry.getParent(),
                 crab.config.GEOMETRY_LAYER,
             )
 
-        for control in control_root.getChildren(ad=True, type='transform'):
+        for control in self.rig.control_org().getChildren(ad=True, type='transform'):
             if crab.config.CONTROL not in control.name():
                 crab.utils.organise.add_to_layer(
                     control,

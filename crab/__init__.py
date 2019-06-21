@@ -378,7 +378,7 @@ Here we can see an example of this function being implemented.
 
         # -- Define this joint as being the skeleton root for
         # -- this component
-        self.define_skeleton_root(root_joint)
+        self.mark_as_skeletal_root(root_joint)
 
         # -- We'll tag this joint with a label so we can easily
         # -- find it from within the create_rig function.
@@ -417,7 +417,7 @@ the __guide_component__ as arguments:
 
 ```python
 
-    def create_rig(self, parent, skeleton_component, guide_component):
+    def create_rig(self, parent):
         pass
 ```
 
@@ -438,12 +438,12 @@ component__ and the __guide componet__ based on the tagging made within
 the __create_skeleton__ example.
 
 ```python
-    def create_rig(self, parent, skeleton_component, guide_component):
+    def create_rig(self, parent):
 
         # -- We're given the skeleton component instance, so we can
         # -- utilise the find method to find the joint we need to build
         # -- a control against
-        root_joint = skeleton_component.find('RootJoint')[0]
+        root_joint = self.find('RootJoint')[0]
 
         # -- Create a transform to use as a control. This method
         # -- is a convenience function which handles the name
@@ -673,6 +673,11 @@ In this tool we're specifically only showing the user the tool if it satisfies
 a particular requirement otherwise we ask it not to be displayed.
 
 If we want our tool to always be visible we can just return ```cls.ALWAYS_SHOW```
+
+# TODO
+Allow processes to be turned on/off
+Update guide mechanism to include a link and unlink method
+
 """
 """
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -693,17 +698,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from crab.utils import shapes
+from .core import Behaviour
+from .core import Component
+from .core import Process
+from .core import Rig
+
 from . import config
 from . import create
 from . import tools
 from . import utils
+
 from .apps import animator
 from .apps import creator
-from .behaviour import Behaviour
-from .component import Component
-from .process import Process
-from .rig import Rig
 from .tools import AnimTool
 from .tools import RigTool
+
+__version__ = '2.0.1'
 
