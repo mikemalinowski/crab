@@ -13,7 +13,7 @@ def joint(description,
           radius=3):
     """
     Creates a joint, ensuring the right parenting and radius
-    
+
     :param description: Descriptive section of the name
     :type description: str
 
@@ -188,7 +188,7 @@ def guide(description,
           xform=None,
           match_to=None,
           link_to=None,
-          shape=None,):
+          shape=None, ):
     """
     Creates a control structure - which is a structure which conforms to the
     following hierarchy:
@@ -238,6 +238,9 @@ def guide(description,
                 [0, 0, 0],
             ],
         )
+
+        curve.setParent(guide_node)
+        curve.inheritsTransform.set(False)
 
         # -- Make the curve unselectable
         curve.getShape().template.set(True)
