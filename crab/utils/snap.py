@@ -1,6 +1,6 @@
 import pymel.core as pm
 
-from .. import config
+# from .. import config
 from .. import create
 
 

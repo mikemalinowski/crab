@@ -210,18 +210,10 @@ def find_shape(name):
             os.environ[constants.PLUGIN_ENVIRONMENT_VARIABLE].split(';'),
         )
 
-<<<<<<< HEAD
-        for path in paths:
-            for root, _, files in os.walk(path):
-                for filename in files:
-                    if '%s.json' % name == filename:
-                        return os.path.join(root, filename)
-=======
     for path in paths:
         for root, _, files in os.walk(path):
             for filename in files:
                 if '%s.json' % name == filename:
                     return os.path.join(root, filename)
->>>>>>> origin/master
 
     return None

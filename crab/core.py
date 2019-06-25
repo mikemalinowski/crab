@@ -337,8 +337,10 @@ class Rig(object):
             return None
 
         # -- Instance the segment and update its options
-        plugin = self.factories.components.request(component_type,
-                                                   version=version)()
+        plugin = self.factories.components.request(
+            component_type,
+            version=version,
+        )()
         plugin.options.update(options)
 
         # -- Now we request the segment to build its guide
@@ -367,6 +369,9 @@ class Rig(object):
                     ),
                 )
                 return None
+
+            # -- Link the two
+            plugin.link_guide()
 
             # -- Add a debug message to denote the success of the
             # -- component addition
@@ -406,7 +411,14 @@ class Rig(object):
 
         # -- Show all guides
         for guide_root in self.guide_roots():
+
+            # -- Ensure the guide is visible
             guide_root.visibility.set(True)
+
+            # -- Link the guide to the skeleton
+            component = Component.get(guide_root)
+            component.link_guide()
+
 
         return True
 
@@ -428,6 +440,15 @@ class Rig(object):
 
         for proc in self.factories.processes.plugins():
             proc(self).pre_build()
+
+        # -- Hide all guides
+        for guide_root in self.guide_roots():
+
+            guide_root.visibility.set(False)
+
+            # -- UnLink the guide to the skeleton
+            component = Component.get(guide_root)
+            component.unlink_guide()
 
         # -- Finally we can start cycling components and requested
         # -- a control build
@@ -465,10 +486,6 @@ class Rig(object):
 
             # -- Finally apply the behaviour
             behaviour_plugin.apply()
-
-        # -- Hide all guides
-        for guide_root in self.guide_roots():
-            guide_root.visibility.set(False)
 
         # -- Now the rig has been fully built we can run any post build
         # -- processes
@@ -741,6 +758,30 @@ class Component(object):
         :param parent: Parent node to build the rig under
 
         :return:
+        """
+        return True
+
+    # --------------------------------------------------------------------------
+    def link_guide(self):
+        """
+        This should perform the required steps to have the skeletal
+        structure driven by the guide (if the guide is implemented). This
+        will then be triggered by Rig.edit process.
+
+        :return: None
+        """
+        return True
+
+    # --------------------------------------------------------------------------
+    def unlink_guide(self):
+        """
+        This should perform the operation to unlink the guide from the
+        skeleton, leaving the skeleton completely free of any ties
+        between it and the guide.
+
+        This is run as part of the Rig.build process.
+
+        :return: None
         """
         return True
 
