@@ -21,6 +21,7 @@ This holds all the major classes utilised in crab. These are:
     * Process
     This is the base class for any process plugins
 """
+import re
 import json
 import uuid
 import factories
@@ -381,6 +382,18 @@ class Rig(object):
             return plugin
 
     # --------------------------------------------------------------------------
+    def remove_component(self, skeleton_node):
+        """
+        Removes the component from the rig (re-parenting any child components
+        under the next available parent).
+
+        :param component_root: Skeletal Component Root
+
+        :return: None
+        """
+        Component(skeleton_node).remove()
+
+    # --------------------------------------------------------------------------
     def edit(self):
         """
         Puts the rig into an editable state - removing the control rig
@@ -702,7 +715,7 @@ class Rig(object):
         """
         return [
             Rig(attr.node().attr(config.RIG_ROOT_LINK_ATTR).inputs()[0])
-            for attr in pm.ls('*.%s' % config.RIG_ROOT_LINK_ATTR)
+            for attr in pm.ls('*.%s' % config.RIG_ROOT_LINK_ATTR, r=True)
         ]
 
 
@@ -736,6 +749,9 @@ class Component(object):
     # -- This can be bumped if you want multiple versions of your
     # -- component in a production simultaneously.
     version = 0
+
+    # -- This can be ignored
+    _NON_ALPHA_NUMERICS = re.compile('[^0-9a-zA-Z]+')
 
     # --------------------------------------------------------------------------
     def create_skeleton(self, parent):
@@ -1031,11 +1047,20 @@ class Component(object):
                 multi=True,
             )
 
-        # -- Now make the message connection
-        plug = meta_node.attr(attribute_name).elementByLogicalIndex(
-            meta_node.attr(attribute_name).numElements(),
-        )
-        target.message.connect(plug)
+        # -- Get the attribute
+        attr = meta_node.attr(attribute_name)
+        sub_attr = meta_node.attr('%s[%s]' % (attribute_name, 0))
+
+        for idx in range(attr.numElements() + 1):
+
+            # -- Get the sub attribute plug
+            sub_attr = meta_node.attr('%s[%s]' % (attribute_name, idx))
+
+            # -- If it is empty, we can re-use it
+            if not sub_attr.inputs():
+                break
+
+        target.message.connect(sub_attr)
 
     # --------------------------------------------------------------------------
     def find(self, label):
@@ -1116,11 +1141,12 @@ class Component(object):
         node = create.generic(
             node_type='transform',
             prefix=config.RIG_COMPONENT,
-            description=self.options.description or self.identifier,
+            description=self._NON_ALPHA_NUMERICS.sub('', self.options.description or self.identifier),
             side=self.options.side,
             parent=parent,
             match_to=parent,
         )
+
         self.mark_as_control_root(
             node,
             meta_node,
@@ -1148,7 +1174,7 @@ class Component(object):
         node = create.generic(
             node_type='transform',
             prefix=config.GUIDE_COMPONENT,
-            description=self.options.description or self.identifier,
+            description=self._NON_ALPHA_NUMERICS.sub('', self.options.description or self.identifier),
             side=self.options.side,
             parent=parent,
             match_to=parent,
@@ -1175,7 +1201,7 @@ class Component(object):
         meta_node.rename(
             config.name(
                 prefix=config.META,
-                description=self.options.description,
+                description=self._NON_ALPHA_NUMERICS.sub('', self.options.description or self.identifier),
                 side=self.options.side,
             )
         )
@@ -1276,6 +1302,73 @@ class Component(object):
                 json.loads(meta.attr(config.META_OPTIONS).get()),
             )
             return plugin
+
+    # --------------------------------------------------------------------------
+    def parent_component(self):
+        return Component(self.skeletal_root().getParent())
+
+    # --------------------------------------------------------------------------
+    def child_components(self, recursive=False):
+        """
+        This will return all the child components of this component
+
+        :param recursive: If true, all childrens children will also be
+            returned
+        :type recursive: bool
+
+        :return: list
+        """
+        child_components = list()
+        processed_roots = list()
+
+        for child in self.skeletal_root().getChildren(ad=True):
+            childs_component = Component(child)
+
+            if childs_component.skeletal_root() in processed_roots:
+                continue
+
+            # -- Are we part of the same component?
+            if childs_component.skeletal_root() == self.skeletal_root():
+                continue
+
+            # -- If we're not recursive, we only want to look for children
+            # -- which are direct descendents of this one
+            if not recursive and childs_component.parent_component().skeletal_root() != self.skeletal_root():
+                continue
+
+            child_components.append(childs_component)
+            processed_roots.append(childs_component.skeletal_root())
+
+        return child_components
+
+    # --------------------------------------------------------------------------
+    def remove(self):
+        """
+        This will remove this crab component
+        :return:
+        """
+        # -- Start by re-parenting any child components to the parent of this
+        # -- component
+        parent = self.skeletal_root().getParent()
+
+        for child_component in self.child_components(recursive=False):
+            child_component.skeletal_root().setParent(parent)
+
+        # -- Now we can delete the nodes relating to this component
+        try:
+            pm.delete(self.meta().attr(config.GUIDE_ROOT_LINK_ATTR).inputs())
+
+        except: pass
+
+        try:
+            pm.delete(self.skeletal_root())
+
+        except: pass
+
+        try:
+            pm.delete(self.meta())
+
+        except: pass
 
 
 # ------------------------------------------------------------------------------

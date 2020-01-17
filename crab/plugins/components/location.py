@@ -79,7 +79,7 @@ class LocationComponent(crab.Component):
             side=self.options.side,
             parent=root_control,
             match_to=root_control,
-            shape='arrow_z',
+            shape='arrow_x',
             lock_list=self.options.lock,
             hide_list=self.options.hide,
         )

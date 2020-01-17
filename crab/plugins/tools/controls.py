@@ -42,10 +42,11 @@ class SelectOppositeTool(crab.tools.AnimTool):
     identifier = 'Select : Opposite'
     icon = get_icon('select_opposite')
 
-    def run(self):
+    def run(self, nodes=None):
+        current_selection = nodes or pm.selected()
         nodes_to_select = list()
 
-        for node in pm.selected():
+        for node in current_selection:
 
             side = crab.config.get_side(node)
             opp = crab.config.MIDDLE
@@ -113,8 +114,10 @@ class CopyPoseTool(crab.tools.AnimTool):
 
     Pose = dict()
 
-    def run(self):
-        for ctl in pm.selected():
+    def run(self, nodes=None):
+        nodes = nodes or pm.selected()
+
+        for ctl in nodes:
             CopyPoseTool.Pose[ctl.name().split(':')[-1]] = ctl.getMatrix()
 
 
@@ -132,10 +135,12 @@ class PastePoseTool(crab.tools.AnimTool):
 
         self.options.selection_only = False
 
-    def run(self):
+    def run(self, nodes=None):
+        nodes = nodes or pm.selected()
+
         selected_names = [
             node.name()
-            for node in pm.selected()
+            for node in nodes
         ]
 
         if not selected_names:
@@ -173,9 +178,9 @@ class ResetSelection(crab.tools.AnimTool):
 
         self.options.KeyOnReset = False
 
-    def run(self):
+    def run(self, nodes=None):
 
-        nodes = pm.selected()
+        nodes = nodes or pm.selected()
 
         for node in nodes:
             self.reset_node(node)
@@ -232,7 +237,10 @@ class ResetCharacter(crab.tools.AnimTool):
 
         self.options.KeyOnReset = False
 
-    def run(self):
+    def run(self, nodes=None):
+
+        if nodes:
+            pm.select(nodes)
 
         if not pm.selected():
             return
@@ -266,7 +274,8 @@ class SnapTool(crab.tools.AnimTool):
         # -- Get a list of all the results
         results = [
             n
-            for n in crab.utils.access.component_nodes(pm.selected()[0], crab.config.CONTROL)
+            for n in crab.utils.access.component_nodes(pm.selected()[0], 'transform')
+            if crab.config.CONTROL in n.name()
         ]
 
         # -- Create a unique list of labels

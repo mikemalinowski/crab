@@ -2,7 +2,6 @@ import os
 import json
 import pymel.core as pm
 
-
 from .. import constants
 
 AXIS = dict(
@@ -66,7 +65,8 @@ def read(node):
     # -- later without compatibility issues.
     data = dict(
         node=node.name(),
-        curves=list()
+        curves=list(),
+        up_axis=pm.upAxis(q=True, axis=True),
     )
 
     # -- Cycle the shapes and store thm
@@ -115,7 +115,7 @@ def apply(node, data):
         if not os.path.exists(data):
             # -- Look for a filename in the shape dir
             data = find_shape(data)
-            
+
         # -- If the path still does not exist then we cannot do
         # -- anything with it
         if not data or not os.path.exists(data):
@@ -131,10 +131,10 @@ def apply(node, data):
 
     # -- Cycle over each curve element in the data
     for curve_data in data['curves']:
-
         # -- Create a curve with the given cv's
         transform = pm.curve(
-            p=[refine_from_up_axis(p) for p in curve_data['cvs']],
+            p=[refine_from_up_axis(p, up_axis=data.get('up_axis', 'z')) for p in
+               curve_data['cvs']],
             d=curve_data['degree'],
             k=curve_data['knots'],
         )
@@ -161,22 +161,28 @@ def apply(node, data):
 
 # ------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
-def refine_from_up_axis(position):
+def refine_from_up_axis(position, up_axis='z'):
     """
-    This will take a position vector, and alter it if the up axis is 
+    This will take a position vector, and alter it if the up axis is
     set to Z. This is because it is assumed that all shapes are drawn
     within a Y-Up orientation.
-    
+
     :param position: List of length3
-     
-    :return: List of length 3 
+
+    :return: List of length 3
     """
-    if pm.upAxis(q=True, axis=True) == 'y':
+    # -- Get the current axis setting
+    current_up_axis = pm.upAxis(q=True, axis=True)
+
+    # -- If we're working in the same axis space as the stored shape
+    # -- then we can simply return the list as it is
+    if current_up_axis == up_axis:
         return position
 
+    # -- We now have to wrangle the data
     return [
         position[0],
-        position[2] * -1.0,
+        position[2] * -1,
         position[1],
     ]
 
@@ -187,13 +193,28 @@ def find_shape(name):
     Looks for the shape with the given name. This will first look at any
     locations defined along the CRAB_PLUGIN_PATHS environment variable
     before inspecting built in shapes.
-    
+
     :param name: Name of shape to search for
     :type name: str
-    
+
     :return: Absolute path to shape 
     """
+    for path in shapes():
+        shape_name = os.path.basename(path).replace('.json', '')
 
+        if shape_name == name:
+            return path
+
+    return None
+
+
+# ------------------------------------------------------------------------------
+def shapes():
+    """
+    Returns a list of all the available shapes
+
+    :return: list
+    """
     # -- Define a list of locations to search for, starting by
     # -- adding in our builtin shape locations
     paths = [
@@ -210,10 +231,17 @@ def find_shape(name):
             os.environ[constants.PLUGIN_ENVIRONMENT_VARIABLE].split(';'),
         )
 
+    shape_list = list()
+
     for path in paths:
         for root, _, files in os.walk(path):
             for filename in files:
-                if '%s.json' % name == filename:
-                    return os.path.join(root, filename)
+                if filename.endswith('.json'):
+                    shape_list.append(
+                        os.path.join(
+                            root,
+                            filename,
+                        ),
+                    )
 
-    return None
+    return shape_list

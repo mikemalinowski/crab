@@ -433,9 +433,9 @@ def _new_node():
     """
     snap_node = create.generic(
         node_type='network',
-        prefix=config.SNAP,
+        prefix='SNP',
         description='Meta',
-        side=config.SIDELESS,
+        side='NA',
     )
 
     # -- Add an attribute to ensure we can always identify 

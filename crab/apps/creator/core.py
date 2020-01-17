@@ -1,4 +1,5 @@
 import os
+import json
 import qute
 import functools
 
@@ -8,6 +9,7 @@ from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
 from ... import core
 from ... import tools
+from ... import config
 
 
 # ------------------------------------------------------------------------------
@@ -274,12 +276,13 @@ class CrabCreator(qute.QWidget):
             return
 
         for component_instance in self.rig.components():
-            self.ui.appliedComponentList.addItem(
-                '%s (%s)' % (
-                    component_instance.identifier,
-                    component_instance.skeletal_root().name(),
+            if component_instance:
+                self.ui.appliedComponentList.addItem(
+                    '%s (%s)' % (
+                        component_instance.identifier,
+                        component_instance.skeletal_root().name(),
+                    )
                 )
-            )
 
     # --------------------------------------------------------------------------
     def populateAppliedComponentOptions(self):
@@ -290,6 +293,22 @@ class CrabCreator(qute.QWidget):
 
         :return:
         """
+        # -- Local method used a value-changed callback
+        # noinspection PyUnusedLocal
+        def storeChange(root_bone, option, qwidget, *args, **kwargs):
+
+            # -- Get the options data
+            meta_node = core.Component(pm.PyNode(root_bone)).meta()
+            options = json.loads(meta_node.Options.get())
+
+            # -- Update them with the changed value
+            options[option] = qute.deriveValue(qwidget)
+
+            # -- Write the data back out
+            meta_node.Options.set(
+                json.dumps(options),
+            )
+
         item = self.ui.appliedComponentList.currentItem()
 
         if not item:
@@ -312,7 +331,17 @@ class CrabCreator(qute.QWidget):
 
             # -- Give a minimum width to create consistency
             widget.setMinimumWidth(140)
-            widget.setReadOnly(True)
+            # widget.setReadOnly(True)
+
+            qute.connectBlind(
+                widget,
+                functools.partial(
+                    storeChange,
+                    root_name,
+                    name,
+                    widget,
+                )
+            )
 
             # -- Finally, add it into the layout
             self.ui.appliedComponentOptionsLayout.addLayout(
@@ -524,8 +553,17 @@ class CrabCreator(qute.QWidget):
         if not behaviour_data:
             return
 
+        # -- Get the options from the behaviour, then combine
+        # -- them with the stored options (this allows us to
+        # -- add new options which were not present when the
+        # -- behaviour was added).
+        behaviour = self.rig.factories.behaviours.request(behaviour_data['type'])()
+        behaviour_options = behaviour.options.copy()
+        behaviour_options.update(behaviour_data['options'])
+
         # -- Now create a widget for each option
-        for name, value in behaviour_data['options'].items():
+        for name, value in behaviour_options.items():
+
             # -- Create a widget to represent this value
             widget = qute.deriveWidget(value, '')
             widget.setObjectName(name)
@@ -669,6 +707,8 @@ class CrabCreator(qute.QWidget):
         self.ui.removeBehaviour.setIcon(qute.QIcon(get_resource('remove.png')))
         self.ui.moveBehaviourDown.setIcon(qute.QIcon(get_resource('down.png')))
         self.ui.moveBehaviourUp.setIcon(qute.QIcon(get_resource('up.png')))
+
+        self.ui.removeComponent.setIcon(qute.QIcon(get_resource('remove.png')))
 
     # --------------------------------------------------------------------------
     def _registerScriptJobs(self):

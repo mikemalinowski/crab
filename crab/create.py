@@ -10,10 +10,11 @@ def joint(description,
           parent=None,
           xform=None,
           match_to=None,
-          radius=3):
+          radius=3,
+          is_deformer=True):
     """
     Creates a joint, ensuring the right parenting and radius
-
+    
     :param description: Descriptive section of the name
     :type description: str
 
@@ -77,6 +78,14 @@ def joint(description,
     # -- Set the joint radius
     new_joint.radius.set(radius)
 
+    if is_deformer:
+        if not pm.objExists('deformers'):
+            pm.sets(n='deformers', empty=True)
+
+        deformer_set = pm.PyNode('deformers')
+
+        if isinstance(deformer_set, pm.nt.ObjectSet):
+            deformer_set.addMembers([new_joint])
     # -- Clear the selection
     pm.select(clear=True)
 
@@ -92,7 +101,8 @@ def control(description,
             shape=None,
             lock_list=None,
             hide_list=None,
-            rotation_order=None):
+            rotation_order=None,
+            counter=1):
     """
     Creates a control structure - which is a structure which conforms to the
     following hierarchy:
@@ -151,6 +161,7 @@ def control(description,
             parent=parent,
             xform=xform,
             match_to=match_to,
+            counter=counter,
             **options
         )
 
@@ -186,9 +197,11 @@ def guide(description,
           side,
           parent=None,
           xform=None,
+          translation_offset=None,
+          rotation_offset=None,
           match_to=None,
           link_to=None,
-          shape=None, ):
+          shape=None,):
     """
     Creates a control structure - which is a structure which conforms to the
     following hierarchy:
@@ -227,7 +240,7 @@ def guide(description,
         shape=shape or 'cube',
         parent=parent,
         xform=xform,
-        match_to=match_to,
+        match_to=match_to or parent,
     )
 
     if link_to:
@@ -238,9 +251,6 @@ def guide(description,
                 [0, 0, 0],
             ],
         )
-
-        curve.setParent(guide_node)
-        curve.inheritsTransform.set(False)
 
         # -- Make the curve unselectable
         curve.getShape().template.set(True)
@@ -287,6 +297,18 @@ def guide(description,
         guide_shape.overrideColorG.set(config.GUIDE_COLOR[1] * (1.0 / 255))
         guide_shape.overrideColorB.set(config.GUIDE_COLOR[2] * (1.0 / 255))
 
+    if translation_offset:
+        guide_node.setTranslation(
+            translation_offset,
+            worldSpace=False,
+        )
+
+    if rotation_offset:
+        guide_node.setRotation(
+            rotation_offset,
+            worldSpace=False,
+        )
+
     return guide_node
 
 
@@ -323,7 +345,8 @@ def generic(node_type,
             parent=None,
             xform=None,
             match_to=None,
-            shape=None):
+            shape=None,
+            counter=1):
     """
     Convenience function for creating a node, generating the name using
     the unique name method and giving the ability to assign the parent and
@@ -364,6 +387,7 @@ def generic(node_type,
             prefix=prefix,
             description=description,
             side=side,
+            counter=counter,
         ),
     )
 

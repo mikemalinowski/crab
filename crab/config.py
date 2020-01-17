@@ -60,6 +60,8 @@ SNAP = 'SNP'
 IK = 'IKH'
 EFFECTOR = 'EFF'
 CLUSTER = 'CLS'
+UPVECTOR = 'UPV'
+SPLINE = 'CRV'
 
 # ------------------------------------------------------------------------------
 # -- This is a list of suffixes for general use within a crab plugin

@@ -28,7 +28,7 @@ class GenerateCubeMeshTool(crab.RigTool):
 
                 regexes[regex] = value
 
-        for joint in pm.ls('%s_*' % crab.config.SKELETON, type='joint'):
+        for joint in pm.PyNode('deformers').members():
 
             size = self.options.size
 

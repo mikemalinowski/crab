@@ -27,30 +27,28 @@ def get_controls(current_only=False):
 
 
 # ------------------------------------------------------------------------------
-def component_nodes(node, match_string=None, node_type='transform'):
-    """
-    Returns all the nodes which belong to the same component as the
-    given node. You may optionally provide a match string to do
-    name testing against as well as a type filter.
+def component_nodes(node, of_type=None):
+    root = component_root(node)
 
-    :param node: Node to search from
-    :type node: pm.nt.DagNode
+    all_nodes = [root]
 
-    :param match_string: Optional string to name test against which
-        is case sensitive
-    :type match_string: str
+    for child in root.getChildren(ad=True):
+        if component_root(child) == root:
+            if of_type and not child.nodeType() == of_type:
+                continue
 
-    :param node_type: Optional node type to test for
-    :type node_type: str
+            all_nodes.append(child)
 
-    :return: generator(pm.nt.DagNode, ...)
-    """
-    return
-    # return _filtered_children(
-    #     node=get_component(node).control_root(),
-    #     match_string=match_string,
-    #     node_type=node_type,
-    # )
+    return all_nodes
+
+
+# ------------------------------------------------------------------------------
+def component_root(node):
+    tag = ':%s_' % config.RIG_COMPONENT
+
+    for item in reversed(node.longName().split('|')):
+        if tag in item:
+            return pm.PyNode(item)
 
 
 # ------------------------------------------------------------------------------

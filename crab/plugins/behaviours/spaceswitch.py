@@ -21,20 +21,38 @@ class SpaceSwitch(crab.Behaviour):
         self.options.translation_only = False
         self.options.rotation_only = False
         self.options.default_space = ''
+        self.options.parent_label = 'Parent'
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
     def apply(self):
+        self.create(
+            description=self.options.description,
+            side=self.options.side,
+            target=pm.PyNode(self.options.target),
+            spaces=[
+                pm.PyNode(space)
+                for space in self.options.spaces.split(';')
+            ],
+            labels=self.options.labels.split(';'),
+            parent_label=self.options.parent_label,
+            applied_space=self.options.default_space,
+            translation_only=self.options.translation_only,
+            rotation_only=self.options.rotation_only,
+        )
 
-        # -- Start by getting the objects as pymel objects
-        target = pm.PyNode(self.options.target)
-        spaces = [
-            pm.PyNode(space)
-            for space in self.options.spaces.split(';')
-        ]
-
-        # -- Get our labels
-        labels = self.options.labels.split(';')
+    # --------------------------------------------------------------------------
+    @classmethod
+    def create(cls,
+               description,
+               side,
+               target,
+               spaces,
+               labels,
+               applied_space,
+               parent_label,
+               translation_only=False,
+               rotation_only=False,):
 
         # -- If there are no labels then we extract the description
         # -- from each space and use that as the labels
@@ -44,9 +62,12 @@ class SpaceSwitch(crab.Behaviour):
                 for space in spaces
             ]
 
-        # -- Add the targets parent
-        spaces.insert(0, crab.utils.hierarchy.find_above(target, crab.config.ORG))
-        labels.insert(0, 'Parent')
+        # -- This change allows us to specify the name (label) assigned
+        # -- to the default parent space, making it easier to identify
+        # -- for animators.
+        default_space = crab.utils.hierarchy.find_above(target, crab.config.ORG)
+        spaces.insert(0, default_space)
+        labels.insert(0, parent_label)
 
         # -- Add a spacer attribute
         crab.utils.organise.add_separator_attr(target)
@@ -68,12 +89,6 @@ class SpaceSwitch(crab.Behaviour):
             skip_translate = []
             skip_rotate = []
 
-            # if self.options.translation_only:
-            #     skip_rotate = ['x', 'y', 'z']
-            #
-            # if self.options.rotation_only:
-            #     skip_translate = ['x', 'y', 'z']
-
             # -- Create a constraint
             cns = pm.parentConstraint(
                 space,
@@ -87,8 +102,8 @@ class SpaceSwitch(crab.Behaviour):
             condition = crab.create.generic(
                 node_type='condition',
                 prefix=crab.config.LOGIC,
-                description='%sSpaceSwitch' % self.options.description.replace(' ', ''),
-                side=self.options.side,
+                description='%sSpaceSwitch' % description.replace(' ', ''),
+                side=side,
             )
             space_attr.connect(condition.firstTerm)
             condition.secondTerm.set(idx)
@@ -102,14 +117,14 @@ class SpaceSwitch(crab.Behaviour):
 
             # -- Check if this is the space we need to assign
             # -- as the default space
-            if labels[idx] == self.options.default_space:
+            if labels[idx] == applied_space:
                 default_id = idx
 
         for axis in ['X', 'Y', 'Z']:
-            if self.options.translation_only:
+            if translation_only:
                 zero.attr('rotate%s' % axis).disconnect()
 
-            if self.options.rotation_only:
+            if rotation_only:
                 zero.attr('translate%s' % axis).disconnect()
 
         # -- Set the default space

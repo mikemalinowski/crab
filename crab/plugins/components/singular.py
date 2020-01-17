@@ -70,6 +70,7 @@ class SingularComponent(crab.Component):
             shape=self.options.shape,
             lock_list=self.options.lock,
             hide_list=self.options.hide,
+            counter=crab.config.get_counter(root_joint.name()),
         )
 
         # -- All joints should have a binding. The binding allows crab
