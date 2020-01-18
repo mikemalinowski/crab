@@ -1,0 +1,617 @@
+
+
+/* QWidget ------------------------------------------------------------------ */
+QWidget {
+	background-color: rgb(_BACKGROUND_);
+	color: rgb(_TEXT_);
+}
+
+/* QFrame ------------------------------------------------------------------- */
+QFrame {
+    background-color: rgb(_BACKGROUND_);
+    selection-background-color: rgb(_FOREGROUND_);
+    border-style: none;
+}
+
+QFrame:disabled {
+    background-color: rgb(_BACKGROUND_);
+}
+
+/* QStatusBar --------------------------------------------------------------- */
+QStatusBar {
+    background-color: rgb(_BACKGROUND_);
+}
+
+/* QMenuBar ----------------------------------------------------------------- */
+QMenuBar {
+    background-color: rgb(_BACKGROUND_);
+}
+
+/* QToolBar ----------------------------------------------------------------- */
+QToolBar {
+    background-color: rgb(_BACKGROUND_);
+}
+
+/* QSplitter ---------------------------------------------------------------- */
+QSplitterHandle:hover {}
+
+QSplitter::handle {
+    background-color: rgb(_BACKGROUND_);
+}
+
+QSplitter::handle:hover {
+    background-color: rgb(75, 75, 75);
+}
+
+/* QScrollBar --------------------------------------------------------------- */
+/*QScrollBar:disabled {*/
+    /*background: rgb(_BACKGROUND_);*/
+/*}*/
+QScrollBar:horizontal {
+    border: 1px solid black;
+    background-color: transparent;
+    height: 24px;
+    margin: 0px 20px 0 20px;
+}
+
+QScrollBar::handle:horizontal {
+    background: rgba(_FOREGROUND_, 170);
+    min-width: 20px;
+}
+
+QScrollBar::add-line:horizontal {
+    border: 1px solid black;
+    background: rgba(_FOREGROUND_, 100);
+    width: 20px;
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:horizontal:hover {
+    background: rgba(_FOREGROUND_, 255);
+}
+
+QScrollBar::sub-line:horizontal {
+    border: 1px solid black;
+    background: rgba(_FOREGROUND_, 100);
+    width: 20px;
+    subcontrol-position: left;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal:hover {
+    background: rgba(_FOREGROUND_, 255);
+}
+
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: none;
+}
+/* -- */
+
+QScrollBar:vertical {
+    border: 1px solid black;
+    background-color: transparent;
+    width: 24px;
+    margin: 20px 0px 20px 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: rgba(_FOREGROUND_, 170);
+    min-height: 20px;
+}
+
+QScrollBar::add-line:vertical {
+    border: 1px solid black;
+    background: rgba(_FOREGROUND_, 100);
+    height: 20px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:vertical:hover {
+    background: rgba(_FOREGROUND_, 255);
+}
+
+QScrollBar::sub-line:vertical {
+    border: 1px solid black;
+    background: rgba(_FOREGROUND_, 100);
+    height: 20px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical:hover {
+    background: rgba(_FOREGROUND_, 255);
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+/* QLabel ------------------------------------------------------------------- */
+QLabel {
+	padding-top: 7px;
+    padding-bottom: 7px;
+    background-color: transparent;
+    color: rgb(_TEXT_);
+}
+
+QLabel:disabled{
+    color: rgba(_TEXT_, 50);
+}
+
+/* QLineEdit ---------------------------------------------------------------- */
+QLineEdit {
+    border: 1px solid black;
+	color: white;
+	padding: 0px;
+    min-height: 20px;
+
+	background-color: rgba(0, 0, 0, 100);
+    background-image: url(_SQUARES_LITE_PNG_);
+    background-position: top right;
+    background-origin: content;
+    background-repeat: repeat-xy;
+}
+
+QLineEdit:disabled,
+QLineEdit:read-only{
+    background-color: rgba(0, 0, 0, 25);
+    color: rgb(150, 150, 150);
+}
+
+/* QTextEdit ---------------------------------------------------------------- */
+QTextEdit,
+QPlainTextEdit {
+	color: lightgray;
+	border: 0px solid black;
+	border-top: 1px solid rgb(_FOREGROUND_);
+	border-bottom: 1px solid rgb(_FOREGROUND_);
+	background-color: rgba(0, 0, 0, 100);
+    background-image: url(_SQUARES_LITE_PNG_);
+    background-position: top right;
+    background-origin: content;
+    background-repeat: repeat-xy;
+}
+
+QTextEdit:disabled,
+QTextEdit:read-only,
+QPlainTextEdit:disabled,
+QPlainTextEdit:read-only {
+    background-color: rgb(75, 75, 75);
+    color: rgb(150, 150, 150);
+}
+
+/* QListView ---------------------------------------------------------------- */
+QListView {
+    outline: 0;
+    background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(_BACKGROUND_, 150), stop:1 rgba(0, 0, 0, 75));
+    alternate-background-color: rgba(0, 0, 0, 50);
+    border: 1px solid black;
+
+    background-image: url(_SQUARES_PNG_);
+    background-position: top right;
+    background-origin: content;
+    background-repeat: repeat-xy;
+}
+
+QListView::item {
+    outline: 0;
+    min-height: 24;
+	background-color: transparent;
+}
+
+QListView::item::selected {
+	background-color: rgb(_FOREGROUND_);
+}
+
+QListView::item::hover:!selected {
+    background: rgb(_HIGHLIGHT_);
+}
+
+/* QTreeView ---------------------------------------------------------------- */
+QTreeView {
+    outline: 0;
+}
+
+QTreeView::item {
+    outline: 0;
+    min-height: 24;
+	border-top: 1px dashed black;
+	background-color: transparent;
+}
+
+QTreeView::item::selected {
+	background-color: rgb(_FOREGROUND_);
+}
+
+QTreeView::item::hover:!selected {
+    background: rgb(_HIGHLIGHT_);
+}
+
+/* QTableView --------------------------------------------------------------- */
+QTableView {
+    outline: 0;
+}
+
+QTableView::item {
+    outline: 0;
+    min-height: 24;
+	border-top: 1px dashed black;
+	background-color: transparent;
+}
+
+QTableView::item::selected {
+	background-color: rgb(_FOREGROUND_);
+}
+
+QTableView::item::hover:!selected {
+    background: rgb(_HIGHLIGHT_);
+}
+
+/* QHeaderView -------------------------------------------------------------- */
+QHeaderView::section{
+    background-color: rgb(_BACKGROUND_);
+    height: 24;
+    padding-left: 10px;
+    border-radius: 0px;
+    border-left: none;
+    border-top: none;
+    border-bottom: 2px solid rgb(_BACKGROUND_);
+    border-right: 2px solid rgb(_BACKGROUND_);
+}
+
+/* QTabWidget --------------------------------------------------------------- */
+QTabWidget {
+    padding: 2px;
+    background: rgb(_ALTBACKGROUND_);
+    color: rgba(_TEXT_, 50);
+    border-left: none;
+}
+
+QTabWidget:disabled{
+    color: rgb(_TEXT_);
+}
+
+QTabWidget::pane {
+	background-color: transparent;
+	border-top: 1px solid black;
+}
+
+/* QTabBar ------------------------------------------------------------------ */
+QTabBar::tab {
+	border: 1px solid black;
+	border-bottom: 0px;
+	padding: 8px;
+	min-width: 50px;
+}
+
+QTabBar::tab:selected,
+QTabBar::tab:hover {
+	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 30), stop:1 rgba(0, 0, 0, 0));
+	background-image: url(_SQUARES_PNG_);
+	color: rgb(_FOREGROUND_);
+}
+
+QTabBar::tab:top,
+QTabBar::tab:bottom {
+    height: 25px;
+}
+
+QTabBar::tab:left,
+QTabBar::tab:right {
+    width: 25px;
+}
+
+/* QComboBox ---------------------------------------------------------------- */
+QComboBox {
+    border: 1px solid black;
+    padding-left: 5px;
+    color: floralwhite;
+    min-height: 28px;
+
+	background-color: rgba(0, 0, 0, 100);
+    background-image: url(_SQUARES_LITE_PNG_);
+    background-position: top right;
+    background-origin: content;
+    background-repeat: repeat-xy;
+}
+
+QComboBox:disabled {
+    background-color: rgb(_BACKGROUND_);
+    padding-left: 5px;
+    color: rgb(150, 150, 150);
+}
+
+QComboBox:hover {
+    background-color: rgb(_ALTBACKGROUND_);
+}
+
+QComboBox:drop-down {
+    background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(_FOREGROUND_, 175), stop:1 rgba(_FOREGROUND_, 75));
+    width: 30px;
+    border-left: 1px solid black;
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+}
+
+QComboBox:drop-down::hover {
+    background-color: rgb(_FOREGROUND_);
+}
+
+QComboBox QAbstractItemView {
+    outline: 0;
+    border: 1px solid black;
+    background-color: rgb(_BACKGROUND_);
+    color: rgb(200, 200, 200);
+    selection-background-color: rgb(_FOREGROUND_);
+    selection-color: rgb(20, 20, 20);
+}
+
+QComboBox QAbstractItemView:item {
+    min-height: 20px;
+}
+
+/* QSpinBox ----------------------------------------------------------------- */
+QSpinBox,
+QDoubleSpinBox {
+	border: 1px solid black;
+	min-height: 24px;
+
+	background-color: rgba(0, 0, 0, 100);
+    background-image: url(_SQUARES_LITE_PNG_);
+    background-position: top right;
+    background-origin: content;
+    background-repeat: repeat-xy;
+}
+
+QSpinBox:disabled,
+QDoubleSpinBox:disabled {
+    background-color: rgb(_BACKGROUND_);
+    color: rgb(_TEXT_);
+}
+
+QSpinBox::up-button,
+QDoubleSpinBox::up-button {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 12px;
+    border: 1px solid black;
+}
+
+QSpinBox::down-button,
+QDoubleSpinBox::down-button {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    width: 12px;
+    border: 1px solid black;
+}
+
+QSpinBox::up-button::hover,
+QSpinBox::down-button::hover,
+QDoubleSpinBox::up-button::hover,
+QDoubleSpinBox::down-button::hover {
+	background-color: rgb(_FOREGROUND_);
+}
+
+/* QGroupBox ---------------------------------------------------------------- */
+QGroupBox {
+    color: rgba(_TEXT_, 100);
+	border: 1px solid black;
+    background-color: rgb(_BACKGROUND_);
+    margin-top: 16px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left; /* position at the top center */
+    padding: 0 3px;
+    background-color: transparent;
+}
+
+QGroupBox::indicator {
+	height: 10px;
+	width: 10px;
+	border: 1px solid black;
+}
+
+QGroupBox::indicator:unchecked {
+	background-color: transparent;
+}
+
+QGroupBox::indicator:checked {
+	background-color: rgb(_FOREGROUND_);
+}
+
+QGroupBox::indicator:hover:!checked {
+    background: rgb(_HIGHLIGHT_);
+}
+
+/* QCheckBox ---------------------------------------------------------------- */
+QCheckBox{
+    color: rgb(_TEXT_);
+    min-height: 26px;
+}
+
+QCheckBox:disabled {
+    color: rgb(_ALTBACKGROUND_);
+}
+
+QCheckBox:disabled:checked  {
+    background: rgb(_ALTBACKGROUND_);
+}
+
+QCheckBox::indicator {
+	height: 24px;
+	width: 24px;
+	border: 1px solid black;
+}
+
+QCheckBox::indicator:unchecked {
+	background-color: transparent;
+}
+
+QCheckBox::indicator:checked {
+	background-color: rgb(_FOREGROUND_);
+}
+
+QCheckBox::indicator:hover:!checked {
+    background: rgb(_HIGHLIGHT_);
+}
+
+/* QRadioButton ------------------------------------------------------------- */
+QRadioButton{
+    color: rgb(_TEXT_);
+    min-height: 26px;
+}
+
+QRadioButton:disabled{
+    color: rgb(_ALTBACKGROUND_);
+}
+
+QRadioButton::indicator{
+	height: 24px;
+	width: 24px;
+	border: 1px solid black;
+}
+
+QRadioButton::indicator:checked,
+QRadioButton::indicator:hover:checked,
+QRadioButton::indicator:disabled:checked {
+	background-color: rgb(_HIGHLIGHT_);
+}
+
+QRadioButton::indicator:unchecked {
+	background-color: transparent;
+}
+
+QRadioButton::indicator:hover{
+	background-color: rgb(_FOREGROUND_);
+}
+
+/* QMenu -------------------------------------------------------------------- */
+QMenu {
+    margin: 2px; /* some spacing around the menu */
+}
+
+QMenu::item {
+    min-height: 24;
+}
+
+QMenu::item:selected {
+    color: rgb(_FOREGROUND_);
+    background: rgba(255, 255, 255, 20);
+}
+
+QMenu::item:disabled {
+    color: rgba(255, 255, 255, 60);
+}
+
+QMenu::icon:checked { /* appearance of a 'checked' icon */
+    background: gray;
+    border: 1px inset gray;
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    left: 1px;
+}
+
+QMenu::separator {
+    height: 2px;
+    background: rgba(0, 0, 0, 50);
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+QMenu::indicator {
+    width: 13px;
+    height: 13px;
+}
+
+
+/* QPushButton -------------------------------------------------------------- */
+QPushButton,
+QToolButton {
+    border: 1px solid black;
+    background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(_FOREGROUND_, 175), stop:1 rgba(_FOREGROUND_, 150));
+	padding: 0px 5px 0px 5px;
+    min-height: 20px;
+
+    background-image: url(_SQUARES_PNG_);
+    background-position: top right;
+    background-origin: content;
+    background-repeat: repeat-xy;
+}
+
+QPushButton:disabled,
+QToolButton:disabled {
+    background-color: rgb(60, 60, 60);
+}
+
+QPushButton:pressed,
+QToolButton:pressed {
+    background-color: rgb(_HIGHLIGHT_);
+}
+
+QPushButton:hover,
+QToolButton:hover,
+QPushButton:released,
+QToolButton:released {
+    background-color: rgb(_FOREGROUND_);
+    color: rgb(20, 20, 20);
+}
+
+/* QScrollArea -------------------------------------------------------------- */
+QScrollArea {
+	border: 0px solid black;
+}
+
+/* QSlider ------------------------------------------------------------------ */
+ QSlider::groove:horizontal {
+    border: 1px solid #bbb;
+    background: white;
+    height: 10px;
+}
+
+QSlider::sub-page:horizontal {
+    background: rgba(0, 0, 0, 225);
+    border: 1px solid black;
+    height: 10px;
+}
+
+QSlider::add-page:horizontal {
+    background: rgba(0, 0, 0, 225);
+    border: 1px solid black;
+    height: 10px;
+}
+
+QSlider::handle:horizontal {
+    background: rgb(_FOREGROUND_);
+    border: 1px solid black;
+    width: 15px;
+    height: 15px;
+    margin-top: -2px;
+    margin-bottom: -2px;
+}
+
+QSlider::handle:horizontal:hover {
+    background: white;
+    border: 1px solid black;
+}
+
+QSlider::sub-page:horizontal:disabled {
+    background: #bbb;
+    border-color: #999;
+}
+
+QSlider::add-page:horizontal:disabled {
+    background: #eee;
+    border-color: #999;
+}
+
+QSlider::handle:horizontal:disabled {
+    background: #eee;
+    border: 1px solid #aaa;
+    border-radius: 0px;
+}

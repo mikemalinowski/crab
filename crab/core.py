@@ -24,13 +24,13 @@ This holds all the major classes utilised in crab. These are:
 import re
 import json
 import uuid
-import factories
 import pymel.core as pm
 
 from . import utils
 from . import config
 from . import create
 from . import constants
+from .vendor import factories
 
 from .constants import log
 

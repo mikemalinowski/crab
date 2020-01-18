@@ -1,10 +1,10 @@
 import os
-import qute
 
 import pymel.core as pm
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
 from ... import tools
+from ...vendor import qute
 
 
 # ------------------------------------------------------------------------------

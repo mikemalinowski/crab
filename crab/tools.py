@@ -1,4 +1,4 @@
-import factories
+from .vendor import factories
 
 from . import utils
 from . import constants

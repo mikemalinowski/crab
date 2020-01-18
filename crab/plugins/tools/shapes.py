@@ -2,8 +2,8 @@ import pymel.core as pm
 
 import os
 import json
-import qute
 import crab
+from crab.vendor import qute
 
 
 # ------------------------------------------------------------------------------

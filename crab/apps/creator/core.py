@@ -1,6 +1,5 @@
 import os
 import json
-import qute
 import functools
 
 import pymel.core as pm
@@ -9,7 +8,7 @@ from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
 from ... import core
 from ... import tools
-from ... import config
+from ...vendor import qute
 
 
 # ------------------------------------------------------------------------------
