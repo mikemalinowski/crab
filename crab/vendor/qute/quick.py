@@ -1,7 +1,8 @@
 from .vendor import Qt
 from ._utils import qApp
-from ._windows import MemorableWindow
 from ._windows import mainWindow
+from ._windows import MemorableWindow
+from ._resources import get_resource
 
 
 # ------------------------------------------------------------------------------
@@ -65,6 +66,25 @@ def confirm(title='Text Request', label='', parent=None, **kwargs):
         return True
 
     return False
+
+
+# ------------------------------------------------------------------------------
+def message(title='Text Request', label='', parent=None, **kwargs):
+    """
+    Quick and easy access for getting text input. You do not have to have a
+    QApplication instance, as this will look for one.
+
+    :return: str, or None
+    """
+    # -- Ensure we have a QApplication instance
+    q_app = qApp()
+
+    Qt.QtWidgets.QMessageBox.warning(
+        parent,
+        title,
+        label,
+        Qt.QtWidgets.QMessageBox.Ok
+    )
 
 
 # ------------------------------------------------------------------------------
@@ -161,3 +181,35 @@ def horizontalDivider(height=2):
     result.setStyleSheet("background-color: rgb(20,20,20)")
     result.setFixedHeight(height)
     return result
+
+
+def copyToClipBoardButton(value, size, tooltip='Copy to clipboard'):
+    """
+    Utility function to build a button that copies a given pre-set value into the clipboard when pressed.
+
+    :param value: Value to copy into the clipboard when the button is pressed.
+    :type value: str
+
+    :param size: button size
+    :type size: QSize
+
+    :param tooltip: Tooltip to set on the button
+    :type tooltip: str
+
+    :return: The created button
+    :rtype: QPushButton
+    """
+    btn = Qt.QtWidgets.QPushButton()
+    icon = Qt.QtGui.QIcon(get_resource('copy_to_clipboard.png'))
+    btn.setIcon(icon)
+    btn.setFixedSize(size)
+
+    q_app = qApp()
+
+    def callback():
+        q_app.clipboard().setText(value)
+
+    btn.clicked.connect(callback)
+    btn.setToolTip(tooltip)
+
+    return btn

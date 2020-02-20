@@ -95,7 +95,14 @@ def returnMayaMainWindow():
     from maya import OpenMayaUI as omui
     from shiboken2 import wrapInstance
 
-    return wrapInstance(long(omui.MQtUtil.mainWindow()), Qt.QtWidgets.QWidget)
+    try:
+        return wrapInstance(
+            long(omui.MQtUtil.mainWindow()),
+            Qt.QtWidgets.QWidget,
+        )
+
+    except:
+        return None
 
 
 # ------------------------------------------------------------------------------

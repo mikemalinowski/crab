@@ -63,6 +63,9 @@ from ._events import printEventName
 
 from ._ui import loadUi
 
+from ._tray import TimedProcessorTray
+from ._tray import MemorableTimedProcessorTray
+
 from . import quick
 from . import constants
 

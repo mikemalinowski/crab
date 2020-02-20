@@ -536,7 +536,6 @@ QToolButton {
     border: 1px solid black;
     background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(_FOREGROUND_, 175), stop:1 rgba(_FOREGROUND_, 150));
 	padding: 0px 5px 0px 5px;
-    min-height: 20px;
 
     background-image: url(_SQUARES_PNG_);
     background-position: top right;
