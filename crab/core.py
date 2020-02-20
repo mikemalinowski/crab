@@ -448,6 +448,15 @@ class Rig(object):
         # -- Log the action of starting a rig build
         log.info('Commencing rig build.')
 
+        # -- Create an attribute on the rig node to store the shape
+        # -- information on
+        if not self.node().hasAttr('isClean'):
+            self.node().addAttr(
+                'isClean',
+                at='bool',
+            )
+        self.node().isClean.set(False)
+
         # -- Ensure the rig is in an editable state
         self.edit()
 
@@ -500,14 +509,19 @@ class Rig(object):
             # -- Finally apply the behaviour
             behaviour_plugin.apply()
 
+        # -- Mark the rig build as clean
+        self.node().isClean.set(True)
+
         # -- Now the rig has been fully built we can run any post build
         # -- processes
         for proc in self.factories.processes.plugins():
             proc(self).post_build()
 
+        return True
+
     # --------------------------------------------------------------------------
     # noinspection PyTypeChecker
-    def add_behaviour(self, behaviour_type, index=-1, **options):
+    def add_behaviour(self, behaviour_type, index=None, **options):
         """
         Adds a behaviour to a rig. A behaviour is different to a component
         in that a a behaviour does not need a skeletal structure and they
@@ -552,7 +566,11 @@ class Rig(object):
         )
 
         # -- Assign our data into the current data
-        current_data.insert(index, behaviour_data)
+        if index is None:
+            current_data.append(behaviour_data)
+
+        else:
+            current_data.insert(index, behaviour_data)
 
         # -- Write the updated data back into the attribute
         self.store_behaviour_data(current_data)
@@ -1098,7 +1116,7 @@ class Component(object):
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences,PyMethodMayBeStatic
-    def bind(self, skeletal_joint, control, constrain=True, **kwargs):
+    def bind(self, skeletal_joint, control, constrain=True, scale=True, **kwargs):
         """
         Creates a constraint binding between the skeletal joint and the control
         such that the skeletal joint will be driven by the control and this
@@ -1107,6 +1125,12 @@ class Component(object):
         """
         if constrain:
             pm.parentConstraint(
+                control,
+                skeletal_joint,
+                **kwargs
+            )
+
+            pm.scaleConstraint(
                 control,
                 skeletal_joint,
                 **kwargs

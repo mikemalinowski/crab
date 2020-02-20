@@ -2,6 +2,7 @@ import os
 import json
 import pymel.core as pm
 
+
 from .. import constants
 
 AXIS = dict(
@@ -115,7 +116,7 @@ def apply(node, data):
         if not os.path.exists(data):
             # -- Look for a filename in the shape dir
             data = find_shape(data)
-
+            
         # -- If the path still does not exist then we cannot do
         # -- anything with it
         if not data or not os.path.exists(data):
@@ -131,10 +132,10 @@ def apply(node, data):
 
     # -- Cycle over each curve element in the data
     for curve_data in data['curves']:
+
         # -- Create a curve with the given cv's
         transform = pm.curve(
-            p=[refine_from_up_axis(p, up_axis=data.get('up_axis', 'z')) for p in
-               curve_data['cvs']],
+            p=[refine_from_up_axis(p, up_axis=data.get('up_axis', 'z')) for p in curve_data['cvs']],
             d=curve_data['degree'],
             k=curve_data['knots'],
         )
@@ -163,13 +164,13 @@ def apply(node, data):
 # noinspection PyUnresolvedReferences
 def refine_from_up_axis(position, up_axis='z'):
     """
-    This will take a position vector, and alter it if the up axis is
+    This will take a position vector, and alter it if the up axis is 
     set to Z. This is because it is assumed that all shapes are drawn
     within a Y-Up orientation.
-
+    
     :param position: List of length3
-
-    :return: List of length 3
+     
+    :return: List of length 3 
     """
     # -- Get the current axis setting
     current_up_axis = pm.upAxis(q=True, axis=True)
@@ -180,12 +181,11 @@ def refine_from_up_axis(position, up_axis='z'):
         return position
 
     # -- We now have to wrangle the data
-    return [
-        position[0],
-        position[2] * -1,
-        position[1],
+    altered_position = [
+        positions[0],
+        position[2],
+        position[1] * -1,
     ]
-
 
 # ------------------------------------------------------------------------------
 def find_shape(name):
@@ -193,10 +193,10 @@ def find_shape(name):
     Looks for the shape with the given name. This will first look at any
     locations defined along the CRAB_PLUGIN_PATHS environment variable
     before inspecting built in shapes.
-
+    
     :param name: Name of shape to search for
     :type name: str
-
+    
     :return: Absolute path to shape 
     """
     for path in shapes():

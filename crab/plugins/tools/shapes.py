@@ -243,7 +243,11 @@ class ShapeMirrorYTool(crab.RigTool):
                     )
 
             except:
+                pass
+
+            if not target_node:
                 print('%s does not have an alternate side' % source_node)
+                continue
 
             # -- Read the shape data from the current side
             shape_data = crab.utils.shapes.read(source_node)
@@ -403,7 +407,7 @@ class StoreShapeTool(crab.RigTool):
     def run(self, node=None):
 
         save_path = os.path.join(
-            os.path.dirname(crab.__file__),
+            os.path.dirname(os.path.dirname(crab.__file__)),
             'shapes',
             '%s.json' % self.options.name,
         )

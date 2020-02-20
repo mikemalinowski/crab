@@ -8,6 +8,7 @@ from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
 from ... import core
 from ... import tools
+from ... import utils
 from ...vendor import qute
 
 
@@ -135,7 +136,8 @@ class CrabCreator(qute.QWidget):
 
         :return: None
         """
-        self.rig.edit()
+        with utils.contexts.UndoChunk():
+            self.rig.edit()
 
     # --------------------------------------------------------------------------
     def build(self):
@@ -144,7 +146,22 @@ class CrabCreator(qute.QWidget):
 
         :return:
         """
-        self.rig.build()
+        with utils.contexts.UndoChunk():
+            try:
+                self.rig.build()
+
+                qute.quick.message(
+                    title='Build Success',
+                    label='The rig build has been completed successfully',
+                    parent=self,
+                )
+
+            except:
+                qute.quick.message(
+                    title='Build Failure',
+                    label='Something went wrong during the rig build. See the script editor for details',
+                    parent=self,
+                )
 
     # --------------------------------------------------------------------------
     def new(self):
@@ -367,13 +384,29 @@ class CrabCreator(qute.QWidget):
         for widget in self.behaviour_option_widgets:
             options[widget.objectName()] = qute.deriveValue(widget)
 
-        self.rig.add_behaviour(
-            behaviour_type=self.ui.behaviourList.currentItem().text(),
-            **options
-        )
+        behaviour_name = self.ui.behaviourList.currentItem().text()
 
-        # -- Update the applied behaivours
-        self.populateAppliedBehaviours()
+        try:
+            self.rig.add_behaviour(
+                behaviour_type=self.ui.behaviourList.currentItem().text(),
+                **options
+            )
+
+            # -- Update the applied behaivours
+            self.populateAppliedBehaviours()
+
+            qute.quick.message(
+                title='Behaviour Added',
+                label='%s has been added to the build recipe.' % behaviour_name,
+                parent=self,
+            )
+
+        except:
+            qute.quick.message(
+                title='Behaviour Failure',
+                label='%s could not be added. Please check the script editor.' % behaviour_name,
+                parent=self,
+            )
 
     # --------------------------------------------------------------------------
     def remove_behaviour(self):
@@ -401,11 +434,19 @@ class CrabCreator(qute.QWidget):
         if not self.ui.appliedBehaviourList.currentItem():
             return
 
+        # -- Get the current row, so we can reselect it
+        current_row = self.ui.appliedBehaviourList.currentRow()
+
+        # -- Update the behaviour stack within crab
         self.rig.shift_behaviour_order(
             self.ui.appliedBehaviourList.currentItem().identifier,
             -1,
         )
+
+        # -- Update the behaviour list
         self.populateAppliedBehaviours()
+
+        self.ui.appliedBehaviourList.setCurrentRow(current_row - 1)
 
     # --------------------------------------------------------------------------
     def move_behaviour_down(self):
@@ -417,11 +458,16 @@ class CrabCreator(qute.QWidget):
         if not self.ui.appliedBehaviourList.currentItem():
             return
 
+        # -- Get the current row, so we can reselect it
+        current_row = self.ui.appliedBehaviourList.currentRow()
+
         self.rig.shift_behaviour_order(
             self.ui.appliedBehaviourList.currentItem().identifier,
             1,
         )
         self.populateAppliedBehaviours()
+
+        self.ui.appliedBehaviourList.setCurrentRow(current_row + 1)
 
     # --------------------------------------------------------------------------
     def populateBehaviourOptions(self):

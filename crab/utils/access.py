@@ -21,7 +21,7 @@ def get_controls(current_only=False):
 
     return [
         ctl
-        for ctl in pm.ls('%s:%s_*' % (ns, config.CONTROL), r=True,type='transform')
+        for ctl in pm.ls('%s:%s_*' % (ns, config.CONTROL), r=False, type='transform')
         if not isinstance(ctl, pm.nt.Constraint)
     ]
 

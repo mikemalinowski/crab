@@ -77,8 +77,6 @@ class CrabAnimator(qute.QWidget):
         self.ui.toolList.itemDoubleClicked.connect(self.runTool)
         self.ui.toolList.currentRowChanged.connect(self.populateToolOptions)
 
-
-
     # --------------------------------------------------------------------------
     def populateTools(self):
         """
