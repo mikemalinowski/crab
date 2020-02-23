@@ -63,6 +63,26 @@ CLUSTER = 'CLS'
 UPVECTOR = 'UPV'
 SPLINE = 'CRV'
 
+PREFIXES = [
+    ORG,
+    CONTROL,
+    ZERO,
+    OFFSET,
+    SKELETON,
+    MECHANICAL,
+    MATH,
+    MARKER,
+    GUIDE,
+    PIVOT,
+    LOGIC,
+    SNAP,
+    IK,
+    EFFECTOR,
+    CLUSTER,
+    UPVECTOR,
+    SPLINE,
+]
+
 # ------------------------------------------------------------------------------
 # -- This is a list of suffixes for general use within a crab plugin
 # -- in order to keep naming consistent
@@ -76,6 +96,16 @@ TOP = 'TP'
 BOTTOM = 'BT'
 SIDELESS = 'NA'
 
+LOCATIONS = [
+    LEFT,
+    RIGHT,
+    MIDDLE,
+    FRONT,
+    BACK,
+    TOP,
+    BOTTOM,
+    SIDELESS,
+]
 
 # ------------------------------------------------------------------------------
 # -- Define colours based on categories

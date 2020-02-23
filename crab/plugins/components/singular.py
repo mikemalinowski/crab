@@ -20,22 +20,38 @@ class SingularComponent(crab.Component):
         self.options.hide = 'v;sx;sy;sz'
         self.options.shape = 'cube'
 
+        # -- This option is available to allow pre-existing joints
+        # -- to be used in place of creating a new one
+        self.options.pre_existing_joint = ''
+
     # --------------------------------------------------------------------------
     def create_skeleton(self, parent):
         """
         This should create your guide representation for your segment.
         The parent will be a pre-constructed crabSegment transform node.
 
-        :param parent:  
-        :return: 
+        :param parent: Parent to place the skeleton under
+        :type parent: pm.nt.DagNode
+
+        :return: bool
         """
-        # -- Create the joint for this singular
-        root_joint = crab.create.joint(
-            description=self.options.description,
-            side=self.options.side,
-            parent=parent,
-            match_to=parent,
-        )
+        # -- If we're targeting a pre-existing joint then we need
+        # -- to utilise it and update our options based upon on that
+        # -- joint
+        if self.options.pre_existing_joint:
+            root_joint = pm.PyNode(self.options.pre_existing_joint)
+
+            self.options.description = crab.config.get_description(root_joint.name())
+            self.options.side = crab.config.get_side(root_joint.name())
+
+        else:
+            # -- Create the joint for this singular
+            root_joint = crab.create.joint(
+                description=self.options.description,
+                side=self.options.side,
+                parent=parent,
+                match_to=parent,
+            )
 
         # -- Define this joint as being the skeleton root for
         # -- this component

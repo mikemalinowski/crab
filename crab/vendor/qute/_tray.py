@@ -2,13 +2,14 @@
 Holds System Tray utilities and classes
 """
 import sys
-import scribble
 import functools
 
 
 from .vendor import Qt
+from .vendor import scribble
 from . import quick
 from . import _style
+
 
 
 # ------------------------------------------------------------------------------
