@@ -707,6 +707,7 @@ from . import config
 from . import create
 from . import tools
 from . import utils
+from . import menu
 
 from .apps import animator
 from .apps import creator

@@ -723,7 +723,7 @@ new_rig.edit()
 
 # Compatibility
 
-Crab has been tested on __Windows__ using __Maya 2019__.
+Crab has been tested on __Windows__ using __Maya 2019__ and __Maya 2020__.
 
 
 # Contribute

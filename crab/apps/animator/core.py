@@ -279,7 +279,7 @@ class DockableAnimator(MayaQWidgetDockableMixin, qute.QMainWindow):
 
 # ------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
-def launch():
+def launch(*args, **kwargs):
     window = DockableAnimator(parent=qute.mainWindow())
     widget = CrabAnimator(parent=window)
 

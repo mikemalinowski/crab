@@ -182,10 +182,13 @@ def refine_from_up_axis(position, up_axis='z'):
 
     # -- We now have to wrangle the data
     altered_position = [
-        positions[0],
+        position[0],
         position[2],
         position[1] * -1,
     ]
+
+    return altered_position
+
 
 # ------------------------------------------------------------------------------
 def find_shape(name):
