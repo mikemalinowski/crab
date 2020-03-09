@@ -2,6 +2,8 @@ import crab
 import webbrowser
 import pymel.core as pm
 
+from crab.vendor import blackout
+
 CRAB_MENU_NAME = 'Crab'
 CRAB_MENU_OBJ = 'CrabMenuRoot'
 
@@ -22,6 +24,12 @@ def _menu_build_rig(*args, **kwargs):
 def _menu_goto_website(*args, **kwargs):
     webbrowser.open('https://github.com/mikemalinowski/crab')
 
+
+# ------------------------------------------------------------------------------
+def _menu_reload(*args, **kwargs):
+    blackout.drop('crab')
+    pm.evalDeferred('import crab;crab.menu.initialize()')
+    
 
 # ------------------------------------------------------------------------------
 def initialize():
@@ -54,6 +62,9 @@ def initialize():
 
     pm.menuItem(divider=True, parent=new_menu)
     add_menu_item('Website', _menu_goto_website)
+    
+    pm.menuItem(divider=True, parent=new_menu)
+    add_menu_item('Reload', _menu_reload)
 
     # -- We specifically only want this menu to be visibile
     # -- in the rigging menu
