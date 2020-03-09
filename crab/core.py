@@ -892,6 +892,12 @@ class Component(object):
         meta_node = self.create_meta()
         node.message.connect(meta_node.attr(config.SKELETON_ROOT_LINK_ATTR))
 
+        # -- Set an outliner colour for skeletal roots
+        node.useOutlinerColor.set(True)
+        node.outlinerColorR.set(0)
+        node.outlinerColorG.set(0.7)
+        node.outlinerColorB.set(1)
+        
     # --------------------------------------------------------------------------
     def mark_as_control_root(self, control_root, meta_node):
         """
