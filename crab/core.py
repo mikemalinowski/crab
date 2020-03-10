@@ -246,7 +246,11 @@ class Rig(object):
 
         :return: pm.nt.Transform
         """
-        return self.meta().attr(config.RIG_ROOT_LINK_ATTR).inputs()[0]
+        try:
+            return self.meta().attr(config.RIG_ROOT_LINK_ATTR).inputs()[0]
+
+        except AttributeError:
+            return None
 
     # --------------------------------------------------------------------------
     def guide_org(self):
@@ -256,7 +260,11 @@ class Rig(object):
 
         :return: pm.nt.Transform
         """
-        return self.meta().attr(config.GUIDE_ROOT_LINK_ATTR).inputs()[0]
+        try:
+            return self.meta().attr(config.GUIDE_ROOT_LINK_ATTR).inputs()[0]
+
+        except AttributeError:
+            return None
 
     # --------------------------------------------------------------------------
     def control_org(self):
@@ -265,7 +273,11 @@ class Rig(object):
 
         :return: pm.nt.Transform
         """
-        return self.meta().attr(config.CONTROL_ROOT_LINK_ATTR).inputs()[0]
+        try:
+            return self.meta().attr(config.CONTROL_ROOT_LINK_ATTR).inputs()[0]
+
+        except AttributeError:
+            return None
 
     # --------------------------------------------------------------------------
     def skeleton_org(self):
@@ -275,7 +287,11 @@ class Rig(object):
 
         :return: pm.nt.Transform
         """
-        return self.meta().attr(config.SKELETON_ROOT_LINK_ATTR).inputs()[0]
+        try:
+            return self.meta().attr(config.SKELETON_ROOT_LINK_ATTR).inputs()[0]
+
+        except AttributeError:
+            return None
 
     # --------------------------------------------------------------------------
     def find_org(self, label):
