@@ -407,7 +407,7 @@ class StoreShapeTool(crab.RigTool):
     def run(self, node=None):
 
         save_path = os.path.join(
-            os.path.dirname(os.path.dirname(crab.__file__)),
+            os.path.dirname(crab.__file__),
             'shapes',
             '%s.json' % self.options.name,
         )
@@ -436,10 +436,18 @@ class ApplyShapeTool(crab.RigTool):
 
     # --------------------------------------------------------------------------
     def run(self, node=None, shape_name=None):
-        crab.utils.shapes.apply(
-            node or pm.selected()[0],
-            shape_name or self.options.shapes
-        )
+
+        if not node:
+            node = pm.selected()
+
+        if not isinstance(node, list):
+            node = [node]
+
+        for single_node in node:
+            crab.utils.shapes.apply(
+                single_node,
+                shape_name or self.options.shapes
+            )
 
 
 # ------------------------------------------------------------------------------

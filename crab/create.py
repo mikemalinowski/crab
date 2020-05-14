@@ -11,6 +11,7 @@ def joint(description,
           xform=None,
           match_to=None,
           radius=3,
+          counter=1,
           is_deformer=True):
     """
     Creates a joint, ensuring the right parenting and radius
@@ -47,6 +48,7 @@ def joint(description,
         side,
         parent=parent,
         xform=xform,
+        counter=counter,
         match_to=match_to,
     )
 
@@ -86,6 +88,7 @@ def joint(description,
 
         if isinstance(deformer_set, pm.nt.ObjectSet):
             deformer_set.addMembers([new_joint])
+
     # -- Clear the selection
     pm.select(clear=True)
 
@@ -346,6 +349,7 @@ def generic(node_type,
             xform=None,
             match_to=None,
             shape=None,
+            find_transform=False,
             counter=1):
     """
     Convenience function for creating a node, generating the name using
@@ -376,10 +380,17 @@ def generic(node_type,
     :param shape: Optional shape to apply to the node
     :type shape: name of shape or path
 
+    :param find_transform: If True, then the nodes transform will
+        be found if the created node is not a transform
+    :type find_transform: bool
+
     :return: pm.nt.DependNode
     """
     # -- Create the node
     node = pm.createNode(node_type)
+
+    if not isinstance(node, pm.nt.Transform) and find_transform:
+        node = node.getParent()
 
     # -- Name it based on our naming convention
     node.rename(

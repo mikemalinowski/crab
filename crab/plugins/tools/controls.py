@@ -165,6 +165,39 @@ class PastePoseTool(crab.tools.AnimTool):
 
 
 # ------------------------------------------------------------------------------
+class CopyWorldSpaceTool(crab.tools.AnimTool):
+
+    identifier = 'Pose : Copy : World Space'
+    icon = get_icon('pose_store')
+
+    TRANSFORM_DATA = dict()
+
+    def run(self):
+
+        # -- Clear out any dictionary data
+        CopyWorldSpaceTool.TRANSFORM_DATA = dict()
+
+        for node in pm.selected():
+            CopyWorldSpaceTool.TRANSFORM_DATA[node.name()] = node.getMatrix(worldSpace=True)
+
+
+# ------------------------------------------------------------------------------
+class PasteWorldSpaceTool(crab.tools.AnimTool):
+
+    identifier = 'Pose : Paste : World Space'
+    icon = get_icon('pose_apply')
+
+    def run(self):
+
+        for name, matrix in CopyWorldSpaceTool.TRANSFORM_DATA.items():
+            if pm.objExists(name):
+                pm.PyNode(name).setMatrix(
+                    CopyWorldSpaceTool.TRANSFORM_DATA[name],
+                    worldSpace=True,
+                )
+
+
+# ------------------------------------------------------------------------------
 class ResetSelection(crab.tools.AnimTool):
     """
     Reselects the current objects.

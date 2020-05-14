@@ -22,10 +22,20 @@ class SpaceSwitch(crab.Behaviour):
         self.options.rotation_only = False
         self.options.default_space = ''
         self.options.parent_label = 'Parent'
+        self.options.target_offsets = ''
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
     def apply(self):
+
+        # -- Get a list of any target offsets
+        target_offsets = dict()
+
+        for target_data in self.options.target_offsets.split(';'):
+            if '=' in target_data:
+                target, offset = target_data.split('=')
+                target_offsets[target] = pm.PyNode(offset)
+
         self.create(
             description=self.options.description,
             side=self.options.side,
@@ -39,6 +49,7 @@ class SpaceSwitch(crab.Behaviour):
             applied_space=self.options.default_space,
             translation_only=self.options.translation_only,
             rotation_only=self.options.rotation_only,
+            target_offsets=target_offsets,
         )
 
     # --------------------------------------------------------------------------
@@ -52,7 +63,8 @@ class SpaceSwitch(crab.Behaviour):
                applied_space,
                parent_label,
                translation_only=False,
-               rotation_only=False,):
+               rotation_only=False,
+               target_offsets=None):
 
         # -- If there are no labels then we extract the description
         # -- from each space and use that as the labels
@@ -61,6 +73,9 @@ class SpaceSwitch(crab.Behaviour):
                 crab.config.get_description(space)
                 for space in spaces
             ]
+
+        if not target_offsets:
+            target_offsets = dict()
 
         # -- This change allows us to specify the name (label) assigned
         # -- to the default parent space, making it easier to identify
@@ -85,6 +100,21 @@ class SpaceSwitch(crab.Behaviour):
         zero = crab.utils.hierarchy.find_above(target, crab.config.ZERO)
 
         for idx, space in enumerate(spaces):
+
+            # -- Check if we have a target offset for this space, if we
+            # -- do then we need to move the zero to this target offset
+            # -- whilst we make the constraint
+            xform_to_restore = None
+
+            if space.name() in target_offsets:
+
+                xform_to_restore = zero.getMatrix()
+                zero.setMatrix(
+                    target_offsets[space.name()].getMatrix(
+                        worldSpace=True,
+                    ),
+                    worldSpace=True,
+                )
 
             skip_translate = []
             skip_rotate = []
@@ -119,6 +149,13 @@ class SpaceSwitch(crab.Behaviour):
             # -- as the default space
             if labels[idx] == applied_space:
                 default_id = idx
+
+            # -- If we need to restore this zeros transform, do so now
+            if xform_to_restore:
+                zero.setMatrix(
+                    xform_to_restore,
+                    worldSpace=True,
+                )
 
         for axis in ['X', 'Y', 'Z']:
             if translation_only:

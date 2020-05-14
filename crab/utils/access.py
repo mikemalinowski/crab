@@ -13,15 +13,17 @@ def get_controls(current_only=False):
 
     :return: List(pm.nt.Transform, ..)
     """
-    ns = '*'
-
+    ns = ''
+    recursive = True
+    
     if current_only:
+        recursive = False
         if pm.selected() and ':' in pm.selected()[0]:
-            ns = ':'.join(pm.selected()[0].name().split(':')[:-1])
+            ns = ':'.join(pm.selected()[0].name().split(':')[:-1]) + ':'
 
     return [
         ctl
-        for ctl in pm.ls('%s:%s_*' % (ns, config.CONTROL), r=False, type='transform')
+        for ctl in pm.ls('%s%s_*' % (ns, config.CONTROL), r=recursive, type='transform')
         if not isinstance(ctl, pm.nt.Constraint)
     ]
 
@@ -44,10 +46,10 @@ def component_nodes(node, of_type=None):
 
 # ------------------------------------------------------------------------------
 def component_root(node):
-    tag = ':%s_' % config.RIG_COMPONENT
+    tag = '%s_' % config.RIG_COMPONENT
 
     for item in reversed(node.longName().split('|')):
-        if tag in item:
+        if item.startswith(tag) or ':' + tag in item:
             return pm.PyNode(item)
 
 

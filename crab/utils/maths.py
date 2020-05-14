@@ -57,7 +57,7 @@ def calculate_upvector_position(point_a, point_b, point_c, length=0.5):
 
 # ------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
-def global_mirror(transforms=None, across=None, behaviour=True, remap=None):
+def global_mirror(transforms=None, across=None, behaviour=True, remap=None, translation_only=False):
     """ 
     This function is taken from github with a minor modification. The
     author and credit goes to Andreas Ranman.
@@ -131,8 +131,15 @@ def global_mirror(transforms=None, across=None, behaviour=True, remap=None):
         target = transform
         if remap:
             target = remap(transform)
-            
-        pm.xform(target, ws=True, m=stored_matrices[transform])
+
+        if translation_only:
+            target.setTranslation(
+                stored_matrices[transform][12:15],
+                space='world',
+            )
+
+        else:
+            pm.xform(target, ws=True, m=stored_matrices[transform])
 
 
 # ------------------------------------------------------------------------------

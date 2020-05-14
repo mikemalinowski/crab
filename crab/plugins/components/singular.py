@@ -101,3 +101,5 @@ class SingularComponent(crab.Component):
 
         # -- Select our tip joint
         pm.select(node)
+
+        return True

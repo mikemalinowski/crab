@@ -104,3 +104,5 @@ class LocationComponent(crab.Component):
 
         # -- Select our tip joint
         pm.select(root_control)
+
+        return True

@@ -2,6 +2,7 @@
 This contains a series of utility and helper functions which do not
 live under any bespoke module
 """
+from .. import config
 
 
 # ------------------------------------------------------------------------------
@@ -37,6 +38,26 @@ def get_between(from_this, to_this, inclusive=True):
 
 
 # ------------------------------------------------------------------------------
+def find_below(node, substring):
+    """
+    Looks for the first immediate child with the given substring in the name
+
+    :param node: Node to search from
+    :type node: pm.nt.DagNode
+
+    :param substring: String to look for in a node name
+    :type substring: str
+
+    :return: pm.nt.DagNode
+    """
+    for child in node.getChildren():
+        if substring in child.name():
+            return child
+
+    return None
+
+
+# ------------------------------------------------------------------------------
 def find_above(node, substring):
     """
     Looks for the parent with the given substring in the name
@@ -54,5 +75,22 @@ def find_above(node, substring):
             return node
 
         node = node.getParent()
+
+    return None
+
+
+# -----------------------------------------------------
+def get_driving_control(skeletal_joint):
+    """
+    Returns the control designated as driving (binding) this joint.
+
+    :param skeletal_joint: The joint to find the control for
+    :type skeletal_joint: pm.nt.Joint
+
+    :return: pm.nt.Transform
+    """
+    if skeletal_joint.hasAttr(config.BOUND):
+        for potential in skeletal_joint.attr(config.BOUND).inputs():
+            return potential
 
     return None

@@ -285,6 +285,7 @@ def load_joint_file(root_parent, all_joint_data, side_override=None):
         joint = create.joint(
                 description=config.get_description(joint_data['name']),
                 side=side_override or config.get_side(joint_data['name']),
+                counter=config.get_counter(joint_data['name']),
                 is_deformer=joint_data.get('is_deformer', True),
                 radius=joint_data['attributes'].get('radius', 1),
                 parent=None,

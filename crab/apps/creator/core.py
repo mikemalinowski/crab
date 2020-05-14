@@ -1,6 +1,7 @@
 import os
 import json
 import functools
+import traceback
 
 import pymel.core as pm
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
@@ -148,7 +149,10 @@ class CrabCreator(qute.QWidget):
         """
         with utils.contexts.UndoChunk():
             try:
-                self.rig.build()
+                result = self.rig.build()
+
+                if not result:
+                    raise Exception('Build Failure')
 
                 qute.quick.message(
                     title='Build Success',
@@ -157,6 +161,7 @@ class CrabCreator(qute.QWidget):
                 )
 
             except:
+                traceback.print_exc()
                 qute.quick.message(
                     title='Build Failure',
                     label='Something went wrong during the rig build. See the script editor for details',
@@ -255,6 +260,9 @@ class CrabCreator(qute.QWidget):
 
             # -- Add the widget to the option list
             self.component_option_widgets.append(widget)
+
+            # -- Hook up any helpers for this widget type
+            self.hookup_widget_helpers(widget)
 
             # -- Finally, add it into the layout
             self.ui.componentOptionsLayout.addLayout(
@@ -359,6 +367,9 @@ class CrabCreator(qute.QWidget):
                 )
             )
 
+            # -- Hook up any helpers for this widget type
+            self.hookup_widget_helpers(widget)
+
             # -- Finally, add it into the layout
             self.ui.appliedComponentOptionsLayout.addLayout(
                 qute.addLabel(widget, name),
@@ -402,6 +413,7 @@ class CrabCreator(qute.QWidget):
             )
 
         except:
+            traceback.print_exc()
             qute.quick.message(
                 title='Behaviour Failure',
                 label='%s could not be added. Please check the script editor.' % behaviour_name,
@@ -497,6 +509,9 @@ class CrabCreator(qute.QWidget):
             # -- Create a widget to represent this value
             widget = qute.deriveWidget(value, '')
             widget.setObjectName(name)
+
+            # -- Hook up any helpers for this widget type
+            self.hookup_widget_helpers(widget)
 
             # -- Give a minimum width to create consistency
             widget.setMinimumWidth(140)
@@ -622,6 +637,9 @@ class CrabCreator(qute.QWidget):
                     widget,
                 )
             )
+
+            # -- Hook up any helpers for this widget type
+            self.hookup_widget_helpers(widget)
 
             # -- Give a minimum width to create consistency
             widget.setMinimumWidth(140)
@@ -796,6 +814,60 @@ class CrabCreator(qute.QWidget):
 
         # -- Clear all our job ids
         self.script_job_ids = list()
+
+    # -------------------------------------------------------------------------
+    def hookup_widget_helpers(self, widget):
+        """
+        This function hooks up menu helpers for widgets of certain types
+
+        :return:
+        """
+        if isinstance(widget, qute.QLineEdit):
+            widget.setContextMenuPolicy(qute.Qt.CustomContextMenu)
+            widget.customContextMenuRequested.connect(
+                functools.partial(
+                    self.show_objects_menu,
+                    widget,
+                ),
+            )
+
+    # ------------------------------------------------------------------------------
+    # noinspection PyUnusedLocal,PyUnresolvedReferences
+    def show_objects_menu(self, widget, *args, **kwargs):
+        """
+        Creates a custom menu to allow the user to set the value
+        of the given widget using a file browser.
+
+        :param widget: Widget to affect
+        :type widget: QWidget
+
+        :return: None
+        """
+
+        def select_from_widget(widget_):
+            text = qute.deriveValue(widget_)
+
+            if pm.objExists(text):
+                pm.select(text)
+
+        def set_from_selected(widget_):
+            qute.setBlindValue(widget_, ';'.join([n.name() for n in pm.selected()]))
+
+        # -- Generate a menu
+        menu = qute.menuFromDictionary(
+            {
+                'Set From Selection': functools.partial(
+                    set_from_selected,
+                    widget,
+                ),
+                'Select': functools.partial(
+                    select_from_widget,
+                    widget,
+                ),
+            },
+            parent=self
+        )
+        menu.exec_(qute.QCursor().pos())
 
     # --------------------------------------------------------------------------
     # noinspection PyUnusedLocal

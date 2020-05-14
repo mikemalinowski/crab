@@ -24,6 +24,7 @@ This holds all the major classes utilised in crab. These are:
 import re
 import json
 import uuid
+import traceback
 import pymel.core as pm
 
 from . import utils
@@ -363,11 +364,13 @@ class Rig(object):
         # -- Now we request the segment to build its guide
         result = plugin.create_skeleton(parent=parent)
 
-        if not result:
+        # -- If we got a failed plugin, or our plugin is a macro, we dont
+        # -- need to do anything else
+        if not result or not plugin.meta():
             return plugin
 
         with utils.contexts.RestoredSelection():
-
+            
             # -- Create the guide, generating a guide root and passing
             # -- that through as the parent
             result = plugin.create_guide(
@@ -505,13 +508,26 @@ class Rig(object):
             # -- skeletal component root
             component_plugin = Component.get(skeleton_component_root)
 
-            # -- Build the rig, generating a control component org
-            component_plugin.create_rig(
-                parent=component_plugin.create_control_root(
-                    rig_parent,
-                    component_plugin.meta(),
+            print('Starting build of : %s' % component_plugin.identifier)
+
+            try:
+                # -- Build the rig, generating a control component org
+                result = component_plugin.create_rig(
+                    parent=component_plugin.create_control_root(
+                        rig_parent,
+                        component_plugin.meta(),
+                    )
                 )
-            )
+
+                if not result:
+                    print('%s returned False during build.' % component_plugin.identifier)
+                    return False
+
+            except:
+                traceback.print_exc()
+                return False
+
+            print('\tBuild complete')
 
         # -- Now we need to apply any behaviours
         for behaviour_block in self.assigned_behaviours():
@@ -522,8 +538,17 @@ class Rig(object):
             # -- Update the options for the behaviour plugin
             behaviour_plugin.options.update(behaviour_block['options'])
 
-            # -- Finally apply the behaviour
-            behaviour_plugin.apply()
+            print('Starting application of : %s' % behaviour_plugin.identifier)
+
+            try:
+                # -- Finally apply the behaviour
+                behaviour_plugin.apply()
+
+            except:
+                traceback.print_exc()
+                return False
+
+            print('\tApplication complete')
 
         # -- Mark the rig build as clean
         self.node().isClean.set(True)
@@ -531,8 +556,15 @@ class Rig(object):
         # -- Now the rig has been fully built we can run any post build
         # -- processes
         for proc in self.factories.processes.plugins():
-            proc(self).post_build()
+            print('Starting Process : %s' % proc.identifier)
+            try:
+                proc(self).post_build()
 
+            except:
+                traceback.print_exc()
+                return False
+
+            print('\tProcess complete')
         return True
 
     # --------------------------------------------------------------------------

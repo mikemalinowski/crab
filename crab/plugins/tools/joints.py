@@ -12,6 +12,7 @@ class MirrorJointsAcrossTool(crab.RigTool):
         super(MirrorJointsAcrossTool, self).__init__()
 
         self.options.mirror_plane = ''
+        self.options.translation_only = False
 
     # --------------------------------------------------------------------------
     def run(self):
@@ -19,6 +20,7 @@ class MirrorJointsAcrossTool(crab.RigTool):
             pm.selected(),
             across=self.options.mirror_plane or None,
             remap=MirrorJointsAcrossTool.remap,
+            translation_only=self.options.translation_only,
         )
 
     # --------------------------------------------------------------------------
