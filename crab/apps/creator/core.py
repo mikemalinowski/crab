@@ -214,14 +214,15 @@ class CrabCreator(qute.QWidget):
 
         # -- Add the component passing the type, parent and values
         # -- from all the options
-        self.rig.add_component(
-            component_type=self.ui.componentList.currentItem().text(),
-            parent=pm.selected()[0] if pm.selected() else None,
-            **options
-        )
+        with utils.contexts.UndoChunk():
+            self.rig.add_component(
+                component_type=self.ui.componentList.currentItem().text(),
+                parent=pm.selected()[0] if pm.selected() else None,
+                **options
+            )
 
-        # -- Update the applied component list
-        self.populateAppliedComponents()
+            # -- Update the applied component list
+            self.populateAppliedComponents()
 
     # --------------------------------------------------------------------------
     def populateComponentOptions(self):
@@ -560,7 +561,7 @@ class CrabCreator(qute.QWidget):
             widget_item = qute.QListWidgetItem(
                 '%s (%s)' % (
                     behaviour_data['type'],
-                    behaviour_data['options']['description'],
+                    behaviour_data['options'].get('description', 'unknown'),
                 )
             )
 

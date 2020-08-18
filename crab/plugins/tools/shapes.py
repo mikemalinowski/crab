@@ -451,6 +451,48 @@ class ApplyShapeTool(crab.RigTool):
 
 
 # ------------------------------------------------------------------------------
+class MatchCVsTool(crab.RigTool):
+    """
+    Matches the cvs (in worldspace) between two curves, providing they have
+    the same cv count
+    """
+    identifier = 'Shape : Match CVs'
+
+    # --------------------------------------------------------------------------
+    def run(self, source=None, target=None):
+
+        source = source or pm.selected()[0]
+        target = target or pm.selected()[1]
+
+        if isinstance(source, pm.nt.Transform):
+            source = source.getShape()
+
+        if isinstance(target, pm.nt.Transform):
+            target = target.getShape()
+
+        # -- We now need to match the cv positions of our curves
+        # -- against the guide cv's
+        if source.numCVs() != target.numCVs():
+            raise Exception(
+                'Source curve has {} cvs but the target curve has {}.'.format(
+                    source.numCVs(),
+                    target.numCVs(),
+                ),
+            )
+
+        # -- Cycle the cvs and match their position
+        for idx in range(source.numCVs()):
+
+            # -- Match the worldspace cv positions
+            target.setCV(
+                idx,
+                source.getCV(idx, space='world'),
+                space='world',
+            )
+
+        target.updateCurve()
+
+# ------------------------------------------------------------------------------
 class StoreRigShapeData(crab.RigTool):
     """
     This tool allows for all the shape data in a rig to be written out

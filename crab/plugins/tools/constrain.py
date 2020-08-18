@@ -76,7 +76,7 @@ class FollicleTool(crab.RigTool):
         self.options.surface = ''
         self.options.drive = ''
         self.options.description = ''
-        self.options.side = 'MD'
+        self.options.side = ['MD', 'RT', 'LF']
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
@@ -153,3 +153,50 @@ class FollicleTool(crab.RigTool):
                 drive,
                 maintainOffset=True,
             )
+
+
+# ------------------------------------------------------------------------------
+class CopyTransformValue(crab.RigTool):
+
+    identifier = 'Transforms : Copy Values'
+
+    # --------------------------------------------------------------------------
+    def __init__(self):
+        super(CopyTransformValue, self).__init__()
+
+        self.options.copy_from_this = ''
+        self.options.copy_to_this = ''
+        self.options.mirror_plane = ['None', 'XZ', 'XY', 'YZ']
+
+    # --------------------------------------------------------------------------
+    def run(self):
+
+        copy_from_this = self.options.copy_from_this or pm.selected()[0]
+        copy_to_this = self.options.copy_to_this or pm.selected()[1]
+        transform_attributes = [
+            'translateX',
+            'translateY',
+            'translateZ',
+            'rotateX',
+            'rotateY',
+            'rotateZ',
+            'scaleX',
+            'scaleY',
+            'scaleZ',
+        ]
+        mirror_values_look_up = {
+            'None': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+            'XZ': [1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, 1.0, 1.0],
+            'XY': [1.0, 1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0],
+            'YZ': [-1.0, 1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0],
+        }
+        mirror_values_list = mirror_values_look_up[self.options.mirror_plane]
+
+        with crab.utils.contexts.UndoChunk():
+            for attribute, multiplier in zip(transform_attributes, mirror_values_list):
+                copy_to_this.attr(attribute).unlock()
+                copy_to_this.attr(attribute).set(
+                    copy_from_this.attr(attribute).get() * multiplier
+                )
+
+

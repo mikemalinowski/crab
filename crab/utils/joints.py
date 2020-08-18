@@ -37,11 +37,17 @@ def replicate_chain(from_this, to_this, parent, world=True, replacements=None):
 
         if replacements:
             for replace_this, with_this in replacements.items():
+                potential_new_name = new_joint.name().replace(
+                    replace_this,
+                    with_this,
+                )
                 new_joint.rename(
-                    new_joint.name().replace(
-                        replace_this,
-                        with_this,
-                    ),
+                    config.name(
+                        prefix=config.get_prefix(potential_new_name),
+                        description=config.get_description(potential_new_name),
+                        side=config.get_side(potential_new_name),
+                        counter=config.get_counter(potential_new_name),
+                    )
                 )
 
         # -- The first joint we always have to simply match

@@ -16,8 +16,8 @@ class SingularComponent(crab.Component):
     def __init__(self, *args, **kwargs):
         super(SingularComponent, self).__init__(*args, **kwargs)
 
-        self.options.lock = 'sx;sy;sz'
-        self.options.hide = 'v;sx;sy;sz'
+        self.options.lock = ''
+        self.options.hide = 'v;'
         self.options.shape = 'cube'
 
         # -- This option is available to allow pre-existing joints

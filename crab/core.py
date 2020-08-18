@@ -1382,6 +1382,37 @@ class Component(object):
             return plugin
 
     # --------------------------------------------------------------------------
+    def apply_options(self):
+        """
+        This will push any changes to the options dictionarly of this class
+        instance into the meta node representing this component.
+
+        ```python
+
+            import crab
+            import pymel.core as pm
+
+            # -- Get the first rig in the scene
+            rig = crab.Rig.all()[0]
+
+            # -- Cycle all the components in the rig
+            for component in rig.components():
+
+                # -- Alter some of the options
+                if 'lock' in component.options:
+                    component.options.lock = ''
+
+                # -- Push our changes back onto the meta node in the scene
+                component.apply_options()
+
+        ```
+        :return:
+        """
+        self.meta().Options.set(
+            json.dumps(self.options),
+        )
+
+    # --------------------------------------------------------------------------
     def parent_component(self):
         return Component(self.skeletal_root().getParent())
 

@@ -23,10 +23,11 @@ class DefineAPoseTool(crab.RigTool):
             nodes = pm.ls('%s_*' % crab.config.SKELETON, type='joint')
             nodes.extend(pm.ls('%s_*' % crab.config.GUIDE, type='transform'))
 
-        for joint in nodes:
-            if not joint.hasAttr(self.POSE_NAME):
-                joint.addAttr(self.POSE_NAME, at='matrix')
-            joint.attr(self.POSE_NAME).set(joint.getMatrix())
+        with crab.utils.contexts.UndoChunk():
+            for joint in nodes:
+                if not joint.hasAttr(self.POSE_NAME):
+                    joint.addAttr(self.POSE_NAME, at='matrix')
+                joint.attr(self.POSE_NAME).set(joint.getMatrix())
 
 
 # ------------------------------------------------------------------------------
@@ -49,17 +50,18 @@ class ApplyAPoseTool(crab.RigTool):
             nodes = pm.ls('%s_*' % crab.config.SKELETON, type='joint')
             nodes.extend(pm.ls('%s_*' % crab.config.GUIDE, type='transform'))
 
-        for joint in nodes:
-            if joint.hasAttr(self.POSE_NAME):
+        with crab.utils.contexts.UndoChunk():
+            for joint in nodes:
+                if joint.hasAttr(self.POSE_NAME):
 
-                pos = None
-                if self.options.rotate_only:
-                    pos = joint.getTranslation()
+                    pos = None
+                    if self.options.rotate_only:
+                        pos = joint.getTranslation()
 
-                joint.setMatrix(joint.attr(self.POSE_NAME).get())
+                    joint.setMatrix(joint.attr(self.POSE_NAME).get())
 
-                if pos:
-                    joint.setTranslation(pos)
+                    if pos:
+                        joint.setTranslation(pos)
 
 
 # ------------------------------------------------------------------------------
