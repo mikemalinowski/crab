@@ -113,10 +113,10 @@ def apply(node, data):
     if not isinstance(data, dict):
 
         # -- Check for a filepath
-        if not os.path.exists(data):
+        if not os.path.exists(data) or '/' not in data.replace('\\', '/'):
             # -- Look for a filename in the shape dir
             data = find_shape(data)
-            
+
         # -- If the path still does not exist then we cannot do
         # -- anything with it
         if not data or not os.path.exists(data):

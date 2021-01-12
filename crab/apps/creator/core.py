@@ -694,6 +694,9 @@ class CrabCreator(qute.QWidget):
             widget = qute.deriveWidget(value, '')
             widget.setObjectName(name)
 
+            # -- Hook up any helpers for this widget type
+            self.hookup_widget_helpers(widget)
+
             # -- Give a minimum width to create consistency
             widget.setMinimumWidth(140)
 
@@ -729,8 +732,9 @@ class CrabCreator(qute.QWidget):
         # -- ui
         tool_plugin.options.update(options)
 
-        # -- Execute the tool
-        tool_plugin.run()
+        with utils.contexts.UndoChunk():
+            # -- Execute the tool
+            tool_plugin.run()
 
     # --------------------------------------------------------------------------
     # -- These are general convenience functions for the ui

@@ -44,6 +44,60 @@ class MirrorJointsAcrossTool(crab.RigTool):
 
 
 # ------------------------------------------------------------------------------
+class MirrorFaceJointsAcrossTool(crab.RigTool):
+
+    identifier = 'Joints: Mirror Face Joints'
+
+    # --------------------------------------------------------------------------
+    def __init__(self):
+        super(MirrorFaceJointsAcrossTool, self).__init__()
+
+        self.options.mirror_translation = True
+        self.options.mirror_rotation = True
+
+    # --------------------------------------------------------------------------
+    def run(self):
+
+        selection_list = pm.selected()
+        for current_item in selection_list:
+
+            if current_item.nodeType() != 'joint':
+                continue
+
+            opposite_item = self.remap(current_item)
+            if opposite_item:
+                if self.options.mirror_translation:
+                    opposite_item.translateX.set(current_item.translateX.get())
+                    opposite_item.translateY.set(-1 * current_item.translateY.get())
+                    opposite_item.translateZ.set(current_item.translateZ.get())
+                if self.options.mirror_rotation:
+                    opposite_item.rotateX.set(current_item.rotateX.get())
+                    opposite_item.rotateY.set(-1 * current_item.rotateY.get())
+                    opposite_item.rotateZ.set(-1 * current_item.rotateZ.get())
+                    opposite_item.rotateZ.set(180 + opposite_item.rotateZ.get())
+
+
+    # --------------------------------------------------------------------------
+    @classmethod
+    def remap(cls, node):
+        if crab.config.LEFT in node.name():
+            return pm.PyNode(
+                node.name().replace(
+                    crab.config.LEFT,
+                    crab.config.RIGHT,
+                )
+            )
+        elif crab.config.RIGHT in node.name():
+            return pm.PyNode(
+                node.name().replace(
+                    crab.config.RIGHT,
+                    crab.config.LEFT,
+                )
+            )
+        else:
+            return None
+
+# ------------------------------------------------------------------------------
 class MirrorJointsTool(crab.RigTool):
 
     identifier = 'Joints: Mirror'

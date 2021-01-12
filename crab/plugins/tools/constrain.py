@@ -29,7 +29,12 @@ class ZeroWSRotationsTool(crab.RigTool):
 
 # ------------------------------------------------------------------------------
 class ObjectAimTool(crab.RigTool):
+    """
+    This will aim the first object at the second object. You can also provide
+    an upvector along with whether the aim and upvector should be flipped.
 
+    This is the equivalent of using an aimConstraint + delete operation.
+    """
     identifier = 'Transforms : Aim At'
 
     # --------------------------------------------------------------------------
@@ -38,29 +43,105 @@ class ObjectAimTool(crab.RigTool):
 
         self.options.aim_this = ''
         self.options.at_this = ''
+        self.options.up_target = ''
+        self.options.flip_aim = False
+        self.options.flip_up = False
 
     # --------------------------------------------------------------------------
-    def run(self, aim_this=None, at_this=None):
+    def run(self, aim_this=None, at_this=None, up_target=None, flip_aim=False, flip_up=False):
+
+        aim_this = aim_this or self.options.aim_this
+        at_this = at_this or self.options.at_this
+        up_target = up_target or self.options.up_target
+
+        selection_list = pm.ls(sl=True)
+        if len(selection_list) == 2:
+            aim_this = selection_list[0]
+            at_this = selection_list[1]
+        elif len(selection_list) == 3:
+            aim_this = selection_list[0]
+            at_this = selection_list[1]
+            up_target = selection_list[2]
+
+        flip_aim = flip_aim or self.options.flip_aim
+        flip_up = flip_up or self.options.flip_up
+
+        if flip_aim:
+            aim_vector = (-1, 0, 0)
+        else:
+            aim_vector = (1, 0, 0)
+
+        if flip_up:
+            up_vector = (0, 0, -1)
+        else:
+            up_vector = (0, 0, 1)
+
+        scene_up = "scene"
+        object_up = "object"
+
+        if up_target:
+            # aim with up target as upvector
+            temp_constraint = pm.aimConstraint(
+                at_this,
+                aim_this,
+                aimVector=aim_vector,
+                upVector=up_vector,
+                worldUpType=object_up,
+                worldUpObject=up_target,
+            )
+        else:
+            # aim with assumed scene as upvector
+            temp_constraint = pm.aimConstraint(
+                at_this,
+                aim_this,
+                aimVector=aim_vector,
+                upVector=up_vector,
+                worldUpType=scene_up,
+            )
+        pm.delete(temp_constraint)
+
+
+# ------------------------------------------------------------------------------
+class MoveChildBoneTool(crab.RigTool):
+
+    identifier = 'Transforms : Move Child Bone'
+
+    # --------------------------------------------------------------------------
+    def __init__(self):
+        super(MoveChildBoneTool, self).__init__()
+
+        self.options.child_bone = ''
+        self.options.target = ''
+
+    # --------------------------------------------------------------------------
+    def run(self, child_bone=None, target=None):
 
         # -- Take the given variables as a priority. If they are
         # -- not given we use the options, and if they are also
         # -- not given then we take the current selection
-        aim_this = aim_this or self.options.aim_this or pm.selected()[0]
-        at_this = at_this or self.options.at_this or pm.selected()[1]
+        child_bone = child_bone or self.options.child_bone or pm.selected()[0]
+        parent_bone = child_bone.getParent()
+        target = target or self.options.target or pm.selected()[1]
 
-        cns = pm.aimConstraint(
-            at_this,
-            aim_this,
-            offset=[0, 0, 0],
-            weight=1,
-            aimVector=[1, 0, 0],
-            upVector=[0, 0, 1],
-            worldUpType="vector",
-            worldUpVector=[0, 1, 0],
+        if parent_bone:
+            cns = pm.aimConstraint(
+                target,
+                parent_bone,
+                offset=[0, 0, 0],
+                weight=1,
+                aimVector=[1, 0, 0],
+                upVector=[0, 0, 1],
+                worldUpType="vector",
+                worldUpVector=[0, 1, 0],
+            )
+            mat4 = parent_bone.getMatrix()
+            pm.delete(cns)
+            parent_bone.setMatrix(mat4)
+
+        child_bone.setTranslation(
+            target.getTranslation(worldspace=True),
+            worldSpace=True,
         )
-        mat4 = aim_this.getMatrix()
-        pm.delete(cns)
-        aim_this.setMatrix(mat4)
 
 
 # ------------------------------------------------------------------------------

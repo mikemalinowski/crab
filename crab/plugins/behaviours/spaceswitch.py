@@ -29,12 +29,24 @@ class SpaceSwitch(crab.Behaviour):
     def apply(self):
 
         # -- Get a list of any target offsets
-        target_offsets = dict()
+        labels = [str(label) for label in self.options.labels.split(';') if label]
+        spaces = [space for space in self.options.spaces.split(';') if space]
+        target_offsets = [None for _ in spaces]
 
         for target_data in self.options.target_offsets.split(';'):
             if '=' in target_data:
                 target, offset = target_data.split('=')
-                target_offsets[target] = pm.PyNode(offset)
+
+                # -- If the target is a label rather than an objectd
+                # -- we just need to get the object from the label
+                if target in labels:
+                    idx = labels.index(target)
+
+                else:
+                    # -- Assign the offset to the offset list
+                    idx = spaces.index(target)
+
+                target_offsets[idx] = pm.PyNode(offset)
 
         self.create(
             description=self.options.description,
@@ -42,7 +54,7 @@ class SpaceSwitch(crab.Behaviour):
             target=pm.PyNode(self.options.target),
             spaces=[
                 pm.PyNode(space)
-                for space in self.options.spaces.split(';')
+                for space in spaces
             ],
             labels=self.options.labels.split(';'),
             parent_label=self.options.parent_label,
@@ -75,7 +87,7 @@ class SpaceSwitch(crab.Behaviour):
             ]
 
         if not target_offsets:
-            target_offsets = dict()
+            target_offsets = [None for _ in spaces]
 
         # -- This change allows us to specify the name (label) assigned
         # -- to the default parent space, making it easier to identify
@@ -83,6 +95,7 @@ class SpaceSwitch(crab.Behaviour):
         default_space = crab.utils.hierarchy.find_above(target, crab.config.ORG)
         spaces.insert(0, default_space)
         labels.insert(0, parent_label)
+        target_offsets.insert(0, None)
 
         # -- Add a spacer attribute
         crab.utils.organise.add_separator_attr(target)
@@ -106,11 +119,22 @@ class SpaceSwitch(crab.Behaviour):
             # -- whilst we make the constraint
             xform_to_restore = None
 
-            if space.name() in target_offsets:
+            if target_offsets[idx]:
+
+                # -- Create a unique transform, as target offsets allow
+                # -- for multi use
+                space = crab.create.generic(
+                    node_type='transform',
+                    prefix=crab.config.MARKER,
+                    description=crab.config.get_description(target),
+                    side=crab.config.get_side(target),
+                    parent=space,
+                    match_to=target_offsets[idx],
+                )
 
                 xform_to_restore = zero.getMatrix()
                 zero.setMatrix(
-                    target_offsets[space.name()].getMatrix(
+                    space.getMatrix(
                         worldSpace=True,
                     ),
                     worldSpace=True,

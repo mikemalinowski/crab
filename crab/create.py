@@ -425,3 +425,43 @@ def generic(node_type,
         shapes.apply(node, shape)
 
     return node
+
+
+# ------------------------------------------------------------------------------
+def simple_ik(start, end, description, side, parent=None, visible=False, solver='ikRPsolver', polevector=None):
+    """
+    This is a convenience function for generating an IK handle
+    and having it named.
+
+    :param start:
+    :param end:
+    :param visible:
+    :return:
+    """
+    # -- Hook up the Ik Handle
+    ikh, eff = pm.ikHandle(
+        startJoint=start,
+        endEffector=end,
+        solver=solver,
+        priority=1,
+    )
+    ikh.visibility.set(visible)
+
+    ikh.rename(
+        config.name(
+            prefix='IKH',
+            description=description,
+            side=side,
+        ),
+    )
+
+    if parent:
+        ikh.setParent(parent)
+
+    if polevector:
+        pm.poleVectorConstraint(
+            polevector,
+            ikh,
+        )
+
+    return ikh

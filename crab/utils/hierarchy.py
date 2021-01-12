@@ -79,6 +79,45 @@ def find_above(node, substring):
     return None
 
 
+# ------------------------------------------------------------------------------
+def get_offset(node):
+    """
+    Looks for the offset parent for the given node
+
+    :param node: Node to search from
+    :type node: pm.nt.DagNode
+
+    :return: pm.nt.DagNode
+    """
+    return find_above(node, config.OFFSET)
+
+
+# ------------------------------------------------------------------------------
+def get_zero(node):
+    """
+    Looks for the zero parent for the given node
+
+    :param node: Node to search from
+    :type node: pm.nt.DagNode
+
+    :return: pm.nt.DagNode
+    """
+    return find_above(node, config.ZERO)
+
+
+# ------------------------------------------------------------------------------
+def get_org(node):
+    """
+    Looks for the org parent for the given node
+
+    :param node: Node to search from
+    :type node: pm.nt.DagNode
+
+    :return: pm.nt.DagNode
+    """
+    return find_above(node, config.ORG)
+
+
 # -----------------------------------------------------
 def get_driving_control(skeletal_joint):
     """

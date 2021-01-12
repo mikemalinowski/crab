@@ -34,8 +34,8 @@ class CopyToUnboundMesh(crab.RigTool):
     def run(self, current_skin_host=None, target=None):
 
         # -- Get our mesh candidates
-        current_skin_host = pm.selected()[0]
-        target = pm.selected()[1]
+        current_skin_host = current_skin_host or pm.selected()[0]
+        target = target or pm.selected()[1]
 
         # -- Look for the mesh
         print(current_skin_host.inputs())
