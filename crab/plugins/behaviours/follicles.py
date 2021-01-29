@@ -7,6 +7,12 @@ class AddFollicleBehaviour(crab.Behaviour):
     identifier = 'Add Follicle'
     version = 1
 
+    tooltips = dict(
+        parent='The node to parent the follicle under',
+        surface='The name of the mesh or surface to attach to',
+        drive='Optionally a node to constrain to the follicle',
+    )
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(AddFollicleBehaviour, self).__init__(*args, **kwargs)

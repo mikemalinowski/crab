@@ -138,6 +138,7 @@ def apply(node, data):
             p=[refine_from_up_axis(p, up_axis=data.get('up_axis', 'z')) for p in curve_data['cvs']],
             d=curve_data['degree'],
             k=curve_data['knots'],
+            # per=curve_data['form'],
         )
 
         # -- Parent the shape under the node
@@ -223,6 +224,7 @@ def shapes():
     paths = [
         os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
+            'resources',
             'shapes',
         ),
     ]

@@ -7,6 +7,14 @@ class InsertControlBehaviour(crab.Behaviour):
     identifier = 'Insert Control'
     version = 1
 
+    tooltips = dict(
+        parent='The parent node which the control will be placed under',
+        match_to='If given, the new control will be transformed matched to this node',
+        lock='A list of attributes to lock on the control',
+        hide='A list of attributes to hide from the channel box on the control',
+        shape='An optional crab shape name to assign to the control'
+    )
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(InsertControlBehaviour, self).__init__(*args, **kwargs)
@@ -60,8 +68,17 @@ class InsertControlBehaviour(crab.Behaviour):
 
 # ------------------------------------------------------------------------------
 class AddControl(crab.Behaviour):
+
     identifier = 'Add Control'
     version = 1
+
+    tooltips = dict(
+        parent='The parent node which the control will be placed under',
+        match_to='If given, the new control will be transformed matched to this node',
+        lock='A list of attributes to lock on the control',
+        hide='A list of attributes to hide from the channel box on the control',
+        shape='An optional crab shape name to assign to the control'
+    )
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):

@@ -7,6 +7,13 @@ class InsertControlBehaviour(crab.Behaviour):
     identifier = 'Connect Attribute'
     version = 1
 
+    tooltips = dict(
+        description='A descriptive to label the behaviour',
+        side='Typically LF, MD or RT - denoting the side/location of the behaviour',
+        source='The longName to the attribute you want to read the values from',
+        destination='The longName to the attribute you want to drive',
+    )
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(InsertControlBehaviour, self).__init__(*args, **kwargs)
@@ -30,6 +37,16 @@ class SetAttributeBehaviour(crab.Behaviour):
 
     identifier = 'Attributes : Set'
     version = 1
+
+    tooltips = dict(
+        description='A descriptive to label the behaviour',
+        side='Typically LF, MD or RT - denoting the side/location of the behaviour',
+        objects='List of objects to set the values on',
+        attribute_name='The name of the attribute that should be set (excluding object name)',
+        attribute_value='The value to set to the attribute',
+        is_string='If the attribute is a string/text attribute, then tick this',
+        is_number='If the attribute is a float or integer then please tick this',
+    )
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):

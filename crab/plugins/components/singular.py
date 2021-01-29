@@ -12,6 +12,14 @@ class SingularComponent(crab.Component):
     identifier = 'Singular'
     version = 1
 
+    tooltips = dict(
+        description='A descriptive name to apply to all objects',
+        lock='Any control attributes you want to have locked',
+        hide='Any control attributes you want to have hidden from the channel box',
+        shape='An optional name of a crab defined shape (nurbs curve) to assign to the control',
+        side='Typically LF, MD or RT - denoting the side/location of the control'
+    )
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(SingularComponent, self).__init__(*args, **kwargs)

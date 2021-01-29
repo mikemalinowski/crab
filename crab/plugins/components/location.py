@@ -12,6 +12,13 @@ class LocationComponent(crab.Component):
     identifier = 'Location'
     version = 1
 
+    tooltips = dict(
+        description='A descriptive name to apply to all objects',
+        lock='Any control attributes you want to have locked',
+        hide='Any control attributes you want to have hidden from the channel box',
+        side='Typically LF, MD or RT - denoting the side/location of the control'
+    )
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(LocationComponent, self).__init__(*args, **kwargs)

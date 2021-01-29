@@ -1,3 +1,4 @@
+import os
 import crab
 import pymel.core as pm
 
@@ -10,6 +11,22 @@ class SpaceSwitch(crab.Behaviour):
     """
     identifier = 'SpaceSwitch'
     version = 1
+
+    dict(
+        target='The name of the control which you want to add the spaceswitch to',
+        spaces='A list of target objects which should act as spaces',
+        labels='A list of labels to make up the space switch attribute. This should be in the same order as the Spaces option',
+        translation_only='If ticked, the rotation of the target will not be affected',
+        rotation_only='If ticked, the translation of the target will not be affected',
+        default_space='This should be an entry specified in "labels" (or Parent Label) and defines which space is active by default',
+        parent_label='All space switches expose their parent as a space, how do you want to label this?',
+        target_offsets='This can be used to define the specific location the target should jump to when active in this space. This should be in the form of Label=Node;Label=Node;'
+    )
+
+    preview = os.path.join(
+        os.path.dirname(__file__),
+        'spaceswitch.gif',
+    )
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):

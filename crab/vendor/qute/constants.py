@@ -4,7 +4,7 @@ This holds a set of constant variables for qute
 import os
 import logging
 
-from . import _resources
+from . import resources
 
 log = logging.getLogger('qute')
 
@@ -16,12 +16,12 @@ QUTE_STYLE_PATH = 'QUTE_STYLE_PATH'
 # -- This will look at the environment variable for styles and pull
 # -- out a resolved list of those locations which exist
 QUTE_STYLE_LOCATIONS = [
-    location
+    location.strip()
     for location in os.environ.get(
         QUTE_STYLE_PATH,
         ''
-    ).split(';')
-    if os.path.exists(location)
+    ).split(os.path.pathsep)
+    if os.path.isdir(location.strip())
 ]
 
 QUTE_STYLE_LOCATIONS.insert(
@@ -43,7 +43,7 @@ STYLE_DEFAULTS = {
 }
 
 # -- We expose all of our resources as special variables
-for resource in _resources.resources():
+for resource in resources.all():
     key = '_%s_' % os.path.basename(resource).replace('.', '_').upper()
     STYLE_DEFAULTS[key] = resource
 

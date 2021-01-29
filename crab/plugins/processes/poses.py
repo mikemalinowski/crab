@@ -22,7 +22,7 @@ class LayerProcess(crab.Process):
 
         :return:
         """
-        crab.tools.rigging().request('Poses : Apply A Pose')().run()
+        crab.tools.rigging().request('poses_apply_a_pose')().run()
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
@@ -33,4 +33,4 @@ class LayerProcess(crab.Process):
 
         :return:
         """
-        crab.tools.rigging().request('Poses : Apply T Pose')().run()
+        crab.tools.rigging().request('poses_apply_t_pose')().run()

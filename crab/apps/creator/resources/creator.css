@@ -51,3 +51,11 @@
     background-color: rgba(_FOREGROUND_, 50);
     color: rgb(20, 20, 20);
 }
+
+#componentOptionsWidget,
+#behaviourOptionsWidget,
+#appliedComponentsOptionsWidget,
+#appliedBehaviourOptionsWidget,
+#toolOptionsWidget {
+    background-color: rgba(0, 0, 0, 50);
+}

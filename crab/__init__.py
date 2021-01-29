@@ -698,21 +698,40 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import imp
+
 from .core import Behaviour
 from .core import Component
 from .core import Process
 from .core import Rig
+from .core import tools
+from .core.tools import AnimTool
+from .core.tools import RigTool
 
 from . import config
-from . import create
-from . import tools
 from . import utils
-from . import menu
+# from . import menu
 
 from .apps import animator
 from .apps import creator
-from .tools import AnimTool
-from .tools import RigTool
+from .apps import menu
 
-__version__ = '2.0.1'
+__version__ = '3.0.0'
 
+
+# -- This is handling legacy accessors. We previously had create.py directly under crab
+# -- but it is now a utils element. To allow for a period of backward compatibility we
+# -- expose the equivalent accessors.
+create = imp.new_module('crab.create')
+
+from .create import control as _access_control
+from .create import generic as _access_generic
+from .create import guide as _access_guide
+from .create import joint as _access_joint
+from .create import org as _access_org
+
+create.control = _access_control
+create.generic = _access_generic
+create.guide = _access_guide
+create.joint = _access_joint
+create.org = _access_org

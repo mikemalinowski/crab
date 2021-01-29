@@ -1,27 +1,13 @@
-import os
+import sys
 
 import pymel.core as pm
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
+from . import utils
+from . import options
+from .. import tooltip
 from ... import tools
 from ...vendor import qute
-
-
-# ------------------------------------------------------------------------------
-def get_resource(name):
-    """
-    This is a convenience function to get files from the resources directory
-    and correct handle the slashing.
-
-    :param name: Name of file to pull from the resource directory
-
-    :return: Absolute path to the resource requested.
-    """
-    return os.path.join(
-        os.path.dirname(__file__),
-        'resources',
-        name,
-    ).replace('\\', '/')
 
 
 # ------------------------------------------------------------------------------
@@ -40,8 +26,11 @@ class CrabAnimator(qute.QWidget):
         self.setLayout(qute.slimify(qute.QVBoxLayout()))
 
         # -- Load in our ui file
-        self.ui = qute.loadUi(get_resource('animator.ui'))
+        self.ui = qute.loadUi(utils.get_resource('animator.ui'))
         self.layout().addWidget(self.ui)
+
+        # -- Give a pointer to our custom widgets
+        self.ui.toolList.widget = self
 
         # -- Tracking lists for tools resources
         self.tools_to_show = list()
@@ -50,13 +39,13 @@ class CrabAnimator(qute.QWidget):
 
         # -- We hook up script jobs to allow the ui to auto refresh
         # -- based on internal maya events
-        self.script_job_ids = list()
-        self._registerScriptJobs()
+        # self.script_job_ids = list()
+        # self._registerScriptJobs()
         # -- Apply our styling, defining some differences
         qute.applyStyle(
             [
                 'space',
-                get_resource('creator.css')
+                utils.get_resource('animator.css')
             ],
             self,
             **{
@@ -68,14 +57,11 @@ class CrabAnimator(qute.QWidget):
             }
         )
 
+        # -- Hook up our help shortcut
+        self.short = qute.QShortcut(qute.QKeySequence("F1"), self, self.showHelp)
+
         # -- Populate the tool list
         self.populateTools()
-
-
-
-        # --
-        self.ui.toolList.itemDoubleClicked.connect(self.runTool)
-        self.ui.toolList.currentRowChanged.connect(self.populateToolOptions)
 
     # --------------------------------------------------------------------------
     def populateTools(self):
@@ -90,9 +76,6 @@ class CrabAnimator(qute.QWidget):
 
         # -- Clear the current tool list
         self.ui.toolList.clear()
-
-        # -- Clear the options
-        self.populateToolOptions()
 
         # -- Check what the user has selected
         node = pm.selected()[0] if pm.selected() else None
@@ -118,69 +101,28 @@ class CrabAnimator(qute.QWidget):
         self.tools_to_show.sort(key=lambda t: t.identifier)
 
         # -- Now we need to add the items to the list
-        default_icon = get_resource('crab.png')
+        default_icon = utils.get_resource('crab.png')
 
+        sorted_tools = list()
         for tool in self.tools_to_prioritise:
+            sorted_tools.append(tool)
+
+        for tool in self.tools_to_show:#
+            sorted_tools.append(tool)
+
+        for tool in sorted_tools:
 
             # -- Create the item
             item = qute.QListWidgetItem(
-                qute.QIcon(tool.icon or default_icon),
-                tool.identifier,
+                qute.QIcon(tool.find_icon() or default_icon),
+                tool.display_name,
             )
 
             # -- Assign a reference to the tool
-            item.tool = tool
+            item.identifier = tool.identifier
+            item.rich_help = tool.rich_help()
 
             self.ui.toolList.addItem(item)
-
-        for tool in self.tools_to_show:
-            # -- Create the item
-            item = qute.QListWidgetItem(
-                qute.QIcon(tool.icon or default_icon),
-                tool.identifier,
-            )
-
-            # -- Assign a reference to the tool
-            item.tool = tool
-
-            self.ui.toolList.addItem(item)
-
-    # --------------------------------------------------------------------------
-    def populateToolOptions(self):
-        """
-        Triggered when the user selects a tool in teh tool panel. This
-        will dynamically generate ui elements for the options of the tool.
-
-        :return: None
-        """
-        # -- Clear the current options
-        qute.emptyLayout(self.ui.toolOptionsLayout)
-        self.tool_option_widgets = list()
-
-        if not self.ui.toolList.currentItem():
-            return
-
-        # -- Get the plugin
-        tool_plugin = tools.animation().request(
-            self.ui.toolList.currentItem().text(),
-        )()
-
-        # -- Now create a widget for each option
-        for name, value in tool_plugin.options.items():
-
-            # -- Create a widget to represent this value
-            widget = qute.deriveWidget(value, '')
-            widget.setObjectName(name)
-
-            # -- Give a minimum width to create consistency
-            widget.setMinimumWidth(140)
-
-            self.tool_option_widgets.append(widget)
-
-            # -- Finally, add it into the layout
-            self.ui.toolOptionsLayout.addLayout(
-                qute.addLabel(widget, name),
-            )
 
     # --------------------------------------------------------------------------
     # noinspection PyUnusedLocal
@@ -190,7 +132,90 @@ class CrabAnimator(qute.QWidget):
 
         :return:
         """
-        if not self.ui.toolList.currentItem():
+        # -- Get the plugin
+        tool_plugin = self._getActivePlugin()
+
+        if not tool_plugin:
+            return
+
+        # -- Update the plugin options with the items from the
+        # -- ui
+        tool_plugin.options.update(
+            options.get(tool_plugin.identifier, defaults=tool_plugin.options),
+        )
+
+        # -- Execute the tool
+        try:
+            tool_plugin.run()
+
+        except:
+            print(sys.exc_info())
+
+    # ----------------------------------------------------------------------------------------------
+    def showOptions(self):
+        """
+        Shows the options panel for the active tool
+
+        :return:
+        """
+        # -- Get the plugin
+        tool_plugin = self._getActivePlugin()
+
+        if not tool_plugin:
+            return
+
+        options.show_options(
+            'crabanimator_{}'.format(tool_plugin.identifier),
+            tool_plugin.options,
+            qute.QCursor().pos() + qute.QPoint(-5, -5),
+            parent=self,
+        )
+
+    # ------------------------------------------------------------------------------
+    def showHelp(self, *args, **kwargs):
+        """
+        This will attempt to show dynamic help for any item the user is focusing on
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
+
+        rich_help = None
+
+        # -- Get all the widgets under the mouse
+        for widget in self.findChildren(qute.QWidget):
+            if widget.underMouse():
+
+                # -- Prioritise list widgets, and where found look for the item
+                # -- under the mouse
+                if isinstance(widget, qute.QListWidget):
+
+                    # -- If we have an item under the mouse, lets switch this
+                    # -- to be the widget we're looking at
+                    widget = widget.itemAt(widget.mapFromGlobal(qute.QCursor().pos()))
+
+                # -- If the widget is valid and it actually has some rich
+                # -- help data, we use it
+                if widget and hasattr(widget, 'rich_help') and widget.rich_help:
+                    rich_help = widget.rich_help
+                    break
+
+        # -- If we have rich help for this item the user is hovering over
+        # -- then lets display a tool tip
+        if rich_help:
+            tooltip.show_tooltip(
+                rich_help.get('title'),
+                rich_help.get('description'),
+                rich_help.get('gif'),
+                self,
+            )
+
+    # --------------------------------------------------------------------------
+    def _getActivePlugin(self):
+        item = self.ui.toolList.currentItem()
+
+        if not item or not hasattr(item, 'identifier'):
             return None
 
         # -- Get the values from all the option elements
@@ -200,74 +225,99 @@ class CrabAnimator(qute.QWidget):
 
         # -- Get the plugin
         tool_plugin = tools.animation().request(
-            self.ui.toolList.currentItem().text(),
+            item.identifier,
         )()
 
-        # -- Update the plugin options with the items from the
-        # -- ui
-        tool_plugin.options.update(options)
+        return tool_plugin
 
-        # -- Execute the tool
-        tool_plugin.run()
+    # # --------------------------------------------------------------------------
+    # def _registerScriptJobs(self):
+    #     """
+    #     Registers script jobs for maya events. If the events have already
+    #     been registered they will not be re-registered.
+    #     """
+    #     # -- Only register if they are not already registered
+    #     if self.script_job_ids:
+    #         return
+    #
+    #     # -- Define the list of events we will register a refresh
+    #     # -- with
+    #     events = [
+    #         'SelectionChanged',
+    #     ]
+    #
+    #     for event in events:
+    #         self.script_job_ids.append(
+    #             pm.scriptJob(
+    #                 event=[
+    #                     event,
+    #                     self.populateTools,
+    #                 ]
+    #             )
+    #         )
+    #
+    # # --------------------------------------------------------------------------
+    # def _unregisterScriptJobs(self):
+    #     """
+    #     This will unregster all the events tied with this UI. It will
+    #     then clear any registered ID's stored within the class.
+    #     """
+    #     for job_id in self.script_job_ids:
+    #         pm.scriptJob(
+    #             kill=job_id,
+    #             force=True,
+    #         )
+    #
+    #     # -- Clear all our job ids
+    #     self.script_job_ids = list()
+
+    # # --------------------------------------------------------------------------
+    # # noinspection PyUnusedLocal
+    # def showEvent(self, event):
+    #     """
+    #     Maya re-uses UI's, so we regsiter our events whenever the ui
+    #     is shown
+    #     """
+    #     self._registerScriptJobs()
+    #
+    # # --------------------------------------------------------------------------
+    # # noinspection PyUnusedLocal
+    # def hideEvent(self, event):
+    #     """
+    #     Maya re-uses UI's, so we unregister the script job events whenever
+    #     the ui is not visible.
+    #     """
+    #     self._unregisterScriptJobs()
+
+
+# ------------------------------------------------------------------------------
+class AnimationToolListWidget(qute.QListWidget):
+    """
+    Custom class which represents the list widget in the ui file.
+    """
 
     # --------------------------------------------------------------------------
-    def _registerScriptJobs(self):
-        """
-        Registers script jobs for maya events. If the events have already
-        been registered they will not be re-registered.
-        """
-        # -- Only register if they are not already registered
-        if self.script_job_ids:
+    def __init__(self, *args, **kwargs):
+        super(AnimationToolListWidget, self).__init__(*args, **kwargs)
+        self.widget = None
+
+    # --------------------------------------------------------------------------
+    def mousePressEvent(self, event):
+        super(AnimationToolListWidget, self).mousePressEvent(event)
+
+        if not self.widget:
             return
 
-        # -- Define the list of events we will register a refresh
-        # -- with
-        events = [
-            'SelectionChanged',
-        ]
+        if event.button() == qute.Qt.LeftButton:
+            self.widget.runTool()
+            return
 
-        for event in events:
-            self.script_job_ids.append(
-                pm.scriptJob(
-                    event=[
-                        event,
-                        self.populateTools,
-                    ]
-                )
-            )
+        elif event.button() == qute.Qt.RightButton:
+            self.widget.showOptions()
+            return
 
-    # --------------------------------------------------------------------------
-    def _unregisterScriptJobs(self):
-        """
-        This will unregster all the events tied with this UI. It will
-        then clear any registered ID's stored within the class.
-        """
-        for job_id in self.script_job_ids:
-            pm.scriptJob(
-                kill=job_id,
-                force=True,
-            )
-
-        # -- Clear all our job ids
-        self.script_job_ids = list()
-
-    # --------------------------------------------------------------------------
-    # noinspection PyUnusedLocal
-    def showEvent(self, event):
-        """
-        Maya re-uses UI's, so we regsiter our events whenever the ui
-        is shown
-        """
-        self._registerScriptJobs()
-
-    # --------------------------------------------------------------------------
-    # noinspection PyUnusedLocal
-    def hideEvent(self, event):
-        """
-        Maya re-uses UI's, so we unregister the script job events whenever
-        the ui is not visible.
-        """
-        self._unregisterScriptJobs()
+        else:
+            pass
 
 
 # ------------------------------------------------------------------------------
@@ -289,5 +339,4 @@ def launch(*args, **kwargs):
 
     # -- Set the window properties
     window.setWindowTitle('Crab')
-
     window.show(dockable=True)

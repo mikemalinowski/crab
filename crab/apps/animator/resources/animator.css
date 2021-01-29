@@ -1,0 +1,4 @@
+
+QListView::item::selected {
+	background-color: rgba(_FOREGROUND_, 24);
+}

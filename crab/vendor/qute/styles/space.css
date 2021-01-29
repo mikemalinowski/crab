@@ -229,6 +229,18 @@ QTreeView::item::hover:!selected {
     background: rgb(_HIGHLIGHT_);
 }
 
+QTreeView::branch:has-children:!has-siblings:closed,
+QTreeView::branch:closed:has-children:has-siblings {
+        border-image: none;
+        image: url(_LIST_COLLAPSED_PNG_);
+}
+
+QTreeView::branch:open:has-children:!has-siblings,
+QTreeView::branch:open:has-children:has-siblings  {
+        border-image: none;
+        image: url(_LIST_OPEN_PNG_);
+}
+
 /* QTableView --------------------------------------------------------------- */
 QTableView {
     outline: 0;

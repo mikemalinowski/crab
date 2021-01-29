@@ -138,7 +138,7 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QListWidget" name="toolList">
+              <widget class="AnimationToolListWidget" name="toolList">
                <property name="iconSize">
                 <size>
                  <width>64</width>
@@ -148,34 +148,6 @@
               </widget>
              </item>
             </layout>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="componentOptions_5">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>45</height>
-              </size>
-             </property>
-             <property name="title">
-              <string/>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_23">
-              <property name="spacing">
-               <number>0</number>
-              </property>
-              <property name="margin">
-               <number>0</number>
-              </property>
-              <item>
-               <layout class="QVBoxLayout" name="toolOptionsLayout">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-               </layout>
-              </item>
-             </layout>
-            </widget>
            </item>
           </layout>
          </item>
@@ -192,6 +164,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>AnimationToolListWidget</class>
+   <extends>QListWidget</extends>
+   <header>crab/apps/animator/core.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -11,6 +11,11 @@ class Duplicate(crab.Behaviour):
     identifier = 'Duplicate'
     version = 1
 
+    tooltips = dict(
+        parent='The node which the dupicated object should be parented under',
+        target='The object to duplicate',
+    )
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(Duplicate, self).__init__(*args, **kwargs)

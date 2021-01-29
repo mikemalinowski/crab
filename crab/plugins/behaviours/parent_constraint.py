@@ -7,6 +7,12 @@ class ParentConstraintBehaviour(crab.Behaviour):
     identifier = 'Parent Constraint'
     version = 1
 
+    tooltips = dict(
+        constrain_this='Full name of the node to constrain',
+        to_this='The name of the node you want to constrain to',
+        maintain_offset='If True, the constraint will be made retaining the current transform offset',
+    )
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(ParentConstraintBehaviour, self).__init__(*args, **kwargs)

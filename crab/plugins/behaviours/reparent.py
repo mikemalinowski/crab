@@ -7,6 +7,11 @@ class ReparentBehaviour(crab.Behaviour):
     identifier = 'Re-Parent'
     version = 1
 
+    tooltip = dict(
+        node='The name of the node to be reparented to',
+        new_parent='The name of the node which should be the targets new parent',
+    )
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(ReparentBehaviour, self).__init__(*args, **kwargs)
