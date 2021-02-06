@@ -39,3 +39,37 @@ def slimify(layout):
     layout.setSpacing(0)
 
     return layout
+
+
+# --------------------------------------------------------------------------
+def widgets(layout):
+    """
+    Returns all the child widgets (recursively) within this layout
+
+    :param layout: The layout to empty.
+    :type layout: QLayout
+
+    :return: None
+    """
+
+    results = list()
+
+    def _getWidgets(layout_):
+
+        for idx in range(layout_.count()):
+            item = layout_.itemAt(idx)
+
+            if isinstance(item, Qt.QtWidgets.QLayout):
+                _getWidgets(item)
+                continue
+
+            widget = item.widget()
+
+            if not widget:
+                continue
+
+            results.append(widget)
+
+    _getWidgets(layout)
+
+    return results

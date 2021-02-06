@@ -11,7 +11,7 @@ from ...vendor import qute
 
 
 # ------------------------------------------------------------------------------
-# noinspection PyUnresolvedReferences,PyPep8Naming
+# noinspection PyUnresolvedReferences,PyPep8Naming,DuplicatedCode
 class CrabAnimator(qute.QWidget):
     """
     CrabCreator is a rig building and editing ui which exposes all the
@@ -219,78 +219,22 @@ class CrabAnimator(qute.QWidget):
             return None
 
         # -- Get the values from all the option elements
-        options = dict()
+        active_options = dict()
+
         for widget in self.tool_option_widgets:
-            options[widget.objectName()] = qute.deriveValue(widget)
+            active_options[widget.objectName()] = qute.deriveValue(widget)
 
         # -- Get the plugin
         tool_plugin = tools.animation().request(
             item.identifier,
         )()
+        tool_plugin.options.update(active_options)
 
         return tool_plugin
 
-    # # --------------------------------------------------------------------------
-    # def _registerScriptJobs(self):
-    #     """
-    #     Registers script jobs for maya events. If the events have already
-    #     been registered they will not be re-registered.
-    #     """
-    #     # -- Only register if they are not already registered
-    #     if self.script_job_ids:
-    #         return
-    #
-    #     # -- Define the list of events we will register a refresh
-    #     # -- with
-    #     events = [
-    #         'SelectionChanged',
-    #     ]
-    #
-    #     for event in events:
-    #         self.script_job_ids.append(
-    #             pm.scriptJob(
-    #                 event=[
-    #                     event,
-    #                     self.populateTools,
-    #                 ]
-    #             )
-    #         )
-    #
-    # # --------------------------------------------------------------------------
-    # def _unregisterScriptJobs(self):
-    #     """
-    #     This will unregster all the events tied with this UI. It will
-    #     then clear any registered ID's stored within the class.
-    #     """
-    #     for job_id in self.script_job_ids:
-    #         pm.scriptJob(
-    #             kill=job_id,
-    #             force=True,
-    #         )
-    #
-    #     # -- Clear all our job ids
-    #     self.script_job_ids = list()
-
-    # # --------------------------------------------------------------------------
-    # # noinspection PyUnusedLocal
-    # def showEvent(self, event):
-    #     """
-    #     Maya re-uses UI's, so we regsiter our events whenever the ui
-    #     is shown
-    #     """
-    #     self._registerScriptJobs()
-    #
-    # # --------------------------------------------------------------------------
-    # # noinspection PyUnusedLocal
-    # def hideEvent(self, event):
-    #     """
-    #     Maya re-uses UI's, so we unregister the script job events whenever
-    #     the ui is not visible.
-    #     """
-    #     self._unregisterScriptJobs()
-
 
 # ------------------------------------------------------------------------------
+# noinspection PyPep8Naming,PyUnresolvedReferences
 class AnimationToolListWidget(qute.QListWidget):
     """
     Custom class which represents the list widget in the ui file.
@@ -328,7 +272,7 @@ class DockableAnimator(MayaQWidgetDockableMixin, qute.QMainWindow):
 
 
 # ------------------------------------------------------------------------------
-# noinspection PyUnresolvedReferences
+# noinspection PyUnresolvedReferences,PyUnusedLocal
 def launch(*args, **kwargs):
     window = DockableAnimator(parent=qute.mainWindow())
     widget = CrabAnimator(parent=window)

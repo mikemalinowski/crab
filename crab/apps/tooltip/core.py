@@ -187,7 +187,7 @@ class ToolTip(qute.QWidget):
         default_size = qute.QImage(graphic).size()
 
         # -- Get how much we need to scale this by to fit a 400 width
-        factor = 400.0 / default_size.width()
+        factor = 400.0 / (default_size.width() or 1.0)
 
         # -- Scale the movie
         self._movie.setScaledSize(

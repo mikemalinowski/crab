@@ -639,10 +639,6 @@ class Rig(object):
             behaviour.
         :return:
         """
-        # -- Check to ensure we have a control rig
-        # if not self.control_roots():
-        #     log.warning('Cannot apply behaviours when not in rig mode')
-
         # -- Ensure the behaviour is accessible
         if behaviour_type not in self.factories.behaviours.identifiers():
             log.error('%s could not be found.' % behaviour_type)

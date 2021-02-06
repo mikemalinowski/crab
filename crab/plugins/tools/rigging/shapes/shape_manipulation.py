@@ -310,7 +310,7 @@ class ShapeMirrorLeftToRightTool(crab.RigTool):
 
         # -- Get the Shape mirroring tool that matches
         # -- our axis as defined in the options
-        tool = crab.tools.rigging().request('Shape : Mirror : %s' % self.options.axis.upper())
+        tool = crab.tools.rigging().request('shape_mirror_%s' % self.options.axis.lower())
 
         # -- Select the left controls using crabs naming conventions
         pm.select(
