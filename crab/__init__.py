@@ -729,9 +729,12 @@ from .create import generic as _access_generic
 from .create import guide as _access_guide
 from .create import joint as _access_joint
 from .create import org as _access_org
+from .create import face_widget as _access_face_widget
 
 create.control = _access_control
 create.generic = _access_generic
 create.guide = _access_guide
 create.joint = _access_joint
 create.org = _access_org
+create.face_widget = _access_face_widget
+

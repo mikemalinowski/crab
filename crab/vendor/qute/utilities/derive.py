@@ -57,6 +57,7 @@ def deriveWidget(value, label='', tooltip=''):
         derived = QtWidgets.QDoubleSpinBox()
         derived.setMaximum(_NUMERIC_UI_MAX)
         derived.setMinimum(_NUMERIC_UI_MIN)
+        derived.setDecimals(4)
         derived.setValue(value)
         derived.setToolTip(tooltip)
         return derived

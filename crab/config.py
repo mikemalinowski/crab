@@ -12,6 +12,7 @@ COMPONENT_MARKER = 'crabComponent'
 META_IDENTIFIER = 'Identifier'
 META_VERSION = 'Version'
 META_OPTIONS = 'Options'
+META_CONTENTS = 'Contents'
 
 # ------------------------------------------------------------------------------
 # -- This is a list of attribute names used by the internals of
@@ -122,6 +123,15 @@ GUIDE_COLOR = [162, 222, 0]
 # ------------------------------------------------------------------------------
 # -- Defines attribute defaults
 DEFAULT_CONTROL_ROTATION_ORDER = 5
+
+# ------------------------------------------------------------------------------
+# -- Defines attribute defaults
+OWNED_LAYERS = [
+    'Hidden',
+    'Controls',
+    'Skeleton',
+    'Geometry',
+]
 
 
 # ------------------------------------------------------------------------------

@@ -16,6 +16,8 @@ class Duplicate(crab.Behaviour):
         target='The object to duplicate',
     )
 
+    REQUIRED_NODE_OPTIONS = ['parent', 'target']
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(Duplicate, self).__init__(*args, **kwargs)

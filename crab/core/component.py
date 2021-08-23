@@ -378,7 +378,7 @@ class Component(object):
         target.message.connect(sub_attr)
 
     # --------------------------------------------------------------------------
-    def find(self, label):
+    def find(self, label=''):
         """
         Convenience function for performing a meta find against
         the component.
@@ -389,9 +389,18 @@ class Component(object):
         meta_node = self.meta()
 
         # -- Check that the expected attribute exists
-        attribute_name = 'crabLabel%s' % label
-        if meta_node.hasAttr(attribute_name):
-            return meta_node.attr(attribute_name).inputs()
+        if label:
+            attribute_name = 'crabLabel%s' % label
+            if meta_node.hasAttr(attribute_name):
+                return meta_node.attr(attribute_name).inputs()
+
+        else:
+            results = list()
+            for attr in meta_node.listAttr(ud=True):
+                if 'crabLabel' in attr.name():
+                    results.extend(attr.inputs())
+
+            return results
 
         return []
 
@@ -552,6 +561,12 @@ class Component(object):
         )
         meta_node.attr(config.META_OPTIONS).set(json.dumps(self.options))
 
+        meta_node.addAttr(
+            config.META_CONTENTS,
+            dt='string',
+        )
+        meta_node.attr(config.META_CONTENTS).set('[]')
+
         # -- Add this various link attributes to the different
         # -- parts which make up the component
         meta_node.addAttr(
@@ -664,9 +679,23 @@ class Component(object):
     # --------------------------------------------------------------------------
     def remove(self):
         """
-        This will remove this crab component
-        :return:
+        This will remove this crab component if possible
+
+        :return: True if the component was removed
         """
+        # -- Get a list of all the skeletal joints and check if they are connected
+        # -- to any skin clusters. If they are then we do not remove the component
+        skinned_joints = list()
+        for joint in self.find():
+            if joint.name().startswith(config.SKELETON) and utils.skinning.is_skinned(joint):
+                skinned_joints.append(joint.name())
+
+        if skinned_joints:
+            print('%s could not be removed, as some of the joints are connected to skin clusters' % self.options.description)
+            print('\n' + '\n\t'.join(skinned_joints))
+
+            return False
+
         # -- Start by re-parenting any child components to the parent of this
         # -- component
         parent = self.skeletal_root().getParent()
@@ -689,3 +718,5 @@ class Component(object):
             pm.delete(self.meta())
 
         except: pass
+
+        return True

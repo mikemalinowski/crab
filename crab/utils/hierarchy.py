@@ -2,6 +2,8 @@
 This contains a series of utility and helper functions which do not
 live under any bespoke module
 """
+import pymel.core as pm
+
 from .. import config
 
 
@@ -133,3 +135,26 @@ def get_driving_control(skeletal_joint):
             return potential
 
     return None
+
+
+# -----------------------------------------------------
+def get_top_level_control(reference_point):
+    """
+    Returns the control designated as driving (binding) this joint.
+
+    :param reference_point: The item to search from. This function will look 'upward' from
+        this object to find the top level control
+    :type reference_point: pm.nt.Transform
+
+    :return: pm.nt.Transform
+    """
+    # -- Get the long address of the object
+    address = pm.PyNode(reference_point).longName().split('|')
+
+    # -- Cycle the elements, remove the namespace and test if it is a control
+    for item in address:
+        if item.split(':')[-1].startswith(config.CONTROL):
+            return pm.PyNode(item)
+
+    # -- If no control was found, return the reference point
+    return reference_point

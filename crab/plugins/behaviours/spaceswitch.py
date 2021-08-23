@@ -28,6 +28,8 @@ class SpaceSwitch(crab.Behaviour):
         'spaceswitch.gif',
     )
 
+    REQUIRED_NODE_OPTIONS = ['target', 'spaces']
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(SpaceSwitch, self).__init__(*args, **kwargs)
@@ -207,5 +209,20 @@ class SpaceSwitch(crab.Behaviour):
 
         # -- Set the default space
         target.spaces.set(default_id)
+
+        return True
+
+    def can_build(self, available_nodes):
+        result = super(SpaceSwitch, self).can_build(available_nodes=available_nodes)
+
+        if not result:
+            return False
+
+        for data in self.options.target_offsets.split(';'):
+            if '=' in data:
+                for node_name, label in data.split('='):
+                    if node_name.strip() not in available_nodes:
+                        print('Target offset %s cannot be found' % node_name)
+                        return False
 
         return True

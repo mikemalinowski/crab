@@ -71,6 +71,7 @@ class StickyPatchComponent(crab.Component):
             u=0.5,
             v=0.5,
         )
+        follicle.visibility.set(False)
 
         # -- Tag the surface so we can retrieve it later
         self.tag(
@@ -177,6 +178,12 @@ class StickyPatchComponent(crab.Component):
         # -- Get the transform so we can properly bind
         follicle_xfo = follicle.getParent()
         follicle_xfo.inheritsTransform.set(False)
+
+        # -- Scale constraint the node so that any rig scaling still comes through
+        pm.scaleConstraint(
+            follicle_xfo.getParent(),
+            follicle_xfo,
+        )
 
         # -- Create our offset control
         control = crab.create.control(

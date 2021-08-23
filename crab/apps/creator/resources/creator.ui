@@ -408,17 +408,27 @@
                           <number>0</number>
                          </property>
                          <item>
-                          <widget class="CrabItemListWidget" name="componentList">
-                           <property name="alternatingRowColors">
-                            <bool>true</bool>
+                          <layout class="QVBoxLayout" name="verticalLayout_12">
+                           <property name="spacing">
+                            <number>0</number>
                            </property>
-                           <property name="iconSize">
-                            <size>
-                             <width>35</width>
-                             <height>35</height>
-                            </size>
-                           </property>
-                          </widget>
+                           <item>
+                            <widget class="QLineEdit" name="newComponentFilter"/>
+                           </item>
+                           <item>
+                            <widget class="CrabItemListWidget" name="componentList">
+                             <property name="alternatingRowColors">
+                              <bool>true</bool>
+                             </property>
+                             <property name="iconSize">
+                              <size>
+                               <width>35</width>
+                               <height>35</height>
+                              </size>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
                          </item>
                         </layout>
                        </item>
@@ -538,7 +548,21 @@
                           <number>0</number>
                          </property>
                          <item>
-                          <widget class="CrabItemListWidget" name="appliedComponentList"/>
+                          <layout class="QVBoxLayout" name="verticalLayout_38">
+                           <property name="spacing">
+                            <number>0</number>
+                           </property>
+                           <item>
+                            <widget class="QLineEdit" name="appliedComponentFilter"/>
+                           </item>
+                           <item>
+                            <widget class="CrabItemListWidget" name="appliedComponentList">
+                             <property name="selectionMode">
+                              <enum>QAbstractItemView::ExtendedSelection</enum>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
                          </item>
                          <item>
                           <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -649,7 +673,7 @@
                 </attribute>
                 <layout class="QVBoxLayout" name="verticalLayout_8">
                  <item>
-                  <widget class="QTabWidget" name="tabWidget_2">
+                  <widget class="QTabWidget" name="validateBehaviours">
                    <property name="currentIndex">
                     <number>0</number>
                    </property>
@@ -693,17 +717,27 @@
                           <number>0</number>
                          </property>
                          <item>
-                          <widget class="CrabItemListWidget" name="behaviourList">
-                           <property name="alternatingRowColors">
-                            <bool>true</bool>
+                          <layout class="QVBoxLayout" name="verticalLayout_39">
+                           <property name="spacing">
+                            <number>0</number>
                            </property>
-                           <property name="iconSize">
-                            <size>
-                             <width>35</width>
-                             <height>35</height>
-                            </size>
-                           </property>
-                          </widget>
+                           <item>
+                            <widget class="QLineEdit" name="newBehaviourFilter"/>
+                           </item>
+                           <item>
+                            <widget class="CrabItemListWidget" name="behaviourList">
+                             <property name="alternatingRowColors">
+                              <bool>true</bool>
+                             </property>
+                             <property name="iconSize">
+                              <size>
+                               <width>35</width>
+                               <height>35</height>
+                              </size>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
                          </item>
                         </layout>
                        </item>
@@ -825,13 +859,52 @@
                             <number>0</number>
                            </property>
                            <item>
-                            <widget class="AppliedBehaviourListWidget" name="appliedBehaviourList"/>
+                            <layout class="QVBoxLayout" name="verticalLayout_40">
+                             <property name="spacing">
+                              <number>0</number>
+                             </property>
+                             <item>
+                              <widget class="QLineEdit" name="appliedBehaviourFilter"/>
+                             </item>
+                             <item>
+                              <widget class="AppliedBehaviourListWidget" name="appliedBehaviourList"/>
+                             </item>
+                            </layout>
                            </item>
                            <item>
                             <layout class="QVBoxLayout" name="verticalLayout_32">
                              <property name="spacing">
                               <number>0</number>
                              </property>
+                             <item>
+                              <widget class="QPushButton" name="validateBehaviour">
+                               <property name="minimumSize">
+                                <size>
+                                 <width>32</width>
+                                 <height>32</height>
+                                </size>
+                               </property>
+                               <property name="maximumSize">
+                                <size>
+                                 <width>32</width>
+                                 <height>32</height>
+                                </size>
+                               </property>
+                               <property name="text">
+                                <string/>
+                               </property>
+                               <property name="icon">
+                                <iconset>
+                                 <normaloff>remove.png</normaloff>remove.png</iconset>
+                               </property>
+                               <property name="iconSize">
+                                <size>
+                                 <width>32</width>
+                                 <height>32</height>
+                                </size>
+                               </property>
+                              </widget>
+                             </item>
                              <item>
                               <widget class="QPushButton" name="removeBehaviour">
                                <property name="minimumSize">
@@ -1030,17 +1103,27 @@
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QListWidget" name="toolList">
-                   <property name="alternatingRowColors">
-                    <bool>true</bool>
+                  <layout class="QVBoxLayout" name="verticalLayout_7">
+                   <property name="spacing">
+                    <number>0</number>
                    </property>
-                   <property name="iconSize">
-                    <size>
-                     <width>35</width>
-                     <height>35</height>
-                    </size>
-                   </property>
-                  </widget>
+                   <item>
+                    <widget class="QLineEdit" name="toolFilter"/>
+                   </item>
+                   <item>
+                    <widget class="QListWidget" name="toolList">
+                     <property name="alternatingRowColors">
+                      <bool>true</bool>
+                     </property>
+                     <property name="iconSize">
+                      <size>
+                       <width>35</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
                  <item>
                   <layout class="QVBoxLayout" name="verticalLayout_22">

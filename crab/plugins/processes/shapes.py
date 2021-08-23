@@ -38,6 +38,11 @@ class ShapeStoreProcess(crab.Process):
             )
             self.rig.node().shapeInfo.set('{}')
 
+        # -- We only want to snapshot the controls if the rig was built successfully - if the
+        # -- last build was a failure we dont store the control elements
+        if not self.rig.built_successfully():
+            return
+
         # -- Define the data structure variable which we will
         # -- ultimately store
         data_sets = list()

@@ -1,4 +1,5 @@
 import pymel.core as pm
+import maya.cmds as cmds
 
 from ..utils import shapes
 from .. import config
@@ -68,22 +69,17 @@ def generic(node_type,
 
     # -- If we're given a matrix utilise that
     if xform:
-        node.setMatrix(
-            xform,
-            worldSpace=True,
-        )
+        cmds.xform(node, matrix=xform, worldspace=True)
 
     # -- Match the object to the target object if one
     # -- is given.
     if match_to:
-        node.setMatrix(
-            match_to.getMatrix(worldSpace=True),
-            worldSpace=True,
-        )
+        target_matrix = cmds.xform(match_to.name(), query=True, matrix=True, worldSpace=True)
+        cmds.xform(node.name(), matrix=target_matrix, worldSpace=True)
 
     # -- Parent the node if we're given a parent
     if parent:
-        node.setParent(parent)
+        cmds.parent(node.name(), parent.name())
 
     if shape:
         shapes.apply(node, shape)

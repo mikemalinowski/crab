@@ -13,6 +13,9 @@ class AddFollicleBehaviour(crab.Behaviour):
         drive='Optionally a node to constrain to the follicle',
     )
 
+    REQUIRED_NODE_OPTIONS = ['parent', 'surface']
+    OPTIONAL_NODE_OPTIONS = ['drive']
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(AddFollicleBehaviour, self).__init__(*args, **kwargs)

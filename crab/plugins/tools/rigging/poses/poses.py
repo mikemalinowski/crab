@@ -1,4 +1,5 @@
 import crab
+from crab.vendor import qute
 import pymel.core as pm
 
 
@@ -37,8 +38,8 @@ class DefineAPoseTool(crab.RigTool):
                 cancelButton='No',
                 dismissString='No'
             )
-            nodes = pm.ls('%s_*' % crab.config.SKELETON, type='joint')
-            nodes.extend(pm.ls('%s_*' % crab.config.GUIDE, type='transform'))
+            nodes = pm.ls('%s_*' % crab.config.SKELETON, type='joint', r=True)
+            nodes.extend(pm.ls('%s_*' % crab.config.GUIDE, type='transform', r=True))
 
         if confirm_result == 'Yes':
             with crab.utils.contexts.UndoChunk():
@@ -69,9 +70,28 @@ class ApplyAPoseTool(crab.RigTool):
         super(ApplyAPoseTool, self).__init__()
         self.options.selection_only = False
         self.options.rotate_only = False
+        self.options.translate_only = False
 
     # --------------------------------------------------------------------------
     def run(self):
+
+        # -- Ensure all rigs are editable
+        for rig in crab.Rig.all():
+            if not rig.is_editable():
+
+                confirmation = qute.utilities.request.confirmation(
+                    title='%s is not editable' % rig.node().name(),
+                    label='To assign a pose, the rig needs to be editable. Would you like to put the rig into an editable state?',
+                )
+
+                if confirmation:
+                    rig.edit()
+
+                else:
+
+                    # -- If any rig is not intended to be editable, exit
+                    return
+
         selection_state_text = 'all joints'
         rotation_only_text = ''
         if self.options.selection_only:
@@ -79,8 +99,8 @@ class ApplyAPoseTool(crab.RigTool):
             selection_state_text = 'selected joints'
 
         else:
-            nodes = pm.ls('%s_*' % crab.config.SKELETON, type='joint')
-            nodes.extend(pm.ls('%s_*' % crab.config.GUIDE, type='transform'))
+            nodes = pm.ls('%s_*' % crab.config.SKELETON, type='joint', r=True)
+            nodes.extend(pm.ls('%s_*' % crab.config.GUIDE, type='transform', r=True))
 
         with crab.utils.contexts.UndoChunk():
             for joint in nodes:
@@ -91,10 +111,19 @@ class ApplyAPoseTool(crab.RigTool):
                         pos = joint.getTranslation()
                         rotation_only_text = 'rotation only'
 
+                    rot = None
+                    if self.options.translate_only:
+                        rot = joint.getRotation()
+                        rotation_only_text = 'translation only'
+
                     joint.setMatrix(joint.attr(self.POSE_NAME).get())
 
                     if pos:
                         joint.setTranslation(pos)
+
+                    if rot:
+                        joint.setRotation(rot)
+
         print ('Loaded: {} to {} {}'.format(
             self.POSE_NAME,
             selection_state_text,

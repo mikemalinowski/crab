@@ -14,6 +14,9 @@ class InsertControlBehaviour(crab.Behaviour):
         destination='The longName to the attribute you want to drive',
     )
 
+    # -- We expect these options to be fullfilled with objects
+    REQUIRED_NODE_OPTIONS = ['source', 'destination']
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(InsertControlBehaviour, self).__init__(*args, **kwargs)
@@ -32,7 +35,20 @@ class InsertControlBehaviour(crab.Behaviour):
 
         return True
 
+    # --------------------------------------------------------------------------
+    def can_build(self, available_nodes):
+        if self.options.source not in available_nodes:
+            print('%s is cannot be found' % self.options.source)
+            return False
 
+        if self.options.destination not in available_nodes:
+            print('%s cannot be found' % self.options.destination)
+            return False
+
+        return True
+
+
+# ------------------------------------------------------------------------------
 class SetAttributeBehaviour(crab.Behaviour):
 
     identifier = 'Attributes : Set'
@@ -47,6 +63,8 @@ class SetAttributeBehaviour(crab.Behaviour):
         is_string='If the attribute is a string/text attribute, then tick this',
         is_number='If the attribute is a float or integer then please tick this',
     )
+
+    REQUIRED_NODE_OPTIONS = ['objects']
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
@@ -67,9 +85,19 @@ class SetAttributeBehaviour(crab.Behaviour):
         if self.options.is_number:
             value = float(self.options.attribute_value)
 
-        for node in self.options.objects.split(';'):
+        if '*' in self.options.objects:
+            node_list = pm.ls(self.options.objects)
+
+        else:
+            node_list = self.options.objects.split(';')
+
+        for node in node_list:
             if node and pm.objExists(node):
-                pm.PyNode(node).attr(self.options.attribute_name).set(value)
+                try:
+                    pm.PyNode(node).attr(self.options.attribute_name).set(value)
+
+                except:
+                    pass
 
         return True
 

@@ -1,6 +1,8 @@
 import json
 import uuid
+import time
 import traceback
+import maya.cmds as mc
 import pymel.core as pm
 
 from . import _factories
@@ -91,6 +93,17 @@ class Rig(object):
         self._reference = node
 
     # --------------------------------------------------------------------------
+    def built_successfully(self):
+        """
+        Checks if the rig was successfully built last time the build
+        was attempted
+        """
+        if self.node().hasAttr('built_successfully'):
+            return self.node().built_successfully.get()
+
+        return True
+
+    # --------------------------------------------------------------------------
     @classmethod
     def create(cls, name=None):
         """
@@ -106,6 +119,15 @@ class Rig(object):
             prefix=config.RIG_ROOT,
             description=name or 'CrabRig',
             side=config.MIDDLE,
+        )
+
+        # -- Store an attribute to state whether the rig has been successfully built.
+        # -- this allow mechanisms to check whether they should run or whether there
+        # -- may be issues
+        rig_root.addAttr(
+            'built_successfully',
+            at='bool',
+            dv=True,
         )
 
         # -- Create the node marker
@@ -319,6 +341,117 @@ class Rig(object):
         return None
 
     # --------------------------------------------------------------------------
+    def available_components(self):
+        """
+        This will return a list of component classes (not instanced)
+
+        :return: List(crab.Component, crab.Component)
+        """
+        return self.factories.components.plugins()
+
+    # --------------------------------------------------------------------------
+    def available_behaviours(self):
+        """
+        This will return a list of component classes (not instanced)
+
+        :return: List(crab.Component, crab.Component)
+        """
+        return self.factories.behaviours.plugins()
+
+    # --------------------------------------------------------------------------
+    def behaviours(self, unique_id=None):
+        """
+        This will return a list of component classes (not instanced)
+
+        :return: List(crab.Component, crab.Component)
+        """
+        all_behaviour_data = json.loads(self.meta().attr(config.BEHAVIOUR_DATA).get())
+
+        behaviours = list()
+
+        for behaviour_data in all_behaviour_data:
+
+            # -- If we do not recognise the behaviour, log it and continu
+            if behaviour_data.get('type', '') not in self.factories.behaviours.identifiers():
+                print('{} is not a recognised behaviour'.format(behaviour_data['type']))
+                continue
+
+            # -- Instance the behaviour
+            behaviour_class = self.factories.behaviours.request(behaviour_data['type'])
+            behaviour = behaviour_class(rig=self, instance_id=behaviour_data.get('id', None))
+
+            # -- Update the behaviour with all its option information
+            behaviour.options.update(behaviour_data.get('options', {}))
+
+            # -- If we're given a specific behaviour id to look for, and it matches
+            # -- then lets return it
+            if unique_id and behaviour_data.get('id') == unique_id:
+                return behaviour
+
+            # -- Add the behaviour to the list
+            behaviours.append(behaviour)
+
+        return behaviours
+
+    # --------------------------------------------------------------------------
+    def serialise_behaviour(self, behaviour):
+        """
+        This will serialise any information from a behaviour that is assigned
+        to a rig
+        """
+        pass
+
+    # --------------------------------------------------------------------------
+    def validate_behaviours(self, remove_invalid=False):
+        """
+        This will run behaviour validation - checking for any behaviours
+        that are not valid or cannot be built
+
+        :param remove_invalid: If True then any that return an invalid result
+            will be removed from the build recipie
+        :type remove_invalid: bool
+
+        :return: False if ANY behaviours are invalid
+        """
+        overall_result = True
+        # -- We need to get a list of all the contents we expect to have
+        # -- whenever the rig is built
+        contents = list()
+
+        for component in self.components():
+            meta_node = component.meta()
+
+            # -- If this node has no contents skip it
+            if not meta_node.hasAttr(config.META_CONTENTS):
+                continue
+
+            # -- Scoop up the list
+            contents.extend(
+                eval(
+                    meta_node.attr(config.META_CONTENTS).get(),
+                ),
+            )
+
+        # -- Now cycle teh list of behaviours and check each one is capable
+        # -- of building correctly
+        for behaviour in self.behaviours():
+
+            # -- We take the result only if our running result is True. This
+            # -- is because having any ONE false result means the end result
+            # -- needs to be false.
+            # -- We do want to run all the behaviour validators though - so that
+            # -- the user is aware of all issues
+            result = behaviour.can_build(contents)
+
+            if not result:
+                overall_result = False
+
+                if remove_invalid:
+                    behaviour.remove()
+
+        return overall_result
+
+    # --------------------------------------------------------------------------
     def add_component(self,
                       component_type,
                       parent=None,
@@ -408,18 +541,6 @@ class Rig(object):
             return plugin
 
     # --------------------------------------------------------------------------
-    def remove_component(self, skeleton_node):
-        """
-        Removes the component from the rig (re-parenting any child components
-        under the next available parent).
-
-        :param component_root: Skeletal Component Root
-
-        :return: None
-        """
-        self.factories.components.find_from_node(skeleton_node).remove()
-
-    # --------------------------------------------------------------------------
     def edit(self):
         """
         Puts the rig into an editable state - removing the control rig
@@ -432,7 +553,7 @@ class Rig(object):
         """
         # -- If we're already in an editable state we do not need
         # -- to do anything more
-        if not self.control_roots():
+        if self.is_editable():
             log.info('Rig is already editable.')
             return True
 
@@ -488,6 +609,8 @@ class Rig(object):
         # -- Log the action of starting a rig build
         log.info('Commencing rig build.')
 
+        # -- Track the start time
+        start_time = time.time()
 
         # -- Create an attribute on the rig node to store the shape
         # -- information on
@@ -501,16 +624,41 @@ class Rig(object):
         # -- Ensure the rig is in an editable state
         self.edit()
 
+        # -- Check if our rig node has the built successfully attribute. This is crucual
+        # -- for processes to know what state the rig is in
+        if not self.node().hasAttr('built_successfully'):
+            self.node().addAttr(
+                'built_successfully',
+                at='bool',
+                dv=True,
+            )
+
         # -- Determine how many actions we will be processing so we can
+
         # -- emit the correct value
         action_count = len(self.factories.processes.plugins())
         action_count += len(self.guide_roots())
-        action_count += len(self.assigned_behaviours())
+        action_count += len(self.behaviours())
         action_count += len(self.skeleton_roots())
         action_count += len(self.factories.processes.plugins())
 
+        # -- From this point onward we may start making edits to the rig
+        # -- so we set teh built_successfully flag to false until we're
+        # -- complete
+        self.node().built_successfully.set(False)
+
         # -- Emit the edit starting action
         self.edit_started.emit(action_count)
+
+        # -- Run any validation before we start. If any validation fails then
+        # -- we do not continue
+        for proc in self.factories.processes.plugins():
+            self.performing_action.emit('Running Process : {}'.format(proc.identifier))
+            result = proc(self).validate()
+
+            if not result:
+                print('%s failed during validation. Please see script editor for details' % proc.identifier)
+                return False
 
         for proc in self.factories.processes.plugins():
             self.performing_action.emit('Running Process : {}'.format(proc.identifier))
@@ -544,9 +692,22 @@ class Rig(object):
             # -- skeletal component root
             component_plugin = self.factories.components.find_from_node(skeleton_component_root)
 
-            print('Starting build of : %s' % component_plugin.identifier)
+            print('Starting build of : %s (%s)' % (component_plugin.identifier, skeleton_component_root))
 
             try:
+                meta_node = component_plugin.meta()
+
+                # -- Ensure we have a contents node
+                if not meta_node.hasAttr(config.META_CONTENTS):
+                    meta_node.addAttr(
+                        config.META_CONTENTS,
+                        dt='string',
+                    )
+                    meta_node.attr(config.META_CONTENTS).set('[]')
+
+                # -- Snapshot the scene list
+                scene_list = set(mc.ls(dag=True))
+
                 # -- Build the rig, generating a control component org
                 result = component_plugin.create_rig(
                     parent=component_plugin.create_control_root(
@@ -554,6 +715,10 @@ class Rig(object):
                         component_plugin.meta(),
                     )
                 )
+
+                # -- Capture the delta
+                new_scene_list = set(mc.ls(dag=True))
+                meta_node.attr(config.META_CONTENTS).set(str(list(new_scene_list - scene_list)))
 
                 if not result:
                     print('%s returned False during build.' % component_plugin.identifier)
@@ -566,26 +731,15 @@ class Rig(object):
             print('\tBuild complete')
 
         # -- Now we need to apply any behaviours
-        for behaviour_block in self.assigned_behaviours():
-            self.performing_action.emit('Building Behaviour : {}'.format(behaviour_block['type']))
+        for behaviour in self.behaviours():
 
-            if behaviour_block['type'] not in self.factories.behaviours.identifiers():
-                print('Request for behaviour : {} could not be found'.format(behaviour_block['type']))
-                continue
+            self.performing_action.emit('Building Behaviour : {}'.format(behaviour.identifier))
 
-            # -- Instance the behaviour
-            behaviour_plugin = self.factories.behaviours.request(
-                behaviour_block['type']
-            )(self)
-
-            # -- Update the options for the behaviour plugin
-            behaviour_plugin.options.update(behaviour_block['options'])
-
-            print('Starting application of : %s' % behaviour_plugin.identifier)
+            print('Starting application of : %s' % behaviour.identifier)
 
             try:
                 # -- Finally apply the behaviour
-                behaviour_plugin.apply()
+                behaviour.apply()
 
             except:
                 traceback.print_exc()
@@ -610,6 +764,31 @@ class Rig(object):
                 return False
 
             print('\tProcess complete')
+
+        # -- To reach this point our rig build has been succesful, so we should
+        # -- mark it as such
+        self.node().built_successfully.set(True)
+
+        # -- Calculate the time it took
+        print(
+            'Rig took {} to build'.format(
+                round(time.time() - start_time, 4),
+            )
+        )
+
+        return True
+
+    # --------------------------------------------------------------------------
+    def is_editable(self):
+        """
+        Checks if the rig is considered to be in an editable or animatable
+        state.
+
+        :return: True if the rig is editable
+        """
+        if self.control_roots():
+            return False
+
         return True
 
     # --------------------------------------------------------------------------
@@ -645,13 +824,14 @@ class Rig(object):
             return False
 
         # -- Get the current behaviour data
-        current_data = self.assigned_behaviours()
+        current_data = json.loads(self.meta().attr(config.BEHAVIOUR_DATA).get())
 
         # -- Create a data block to add it to
+        unique_id = str(uuid.uuid4())
         behaviour_data = dict(
             type=behaviour_type,
             options=options,
-            id=str(uuid.uuid4()),
+            id=unique_id,
         )
 
         # -- Assign our data into the current data
@@ -661,86 +841,12 @@ class Rig(object):
         else:
             current_data.insert(index, behaviour_data)
 
-        # -- Write the updated data back into the attribute
-        self.store_behaviour_data(current_data)
-
-        return True
-
-    # --------------------------------------------------------------------------
-    def remove_behaviour(self, behaviour_id):
-        """
-        This will remove the behaviour with the given id. The id's of behaviours
-        can be found by calling ```rig.assigned_behaviours()```.
-
-        :param behaviour_id: uuid of the behaviour to remove
-        :type behaviour_id: str
-
-        :return: True if the behaviour was removed
-        """
-        # -- Get the current behaviour manifest
-        current_data = self.assigned_behaviours()
-
-        # -- Look for a behaviour with the given behaviour id
-        for idx, behaviour_data in enumerate(current_data):
-            if behaviour_data['id'] == behaviour_id:
-                current_data.pop(idx)
-
-                self.store_behaviour_data(current_data)
-                return True
-
-        return False
-
-    # --------------------------------------------------------------------------
-    def shift_behaviour_order(self, behaviour_id, shift_offset):
-        """
-        Behaviours are built in sequence, this method allows you to shift
-        a behaviour forward or backward in the sequence.
-
-        :param behaviour_id: The uuid of the behaviour you want to shift,
-            which can be found by calling ```rig.assigned_behaviours()```
-        :type behaviour_id: str
-
-        :param shift_offset: The offset you want to shift by, so a value
-            of 1 would shift it down the list by one, whilst a value of -1
-            would shift it up once in the list
-        :type shift_offset: int
-
-        :return: True if the operation was successful
-        """
-        # -- Get the current behaviour manifest
-        current_data = self.assigned_behaviours()
-
-        # -- Look for a behaviour with the given behaviour id
-        for idx, behaviour_data in enumerate(current_data):
-            if behaviour_data['id'] == behaviour_id:
-                # -- Offset the data be the required amount
-                current_data.insert(
-                    current_data.index(behaviour_data) + shift_offset,
-                    current_data.pop(current_data.index(behaviour_data)),
-                )
-
-                self.store_behaviour_data(current_data)
-                return True
-
-        return False
-
-    # --------------------------------------------------------------------------
-    def store_behaviour_data(self, behaviour_data):
-        """
-        Convenience function for storing the entire behaviour list data
-        back into the rig. This is useful if you want to make direct
-        modifications to the data.
-
-        :param behaviour_data: data structure to the same standards of that
-            returned by calling ```rig.assigned_behaviours()```
-        :type behaviour_data: list
-
-        :return: None
-        """
         # -- Now write the data into the attribute
         self.meta().attr(config.BEHAVIOUR_DATA).set(
-            json.dumps(behaviour_data),
+            json.dumps(current_data),
         )
+
+        return self.behaviours(unique_id=unique_id)
 
     # --------------------------------------------------------------------------
     def guide_roots(self):
@@ -791,16 +897,6 @@ class Rig(object):
                 results.append(child)
 
         return results
-
-    # --------------------------------------------------------------------------
-    def assigned_behaviours(self):
-        """
-        Returns the list of behaviours assigned to the rig. Each behaviour
-        is represented by a dictionary.
-
-        :return: list(behaviour_dictionary, ...)
-        """
-        return json.loads(self.meta().attr(config.BEHAVIOUR_DATA).get())
 
     # --------------------------------------------------------------------------
     def components(self):

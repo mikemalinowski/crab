@@ -13,6 +13,8 @@ class ParentConstraintBehaviour(crab.Behaviour):
         maintain_offset='If True, the constraint will be made retaining the current transform offset',
     )
 
+    REQUIRED_NODE_OPTIONS = ['constrain_this', 'to_this']
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(ParentConstraintBehaviour, self).__init__(*args, **kwargs)

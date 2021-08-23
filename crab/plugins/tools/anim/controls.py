@@ -31,7 +31,7 @@ class SelectAllTool(crab.tools.AnimTool):
     icon = get_icon('select_all')
 
     def run(self):
-        pm.select(crab.utils.access.get_controls())
+        pm.select(crab.utils.access.get_controls(current_only=len(pm.selected()) > 0))
 
 
 # ------------------------------------------------------------------------------
@@ -74,21 +74,6 @@ class SelectOppositeTool(crab.tools.AnimTool):
             kwargs['add'] = 1
 
         pm.select(nodes_to_select, **kwargs)
-
-
-# ------------------------------------------------------------------------------
-class SelectAllOnCharacter(crab.tools.AnimTool):
-    """
-    This selects all the controls within the currently active namespace. The active
-    namespace is based upon the namespace of the currently selected object.
-    """
-
-    identifier = 'selection_select_all_character'
-    display_name = 'Select : All : Character'
-    icon = get_icon('select_all_character')
-
-    def run(self):
-        pm.select(crab.utils.access.get_controls(current_only=True))
 
 
 # ------------------------------------------------------------------------------
@@ -312,7 +297,7 @@ class ResetCharacter(crab.tools.AnimTool):
     """
 
     identifier = 'reset_character'
-    display_name = 'Reset : Character'
+    display_name = 'Reset : All'
     icon = get_icon('reset_character')
 
     tooltips = dict(

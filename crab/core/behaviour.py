@@ -2,6 +2,9 @@
 from .. import utils
 from .. import config
 
+import json
+import uuid
+
 
 # ------------------------------------------------------------------------------
 class Behaviour(object):
@@ -26,8 +29,20 @@ class Behaviour(object):
     # -- This allows an icon to be defined
     icon = utils.resources.get('behaviour.png')
 
+    # -- These allow you to mark certain options as being expected
+    # -- to be fullfilled
+    REQUIRED_NODE_OPTIONS = []
+
+    # -- This allows for options to be optional, but if something is declared
+    # -- then they should exist
+    OPTIONAL_NODE_OPTIONS = []
+
     # --------------------------------------------------------------------------
-    def __init__(self, rig=None):
+    def __init__(self, rig=None, instance_id=None):
+
+        # -- This is a uuid for the behaviour
+        self.uuid = instance_id or str(uuid.uuid4())
+
         # -- All the options should be defined within this
         # -- dictionary
         self.options = utils.types.AttributeDict()
@@ -48,6 +63,16 @@ class Behaviour(object):
         return True
 
     # --------------------------------------------------------------------------
+    def ui(self, parent=None):
+        """
+        You should implement this function to build your behaviour. You may
+        utilise the options dictionary to read information you need.
+
+        :return: True if the apply is successful
+        """
+        return None
+
+    # --------------------------------------------------------------------------
     @classmethod
     def rich_help(cls):
         if cls.preview:
@@ -56,3 +81,119 @@ class Behaviour(object):
                 gif=cls.preview,
                 description=cls.__doc__.strip() if cls.__doc__ else '',
             )
+
+    # --------------------------------------------------------------------------
+    def save(self):
+        """
+        This will save any option data in the behaviour
+        """
+        all_behaviour_data = json.loads(self.rig.meta().attr(config.BEHAVIOUR_DATA).get())
+
+        for behaviour_data in all_behaviour_data:
+
+            if behaviour_data.get('id') == self.uuid:
+                behaviour_data['options'] = self.options
+
+        # -- Now write the data into the attribute
+        self.rig.meta().attr(config.BEHAVIOUR_DATA).set(
+            json.dumps(all_behaviour_data),
+        )
+
+    # --------------------------------------------------------------------------
+    def remove(self):
+        """
+        This will remove the behaviour with the given id. The id's of behaviours
+        can be found by calling ```rig.assigned_behaviours()```.
+
+        :param behaviour_id: uuid of the behaviour to remove
+        :type behaviour_id: str
+
+        :return: True if the behaviour was removed
+        """
+        # -- Get the current behaviour manifest
+        current_data = json.loads(self.rig.meta().attr(config.BEHAVIOUR_DATA).get())
+
+        # -- Look for a behaviour with the given behaviour id
+        for idx, behaviour_data in enumerate(current_data):
+            if behaviour_data['id'] == self.uuid:
+                current_data.pop(idx)
+
+                # -- Now write the data into the attribute
+                self.rig.meta().attr(config.BEHAVIOUR_DATA).set(
+                    json.dumps(current_data),
+                )
+
+                return True
+
+        return False
+
+    # --------------------------------------------------------------------------
+    def shift_order(self, shift_offset):
+        """
+        Behaviours are built in sequence, this method allows you to shift
+        a behaviour forward or backward in the sequence.
+
+        :param shift_offset: The offset you want to shift by, so a value
+            of 1 would shift it down the list by one, whilst a value of -1
+            would shift it up once in the list
+        :type shift_offset: int
+
+        :return: True if the operation was successful
+        """
+        # -- Get the current behaviour manifest
+        current_data = json.loads(self.rig.meta().attr(config.BEHAVIOUR_DATA).get())
+
+        # -- Look for a behaviour with the given behaviour id
+        for idx, behaviour_data in enumerate(current_data):
+            if behaviour_data['id'] == self.uuid:
+
+                # -- Offset the data be the required amount
+                current_data.insert(
+                    current_data.index(behaviour_data) + shift_offset,
+                    current_data.pop(current_data.index(behaviour_data)),
+                    )
+
+                # -- Now write the data into the attribute
+                self.rig.meta().attr(config.BEHAVIOUR_DATA).set(
+                    json.dumps(current_data),
+                )
+                return True
+
+        return False
+
+    # --------------------------------------------------------------------------
+    def can_build(self, available_nodes):
+        """
+        This is a validation step, allowing the behaviour to decide if it
+        is able to build with the given nodes.
+
+        Note: When implementing this ensure you implement good script editor
+        output to the user so they can understand what is broken or missing.
+
+        :param available_nodes: List of node names that will be available
+            during the rig build
+        :type available_nodes: list(str, str, str, ..)
+
+        :return: True if the behaviour believes it can build successfully
+        :rtype: bool
+        """
+        all_options = self.REQUIRED_NODE_OPTIONS + self.OPTIONAL_NODE_OPTIONS
+
+        for option in all_options:
+
+            # -- Skip if the option does not exist
+            if option not in self.options:
+                continue
+
+            declared_nodes = [n for n in self.options[option].split(';') if n]
+
+            if not declared_nodes and option in self.REQUIRED_NODE_OPTIONS:
+                print('%s option requires a value' % option)
+                return False
+
+            for declared_node in declared_nodes:
+                if declared_node not in available_nodes:
+                    print('%s could not be found (%s)' % (declared_node, self.options.description))
+                    return False
+
+        return True

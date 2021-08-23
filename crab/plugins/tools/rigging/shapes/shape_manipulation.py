@@ -289,7 +289,7 @@ class ShapeMirrorZTool(crab.RigTool):
 class ShapeMirrorLeftToRightTool(crab.RigTool):
     """
     Most crab components are always built from left to right. This is a
-    convenience tool to mirror all the left sided shapes over to the right
+    convenience tool to mirror all the left sided shapes over to the rightss
     side.
     """
 
@@ -304,6 +304,7 @@ class ShapeMirrorLeftToRightTool(crab.RigTool):
     def __init__(self):
         super(ShapeMirrorLeftToRightTool, self).__init__()
         self.options.axis = 'Y'
+        self.options.selection_only = False
 
     # --------------------------------------------------------------------------
     def run(self):
@@ -313,13 +314,22 @@ class ShapeMirrorLeftToRightTool(crab.RigTool):
         tool = crab.tools.rigging().request('shape_mirror_%s' % self.options.axis.lower())
 
         # -- Select the left controls using crabs naming conventions
-        pm.select(
-            [
-                control
-                for control in pm.ls('%s_*_%s' % (crab.config.CONTROL, crab.config.LEFT), type='transform')
-                if control.getShapes()
-            ]
-        )
+        if self.options.selection_only:
+
+            # -- If we're running on selection only, then we dont need to manage
+            # -- the selection
+            pass
+
+        else:
+            pm.select(
+                [
+                    control
+                    for control in pm.ls('%s_*_%s' % (crab.config.CONTROL, crab.config.LEFT), type='transform')
+                    if control.getShapes()
+                ]
+            )
+
+        # -- Run the tool
         tool().run()
 
 

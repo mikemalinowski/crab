@@ -130,7 +130,10 @@ def global_mirror(transforms=None, across=None, behaviour=True, remap=None, tran
     for transform in stored_matrices:
         target = transform
         if remap:
-            target = remap(transform)
+            try:
+                target = remap(transform)
+            except:
+                continue
 
         if translation_only:
             target.setTranslation(

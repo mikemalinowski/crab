@@ -170,10 +170,21 @@ class CrabCreator(qute.QWidget):
         self.ui.appliedComponentList.currentRowChanged.connect(self.populateAppliedComponentOptions)
         self.ui.appliedBehaviourList.currentRowChanged.connect(self.populateAppliedBehaviourOptions)
 
+        # -- Connections to the component panel buttons
+        self.ui.removeComponent.clicked.connect(self.remove_component)
+
         # -- Connections to the behaviour panel buttons
         self.ui.removeBehaviour.clicked.connect(self.remove_behaviour)
         self.ui.moveBehaviourUp.clicked.connect(self.move_behaviour_up)
         self.ui.moveBehaviourDown.clicked.connect(self.move_behaviour_down)
+        self.ui.validateBehaviour.clicked.connect(self.validateBehaviours)
+
+        # -- Filtering callbacks
+        self.ui.toolFilter.textChanged.connect(self.populateTools)
+        self.ui.newComponentFilter.textChanged.connect(self.populateComponents)
+        self.ui.appliedComponentFilter.textChanged.connect(self.populateAppliedComponents)
+        self.ui.newBehaviourFilter.textChanged.connect(self.populateBehaviours)
+        self.ui.appliedBehaviourFilter.textChanged.connect(self.populateAppliedBehaviours)
 
     # --------------------------------------------------------------------------
     # -- This set of functions are all related to the new/edit/build
@@ -364,6 +375,17 @@ class CrabCreator(qute.QWidget):
         for component_type in sorted(self.rig.factories.components.identifiers()):
             component = self.rig.factories.components.request(component_type)
 
+            # -- If we do have a filter, then check it against the identifier
+            # -- and the display name. Only show the tool if one of them matches
+            component_filter = self.ui.newComponentFilter.text()
+
+            if component_filter:
+
+                identifier_match = component_filter.lower() in component.identifier.lower()
+
+                if not identifier_match:
+                    continue
+
             item = qute.QListWidgetItem(
                 qute.QIcon(component.icon),
                 component_type,
@@ -374,6 +396,48 @@ class CrabCreator(qute.QWidget):
 
             self.ui.componentList.addItem(item)
 
+    # --------------------------------------------------------------------------
+    def remove_component(self):
+        """
+        Triggered when the user wants to remove a component. This will remove
+        the component and perform behaviour validation.
+        """
+        # -- If there is no selection we cannot do anything
+        #item = self.ui.appliedComponentList.currentItem()
+
+        for item in self.ui.appliedComponentList.selectedItems():
+
+            if not item:
+                continue
+
+            with utils.contexts.UndoChunk():
+                # -- We need to get the root from the name
+                root_name = item.text().split('(')[-1][:-1]
+
+                # -- Get the plugin
+                component_plugin = self.rig.factories.components.find_from_node(pm.PyNode(root_name))
+
+                # -- Remove the component
+                was_removed = component_plugin.remove()
+
+                if not was_removed:
+                    qute.utilities.request.message(
+                        title='Component could not be removed',
+                        label='%s could not be removed. Please check the script editor for details' % component_plugin.options.description,
+                        parent=self,
+                    )
+                    continue
+
+                if not self.rig.validate_behaviours():
+                    qute.utilities.request.message(
+                        title='Behaviour Validation Failure',
+                        label='After removing the component one or more behaviours are invalid. Please check the script editor for details',
+                        parent=self,
+                    )
+                    continue
+        
+        self.populateAppliedComponents()
+        
     # --------------------------------------------------------------------------
     def populateAppliedComponents(self):
         """
@@ -389,6 +453,19 @@ class CrabCreator(qute.QWidget):
             return
 
         for component_instance in self.rig.components():
+
+            # -- If we do have a filter, then check it against the identifier
+            # -- and the display name. Only show the tool if one of them matches
+            component_filter = self.ui.appliedComponentFilter.text()
+
+            if component_filter:
+
+                display_match = component_filter.lower() in component_instance.options.get('description', '').lower()
+                identifier_match = component_filter.lower() in component_instance.identifier.lower()
+
+                if not identifier_match and not display_match:
+                    continue
+
             if component_instance:
                 item = qute.QListWidgetItem(
                     qute.QIcon(component_instance.icon),
@@ -397,6 +474,9 @@ class CrabCreator(qute.QWidget):
                         component_instance.skeletal_root().name(),
                     )
                 )
+
+                # -- Stamp the identifier onto the item
+                item.identifier = component_instance.identifier
 
                 self.ui.appliedComponentList.addItem(item)
 
@@ -525,12 +605,13 @@ class CrabCreator(qute.QWidget):
 
         :return: None
         """
-        if not self.ui.appliedBehaviourList.currentItem():
+        current_item = self.ui.appliedBehaviourList.currentItem()
+
+        if not current_item:
             return
 
-        self.rig.remove_behaviour(
-            self.ui.appliedBehaviourList.currentItem().identifier,
-        )
+        behaviour = self.rig.behaviours(unique_id=current_item.uuid)
+        behaviour.remove()
 
         self.populateAppliedBehaviours()
 
@@ -541,17 +622,16 @@ class CrabCreator(qute.QWidget):
 
         :return: None
         """
-        if not self.ui.appliedBehaviourList.currentItem():
+        current_item = self.ui.appliedBehaviourList.currentItem()
+
+        if not current_item:
             return
 
         # -- Get the current row, so we can reselect it
         current_row = self.ui.appliedBehaviourList.currentRow()
 
-        # -- Update the behaviour stack within crab
-        self.rig.shift_behaviour_order(
-            self.ui.appliedBehaviourList.currentItem().identifier,
-            -1,
-        )
+        behaviour = self.rig.behaviours(unique_id=current_item.uuid)
+        behaviour.shift_order(-1)
 
         # -- Update the behaviour list
         self.populateAppliedBehaviours()
@@ -565,19 +645,39 @@ class CrabCreator(qute.QWidget):
 
         :return: None
         """
-        if not self.ui.appliedBehaviourList.currentItem():
+        current_item = self.ui.appliedBehaviourList.currentItem()
+
+        if not current_item:
             return
 
         # -- Get the current row, so we can reselect it
         current_row = self.ui.appliedBehaviourList.currentRow()
 
-        self.rig.shift_behaviour_order(
-            self.ui.appliedBehaviourList.currentItem().identifier,
-            1,
-        )
+        behaviour = self.rig.behaviours(unique_id=current_item.uuid)
+        behaviour.shift_order(1)
+
+        # -- Update the behaviour list
         self.populateAppliedBehaviours()
 
         self.ui.appliedBehaviourList.setCurrentRow(current_row + 1)
+
+    def validateBehaviours(self):
+        """
+        Runs validation over the behaviours
+        """
+        if not self.rig.validate_behaviours():
+            qute.utilities.request.message(
+                title='Validation Errors',
+                label='There were errors when validating. Please check the script editor',
+                parent=self,
+            )
+
+        else:
+            qute.utilities.request.message(
+                title='Validation Successful',
+                label='No validation errors were found',
+                parent=self,
+            )
 
     # --------------------------------------------------------------------------
     def populateBehaviourOptions(self):
@@ -601,29 +701,37 @@ class CrabCreator(qute.QWidget):
             self.ui.behaviourList.currentItem().text(),
         )()
 
-        # -- Now create a widget for each option
-        for name, value in sorted(behaviour_plugin.options.items()):
-            # -- Create a widget to represent this value
-            widget = qute.deriveWidget(
-                value,
-                '',
-                behaviour_plugin.tooltips.get(name),
+        custom_ui = behaviour_plugin.ui(parent=self)
+
+        if custom_ui:
+            self.ui.behaviourListOptionsLayout.addWidget(
+                qute.QLabel('This widget has a custom UI. Please add it, then hop over to the applied behaviours tab to instigate its interface.')
             )
-            widget.setObjectName(name)
 
-            # -- Hook up any helpers for this widget type
-            self.hookup_widget_helpers(widget)
+        else:
+            # -- Now create a widget for each option
+            for name, value in sorted(behaviour_plugin.options.items()):
+                # -- Create a widget to represent this value
+                widget = qute.deriveWidget(
+                    value,
+                    '',
+                    behaviour_plugin.tooltips.get(name),
+                )
+                widget.setObjectName(name)
 
-            # -- Give a minimum width to create consistency
-            widget.setMinimumWidth(140)
+                # -- Hook up any helpers for this widget type
+                self.hookup_widget_helpers(widget)
 
-            # -- Add the widget to the option list
-            self.behaviour_option_widgets.append(widget)
+                # -- Give a minimum width to create consistency
+                widget.setMinimumWidth(140)
 
-            # -- Finally, add it into the layout
-            self.ui.behaviourListOptionsLayout.addLayout(
-                qute.addLabel(widget, self._createDisplayName(name), self.MIN_LABEL_WIDTH),
-            )
+                # -- Add the widget to the option list
+                self.behaviour_option_widgets.append(widget)
+
+                # -- Finally, add it into the layout
+                self.ui.behaviourListOptionsLayout.addLayout(
+                    qute.addLabel(widget, self._createDisplayName(name), self.MIN_LABEL_WIDTH),
+                )
 
     # --------------------------------------------------------------------------
     def populateBehaviours(self):
@@ -640,6 +748,17 @@ class CrabCreator(qute.QWidget):
 
         for behaviour_type in sorted(self.rig.factories.behaviours.identifiers()):
             behaviour = self.rig.factories.behaviours.request(behaviour_type)
+
+            # -- If we do have a filter, then check it against the identifier
+            # -- and the display name. Only show the tool if one of them matches
+            behaviour_filter = self.ui.newBehaviourFilter.text()
+
+            if behaviour_filter:
+
+                identifier_match = behaviour_filter.lower() in behaviour.identifier.lower()
+
+                if not identifier_match:
+                    continue
 
             item = qute.QListWidgetItem(
                 qute.QIcon(behaviour.icon),
@@ -662,21 +781,38 @@ class CrabCreator(qute.QWidget):
         if not self.rig:
             return
 
-        for behaviour_data in self.rig.assigned_behaviours():
-            behaviour = self.rig.factories.behaviours.request(behaviour_data['type'])
+        for behaviour in self.rig.behaviours():
+
+            # -- If we do have a filter, then check it against the identifier
+            # -- and the display name. Only show the tool if one of them matches
+            behaviour_filter = self.ui.appliedBehaviourFilter.text()
+
+            if behaviour_filter:
+
+                display_match = behaviour_filter.lower() in behaviour.options.description.lower()
+                identifier_match = behaviour_filter.lower() in behaviour.identifier.lower()
+                any_options_match = False
+
+                for k, v in behaviour.options.items():
+                    if behaviour_filter.lower() in str(v).lower():
+                        any_options_match = True
+                        break
+
+                if not display_match and not identifier_match and not any_options_match:
+                    continue
 
             # -- Create a specific object for this entry so we can
             # -- assign it a hidden id
             widget_item = qute.QListWidgetItem(
                 qute.QIcon(behaviour.icon if behaviour else ''),
                 '%s (%s)' % (
-                    behaviour_data['type'],
-                    behaviour_data['options'].get('description', 'unknown'),
+                    behaviour.identifier,
+                    behaviour.options.get('description', 'unknown'),
                 )
             )
 
             # -- Assign the id
-            widget_item.identifier = behaviour_data['id']
+            widget_item.uuid = behaviour.uuid
 
             # -- Add the item
             self.ui.appliedBehaviourList.addItem(widget_item)
@@ -693,13 +829,15 @@ class CrabCreator(qute.QWidget):
         # -- Local method used a value-changed callback
         # noinspection PyUnusedLocal
         def storeChange(identifier, option, qwidget, *args, **kwargs):
-            data_block = self.rig.assigned_behaviours()
 
-            for idx, data in enumerate(data_block):
-                if data['id'] == identifier:
-                    data['options'][option] = qute.deriveValue(qwidget)
+            # -- Get the plugin
+            behaviour_ = self.rig.behaviours(unique_id=identifier)
 
-            self.rig.store_behaviour_data(data_block)
+            # -- Update the option value
+            behaviour_.options[option] = qute.deriveValue(qwidget)
+
+            # -- Store the change
+            behaviour_.save()
 
         if not self.ui.appliedBehaviourList.currentItem():
             return
@@ -713,62 +851,55 @@ class CrabCreator(qute.QWidget):
         item = self.ui.appliedBehaviourList.currentItem()
 
         # -- Get the plugin
-        behaviour_data = None
-        all_data = self.rig.assigned_behaviours()
+        behaviour = self.rig.behaviours(unique_id=item.uuid)
 
-        for potential_data in all_data:
-            if potential_data['id'] == item.identifier:
-                behaviour_data = potential_data
-                break
-
-        if not behaviour_data:
+        if not behaviour:
             return
 
-        # -- Get the options from the behaviour, then combine
-        # -- them with the stored options (this allows us to
-        # -- add new options which were not present when the
-        # -- behaviour was added).
-        behaviour = self.rig.factories.behaviours.request(behaviour_data['type'])()
-        behaviour_options = behaviour.options.copy()
-        behaviour_options.update(behaviour_data['options'])
+        custom_ui = behaviour.ui(parent=self)
 
-        # -- Now create a widget for each option
-        for name, value in sorted(behaviour_options.items()):
-            # -- Create a widget to represent this value
-            widget = qute.deriveWidget(
-                value,
-                '',
-                behaviour.tooltips.get(name),
-            )
-            widget.setObjectName(name)
+        if custom_ui:
+            self.ui.appliedBehaviourListOptionsLayout.addWidget(custom_ui)
 
-            qute.connectBlind(
-                widget,
-                functools.partial(
-                    storeChange,
-                    behaviour_data['id'],
-                    name,
-                    widget,
+        else:
+            # -- Now create a widget for each option
+            for name, value in sorted(behaviour.options.items()):
+
+                # -- Create a widget to represent this value
+                widget = qute.deriveWidget(
+                    value,
+                    '',
+                    behaviour.tooltips.get(name),
                 )
-            )
+                widget.setObjectName(name)
 
-            # -- Hook up any helpers for this widget type
-            self.hookup_widget_helpers(widget)
-
-            # -- Give a minimum width to create consistency
-            widget.setMinimumWidth(140)
-
-            # -- Add the widget to the option list
-            self.applied_behaviour_option_widgets.append(widget)
-
-            # -- Finally, add it into the layout
-            self.ui.appliedBehaviourListOptionsLayout.addLayout(
-                qute.addLabel(
+                qute.connectBlind(
                     widget,
-                    self._createDisplayName(name),
-                    self.MIN_LABEL_WIDTH,
-                ),
-            )
+                    functools.partial(
+                        storeChange,
+                        behaviour.uuid,
+                        name,
+                        widget,
+                    )
+                )
+
+                # -- Hook up any helpers for this widget type
+                self.hookup_widget_helpers(widget)
+
+                # -- Give a minimum width to create consistency
+                widget.setMinimumWidth(140)
+
+                # -- Add the widget to the option list
+                self.applied_behaviour_option_widgets.append(widget)
+
+                # -- Finally, add it into the layout
+                self.ui.appliedBehaviourListOptionsLayout.addLayout(
+                    qute.addLabel(
+                        widget,
+                        self._createDisplayName(name),
+                        self.MIN_LABEL_WIDTH,
+                    ),
+                )
 
     # --------------------------------------------------------------------------
     # -- Tools
@@ -784,6 +915,20 @@ class CrabCreator(qute.QWidget):
         for tool in sorted(tools.rigging().identifiers()):
             tool = tools.rigging().request(tool)
 
+            # -- Check if we have a tool filter
+            tool_filter = self.ui.toolFilter.text()
+
+            # -- If we do have a filter, then check it against the identifier
+            # -- and the display name. Only show the tool if one of them matches
+            if tool_filter:
+
+                display_match = tool_filter.lower() in tool.display_name.lower()
+                identifier_match = tool_filter.lower() in tool.identifier.lower()
+
+                if not display_match and not identifier_match:
+                    continue
+
+            # -- We are ok to show this item, so build an item
             item = qute.QListWidgetItem(
                 qute.QIcon(tool.find_icon()),
                 tool.display_name or tool.identifier,
@@ -977,6 +1122,7 @@ class CrabCreator(qute.QWidget):
         self.ui.removeBehaviour.setIcon(qute.QIcon(get_resource('remove.png')))
         self.ui.moveBehaviourDown.setIcon(qute.QIcon(get_resource('down.png')))
         self.ui.moveBehaviourUp.setIcon(qute.QIcon(get_resource('up.png')))
+        self.ui.validateBehaviour.setIcon(qute.QIcon(get_resource('validate.png')))
 
         self.ui.removeComponent.setIcon(qute.QIcon(get_resource('remove.png')))
         self.ui.editTab.setTabIcon(0, qute.QIcon(get_resource('component.png')))
@@ -1033,20 +1179,92 @@ class CrabCreator(qute.QWidget):
         :return:
         """
         if isinstance(widget, qute.QLineEdit):
-            widget.setContextMenuPolicy(qute.Qt.CustomContextMenu)
-            widget.customContextMenuRequested.connect(
-                functools.partial(
-                    self.show_objects_menu,
+            if str(widget.text()).startswith('FILELOAD;'):
+                widget.setContextMenuPolicy(qute.Qt.CustomContextMenu)
+                widget.customContextMenuRequested.connect(
+                    functools.partial(
+                        self.show_path_menu,
+                        widget,
+                        write=False
+                    ),
+                )
+                widget.setText(widget.text().split(';')[-1])
+            elif str(widget.text()).startswith('FILESAVE;'):
+                widget.setContextMenuPolicy(qute.Qt.CustomContextMenu)
+                widget.customContextMenuRequested.connect(
+                    functools.partial(
+                        self.show_path_menu,
+                        widget,
+                        write=True
+                    ),
+                )
+                widget.setText(widget.text().split(';')[-1])
+            else:
+                widget.setContextMenuPolicy(qute.Qt.CustomContextMenu)
+                widget.customContextMenuRequested.connect(
+                    functools.partial(
+                        self.show_objects_menu,
+                        widget,
+                    ),
+                )
+
+    # ------------------------------------------------------------------------------
+    # noinspection PyUnusedLocal,PyUnresolvedReferences
+    def show_path_menu(self, widget, *args, **kwargs):
+        """
+        Creates a custom menu to allow the user to set the value
+        of the given widget using a file browser.
+
+        :param widget: Widget to affect
+        :type widget: QWidget
+
+        :return: None
+        """
+
+        fileMode = 0
+        if 'write' in kwargs:
+            if not kwargs['write']:
+                fileMode = 1
+
+        def file_browser(widget_):
+            text = qute.deriveValue(widget_)
+
+            if pm.util.path(text).dirname().exists():
+                starting_directory = pm.util.path(text).dirname()
+            else:
+                starting_directory = pm.sceneName().dirname()
+
+            new_path = pm.fileDialog2(
+                dialogStyle=2,
+                fileMode=fileMode,
+                startingDirectory=starting_directory,
+                caption='Select File'
+            )
+            if new_path:
+                new_path = new_path[0]
+            else:
+                new_path = text
+
+            qute.setBlindValue(widget_, new_path)
+
+        # -- Generate a menu
+        menu = qute.menuFromDictionary(
+            {
+                'Browse': functools.partial(
+                    file_browser,
                     widget,
                 ),
-            )
+            },
+            parent=self
+        )
+        menu.exec_(qute.QCursor().pos())
 
     # ------------------------------------------------------------------------------
     # noinspection PyUnusedLocal,PyUnresolvedReferences
     def show_objects_menu(self, widget, *args, **kwargs):
         """
         Creates a custom menu to allow the user to set the value
-        of the given widget using a file browser.
+        of the given widget based on scene selection.
 
         :param widget: Widget to affect
         :type widget: QWidget

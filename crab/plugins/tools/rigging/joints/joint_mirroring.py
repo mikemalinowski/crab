@@ -32,19 +32,19 @@ class MirrorJointsAcrossTool(crab.RigTool):
     # --------------------------------------------------------------------------
     @classmethod
     def remap(cls, node):
-        if crab.config.LEFT in node.name():
+        if '_' + crab.config.LEFT in node.name():
             return pm.PyNode(
                 node.name().replace(
-                    crab.config.LEFT,
-                    crab.config.RIGHT,
+                    '_' + crab.config.LEFT,
+                    '_' + crab.config.RIGHT,
                 )
             )
 
         else:
             return pm.PyNode(
                 node.name().replace(
-                    crab.config.RIGHT,
-                    crab.config.LEFT,
+                    '_' + crab.config.RIGHT,
+                    '_' + crab.config.LEFT,
                 )
             )
 

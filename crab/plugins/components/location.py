@@ -24,8 +24,8 @@ class LocationComponent(crab.Component):
         super(LocationComponent, self).__init__(*args, **kwargs)
 
         self.options.description = 'Location'
-        self.options.lock = 'sx;sy;sz'
-        self.options.hide = 'v;sx;sy;sz'
+        self.options.lock = ''
+        self.options.hide = 'v;'
 
     # --------------------------------------------------------------------------
     def create_skeleton(self, parent):
@@ -104,6 +104,13 @@ class LocationComponent(crab.Component):
 
         # -- Constrain the joint to the location
         pm.parentConstraint(
+            location_control,
+            root_joint,
+            mo=False,
+        )
+
+        # -- Constrain the joint to the location
+        pm.scaleConstraint(
             location_control,
             root_joint,
             mo=False,

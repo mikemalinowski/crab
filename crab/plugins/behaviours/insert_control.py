@@ -15,6 +15,9 @@ class InsertControlBehaviour(crab.Behaviour):
         shape='An optional crab shape name to assign to the control'
     )
 
+    REQUIRED_NODE_OPTIONS = ['parent']
+    OPTIONAL_NODE_OPTIONS = ['match_to']
+
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(InsertControlBehaviour, self).__init__(*args, **kwargs)
@@ -79,6 +82,9 @@ class AddControl(crab.Behaviour):
         hide='A list of attributes to hide from the channel box on the control',
         shape='An optional crab shape name to assign to the control'
     )
+
+    REQUIRED_NODE_OPTIONS = ['parent']
+    OPTIONAL_NODE_OPTIONS = ['match_to']
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):

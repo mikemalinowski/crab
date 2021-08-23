@@ -165,7 +165,7 @@ class CrabAnimator(qute.QWidget):
             return
 
         options.show_options(
-            'crabanimator_{}'.format(tool_plugin.identifier),
+            tool_plugin.identifier,
             tool_plugin.options,
             qute.QCursor().pos() + qute.QPoint(-5, -5),
             parent=self,

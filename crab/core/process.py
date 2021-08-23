@@ -56,8 +56,8 @@ class Process(object):
     # --------------------------------------------------------------------------
     def pre_build(self):
         """
-        This is called after all the components and behaviours are built,
-        allowing  you to perform any actions against the rig as a whole.
+        This is called after validation but before the components are started
+        to be built.
 
         :return:
         """
@@ -73,3 +73,10 @@ class Process(object):
         """
         pass
 
+    # --------------------------------------------------------------------------
+    def validate(self):
+        """
+        This occurs before the pre_build and should NOT modify the rig in any form. It
+        should only be used to validate that the build process can begin.
+        """
+        return True
