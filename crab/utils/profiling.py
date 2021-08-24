@@ -30,7 +30,7 @@ def time_this(func):
         start_time = time()
         result = func(*args, **kwargs)
         end_time = time()
-        print 'func: %r took: %2.4f sec' % (func.__name__, end_time - start_time)
+        print('func: %r took: %2.4f sec' % (func.__name__, end_time - start_time))
 
         return result
 

@@ -99,16 +99,18 @@ def returnMaxMainWindow():
 # ------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences,PyPep8Naming
 def returnMayaMainWindow():
-    from maya import OpenMayaUI as omui
-    from shiboken2 import wrapInstance
 
+    from maya import OpenMayaUI as omui
+    
+    func = Qt.QtCompat.wrapInstance
+    
     try:
-        return wrapInstance(long(omui.MQtUtil.mainWindow()), Qt.QtWidgets.QWidget)
+        return func(long(omui.MQtUtil.mainWindow()), Qt.QtWidgets.QWidget)
 
     except:
         pass
 
-    return wrapInstance(int(omui.MQtUtil.mainWindow()), Qt.QtWidgets.QWidget)
+    return func(int(omui.MQtUtil.mainWindow()), Qt.QtWidgets.QWidget)
 
 
 # ------------------------------------------------------------------------------
