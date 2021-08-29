@@ -1,6 +1,6 @@
-
 from .. import utils
 from .. import config
+from ..vendor import qute
 
 import json
 import uuid
@@ -63,10 +63,15 @@ class Behaviour(object):
         return True
 
     # --------------------------------------------------------------------------
-    def ui(self, parent=None):
+    def ui(self):
         """
-        You should implement this function to build your behaviour. You may
-        utilise the options dictionary to read information you need.
+        This is an optional mechanism to implement a custom UI widget to be displayed
+        in tools for a behaviour.
+
+        This MUST return a class which inherits from BehaviourUI. The class should
+        not be instanced, but it should take two init arguments - the first being
+        a behaviour class instance (which should be used to read and write to, and
+        the second being the parent widget.
 
         :return: True if the apply is successful
         """
@@ -197,3 +202,13 @@ class Behaviour(object):
                     return False
 
         return True
+
+
+# ------------------------------------------------------------------------------
+class BehaviourUI(qute.QWidget):
+
+    # --------------------------------------------------------------------------
+    def __init__(self, behaviour_instance, parent):
+        super(BehaviourUI, self).__init__(parent)
+
+        self.behaviour_instance = behaviour_instance

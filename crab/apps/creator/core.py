@@ -856,10 +856,15 @@ class CrabCreator(qute.QWidget):
         if not behaviour:
             return
 
-        custom_ui = behaviour.ui(parent=self)
+        custom_ui = behaviour.ui()
 
         if custom_ui:
-            self.ui.appliedBehaviourListOptionsLayout.addWidget(custom_ui)
+            self.ui.appliedBehaviourListOptionsLayout.addWidget(
+                custom_ui(
+                    behaviour,
+                    parent=self,
+                ),
+            )
 
         else:
             # -- Now create a widget for each option

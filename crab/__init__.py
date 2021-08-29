@@ -701,6 +701,7 @@ SOFTWARE.
 import imp
 
 from .core import Behaviour
+from .core import BehaviourUI
 from .core import Component
 from .core import Process
 from .core import Rig
