@@ -212,3 +212,13 @@ class BehaviourUI(qute.QWidget):
         super(BehaviourUI, self).__init__(parent)
 
         self.behaviour_instance = behaviour_instance
+
+    # --------------------------------------------------------------------------
+    @classmethod
+    def unhandled_options(cls):
+        """
+        This should return a list of any options in the behaviour that
+        are not handled by this ui and should therefore be displayed
+        using the built in mechanisms of crab
+        """
+        return list()

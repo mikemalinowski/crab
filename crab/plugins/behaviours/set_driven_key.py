@@ -181,3 +181,7 @@ class SetDrivenKeyUI(crab.BehaviourUI):
             parent=self,
         )
         return True
+
+    @classmethod
+    def unhandled_options(cls):
+        return ['description']

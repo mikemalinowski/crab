@@ -708,30 +708,35 @@ class CrabCreator(qute.QWidget):
                 qute.QLabel('This widget has a custom UI. Please add it, then hop over to the applied behaviours tab to instigate its interface.')
             )
 
-        else:
-            # -- Now create a widget for each option
-            for name, value in sorted(behaviour_plugin.options.items()):
-                # -- Create a widget to represent this value
-                widget = qute.deriveWidget(
-                    value,
-                    '',
-                    behaviour_plugin.tooltips.get(name),
-                )
-                widget.setObjectName(name)
+        # -- Now create a widget for each option
+        for name, value in sorted(behaviour_plugin.options.items()):
 
-                # -- Hook up any helpers for this widget type
-                self.hookup_widget_helpers(widget)
+            # -- If we're dealing with an attribute that is to be specifically managed
+            # -- by a ui element, then we ignore it
+            if custom_ui and name not in custom_ui.unhandled_options():
+                continue
 
-                # -- Give a minimum width to create consistency
-                widget.setMinimumWidth(140)
+            # -- Create a widget to represent this value
+            widget = qute.deriveWidget(
+                value,
+                '',
+                behaviour_plugin.tooltips.get(name),
+            )
+            widget.setObjectName(name)
 
-                # -- Add the widget to the option list
-                self.behaviour_option_widgets.append(widget)
+            # -- Hook up any helpers for this widget type
+            self.hookup_widget_helpers(widget)
 
-                # -- Finally, add it into the layout
-                self.ui.behaviourListOptionsLayout.addLayout(
-                    qute.addLabel(widget, self._createDisplayName(name), self.MIN_LABEL_WIDTH),
-                )
+            # -- Give a minimum width to create consistency
+            widget.setMinimumWidth(140)
+
+            # -- Add the widget to the option list
+            self.behaviour_option_widgets.append(widget)
+
+            # -- Finally, add it into the layout
+            self.ui.behaviourListOptionsLayout.addLayout(
+                qute.addLabel(widget, self._createDisplayName(name), self.MIN_LABEL_WIDTH),
+            )
 
     # --------------------------------------------------------------------------
     def populateBehaviours(self):
@@ -866,45 +871,49 @@ class CrabCreator(qute.QWidget):
                 ),
             )
 
-        else:
-            # -- Now create a widget for each option
-            for name, value in sorted(behaviour.options.items()):
+        # -- Now create a widget for each option
+        for name, value in sorted(behaviour.options.items()):
 
-                # -- Create a widget to represent this value
-                widget = qute.deriveWidget(
-                    value,
-                    '',
-                    behaviour.tooltips.get(name),
-                )
-                widget.setObjectName(name)
+            # -- If we're dealing with an attribute that is to be specifically managed
+            # -- by a ui element, then we ignore it
+            if custom_ui and name not in custom_ui.unhandled_options():
+                continue
 
-                qute.connectBlind(
+            # -- Create a widget to represent this value
+            widget = qute.deriveWidget(
+                value,
+                '',
+                behaviour.tooltips.get(name),
+            )
+            widget.setObjectName(name)
+
+            qute.connectBlind(
+                widget,
+                functools.partial(
+                    storeChange,
+                    behaviour.uuid,
+                    name,
                     widget,
-                    functools.partial(
-                        storeChange,
-                        behaviour.uuid,
-                        name,
-                        widget,
-                    )
                 )
+            )
 
-                # -- Hook up any helpers for this widget type
-                self.hookup_widget_helpers(widget)
+            # -- Hook up any helpers for this widget type
+            self.hookup_widget_helpers(widget)
 
-                # -- Give a minimum width to create consistency
-                widget.setMinimumWidth(140)
+            # -- Give a minimum width to create consistency
+            widget.setMinimumWidth(140)
 
-                # -- Add the widget to the option list
-                self.applied_behaviour_option_widgets.append(widget)
+            # -- Add the widget to the option list
+            self.applied_behaviour_option_widgets.append(widget)
 
-                # -- Finally, add it into the layout
-                self.ui.appliedBehaviourListOptionsLayout.addLayout(
-                    qute.addLabel(
-                        widget,
-                        self._createDisplayName(name),
-                        self.MIN_LABEL_WIDTH,
-                    ),
-                )
+            # -- Finally, add it into the layout
+            self.ui.appliedBehaviourListOptionsLayout.addLayout(
+                qute.addLabel(
+                    widget,
+                    self._createDisplayName(name),
+                    self.MIN_LABEL_WIDTH,
+                ),
+            )
 
     # --------------------------------------------------------------------------
     # -- Tools
