@@ -974,7 +974,7 @@ class CrabCreator(qute.QWidget):
         )()
 
         # -- Now create a widget for each option
-        for name, value in sorted(tool_plugin.options.iteritems()):
+        for name, value in sorted(tool_plugin.options.items()):
 
             # -- Create a widget to represent this value
             widget = qute.deriveWidget(

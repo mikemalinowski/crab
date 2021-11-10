@@ -9,7 +9,7 @@ class LocationComponent(crab.Component):
     a guide along with a rig over that guide.
     """
 
-    identifier = 'Location'
+    identifier = 'Core : Location'
     version = 1
 
     tooltips = dict(

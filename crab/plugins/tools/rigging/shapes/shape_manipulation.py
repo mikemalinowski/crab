@@ -303,7 +303,7 @@ class ShapeMirrorLeftToRightTool(crab.RigTool):
     # --------------------------------------------------------------------------
     def __init__(self):
         super(ShapeMirrorLeftToRightTool, self).__init__()
-        self.options.axis = 'Y'
+        self.options.axis = 'X' if pm.upAxis(q=True, axis=True).upper() == 'Y' else 'Y'
         self.options.selection_only = False
 
     # --------------------------------------------------------------------------

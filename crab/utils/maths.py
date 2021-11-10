@@ -104,7 +104,7 @@ def global_mirror(transforms=None, across=None, behaviour=True, remap=None, tran
         t = [n * -1 for n in mtx[12:15]]
 
         # Set matrix based on given plane, and whether to include behaviour or not.
-        if across is 'XY':
+        if str(across) == 'XY':
             mtx[14] = t[2]  # set inverse of the Z translation
 
             # Set inverse of all rotation columns but for the one we've set translate to.
@@ -112,7 +112,7 @@ def global_mirror(transforms=None, across=None, behaviour=True, remap=None, tran
                 mtx[0:9:4] = rx
                 mtx[1:10:4] = ry
 
-        elif across is 'YZ':
+        elif str(across) == 'YZ':
             mtx[12] = t[0]  # set inverse of the X translation
 
             if behaviour:
@@ -176,3 +176,20 @@ def get_likely_mirror_plane(node):
 
     else:
         return 'XZ'
+
+
+# ------------------------------------------------------------------------------
+def distance_between(node_a, node_b):
+    """
+    Returns the distance between two objects
+
+    :param node_a: First object to measure from
+    :type node_a: pm.nt.Transform
+
+    :param node_b: Second object to measure to
+    :type node_b: pm.nt.Transform
+
+    :return: float
+    """
+    delta = node_b.getTranslation(worldSpace=True) - node_a.getTranslation(worldspace=True)
+    return delta.length()

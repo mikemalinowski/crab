@@ -250,3 +250,107 @@ def shapes():
                     )
 
     return shape_list
+
+
+# ------------------------------------------------------------------------------
+def spin(node, x=0.0, y=0.0, z=0.0):
+    """
+    Spins the shape around by the given x, y, z (local values)
+
+    :param node: The node whose shapes should be spun
+    :type node: pm.nt.Transform or shape
+
+    :param x: Amount to spin on the shapes local X axis in degrees
+    :type x: float
+
+    :param y: Amount to spin on the shapes local Y axis in degrees
+    :type y: float
+
+    :param z: Amount to spin on the shapes local Z axis in degrees
+    :type z: float
+
+    :return:
+    """
+    all_curves = list()
+
+    if isinstance(node, pm.nt.Transform):
+        all_curves.extend(
+            node.getShapes(),
+        )
+
+    elif isinstance(node, pm.nt.NurbsCurve):
+        all_curves.append(node)
+
+    # -- Validate that all entries are nurbs curves
+    all_curves = [
+        curve
+        for curve in all_curves
+        if isinstance(curve, pm.nt.NurbsCurve)
+    ]
+
+
+    for curve in all_curves:
+        for cv in range(curve.numCVs()):
+            curve.setCV(
+                cv,
+                pm.dt.Vector(curve.getCV(cv)).rotateBy([x * 0.017453, y * 0.017453, z * 0.017453])
+            )
+
+        curve.updateCurve()
+
+
+# ------------------------------------------------------------------------------
+def scale(node, x=1, y=1, z=1, uniform=1):
+    """
+    scales the shape across x, y and z locally
+
+    :param node: The node whose shapes should be scaled
+    :type node: pm.nt.Transform or shape
+
+    :param x: What value to scale by
+    :type x: float
+
+    :param y: What value to scale by
+    :type y: float
+
+    :param z: What value to scale by
+    :type z: float
+
+    :param uniform: If given, this will scale all axis by this amount
+    :type uniform: float
+
+    :return:
+    """
+
+    all_curves = list()
+
+    if isinstance(node, pm.nt.Transform):
+        all_curves.extend(
+            node.getShapes(),
+        )
+
+    elif isinstance(node, pm.nt.NurbsCurve):
+        all_curves.append(node)
+
+    # -- Validate that all entries are nurbs curves
+    all_curves = [
+        curve
+        for curve in all_curves
+        if isinstance(curve, pm.nt.NurbsCurve)
+    ]
+
+    for curve in all_curves:
+        print('curve : %s' % curve)
+        print(x)
+        for cv in range(curve.numCVs()):
+            cv_position = curve.getCV(cv)
+
+            curve.setCV(
+                cv,
+                [
+                    cv_position[0] * x * uniform,
+                    cv_position[1] * y * uniform,
+                    cv_position[2] * z * uniform,
+                ]
+            )
+        curve.updateCurve()

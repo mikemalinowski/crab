@@ -46,7 +46,7 @@ def replicate_chain(from_this, to_this, parent, world=True, replacements=None):
                         prefix=config.get_prefix(potential_new_name),
                         description=config.get_description(potential_new_name),
                         side=config.get_side(potential_new_name),
-                        counter=config.get_counter(potential_new_name),
+                        counter=config.get_counter(joint_to_trace), #potential_new_name),
                     )
                 )
 

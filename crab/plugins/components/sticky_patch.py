@@ -7,7 +7,7 @@ class StickyPatchComponent(crab.Component):
     """
     Component to create a setup which follows a skin cluster
     """
-    identifier = 'General : Sticky Patch'
+    identifier = 'Advanced : Sticky Patch'
 
     # ----------------------------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):

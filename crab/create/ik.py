@@ -1,51 +1,58 @@
 # import itertools
-# import pymel.core as pm
+import pymel.core as pm
 #
+
 # from . import basics
 # from . import controls
 # from .. import utils
-# from .. import config
+from .. import config
 #
-#
-# # ------------------------------------------------------------------------------
-# def simple_ik(start, end, description, side, parent=None, visible=False, solver='ikRPsolver', polevector=None):
-#     """
-#     This is a convenience function for generating an IK handle
-#     and having it named.
-#
-#     :param start:
-#     :param end:
-#     :param visible:
-#     :return:
-#     """
-#     # -- Hook up the Ik Handle
-#     ikh, eff = pm.ikHandle(
-#         startJoint=start,
-#         endEffector=end,
-#         solver=solver,
-#         priority=1,
-#     )
-#     ikh.visibility.set(visible)
-#
-#     ikh.rename(
-#         config.name(
-#             prefix='IKH',
-#             description=description,
-#             side=side,
-#         ),
-#     )
-#
-#     if parent:
-#         ikh.setParent(parent)
-#
-#     if polevector:
-#         pm.poleVectorConstraint(
-#             polevector,
-#             ikh,
-#         )
-#
-#     return ikh
-#
+
+# ------------------------------------------------------------------------------
+def simple_ik(start, end, description, side, parent=None, visible=False, solver='ikRPsolver', polevector=None):
+    """
+    This is a convenience function for generating an IK handle
+    and having it named.
+
+    :param start:
+    :param end:
+    :param visible:
+    :return:
+    """
+    # -- Hook up the Ik Handle
+    ikh, eff = pm.ikHandle(
+        startJoint=start,
+        endEffector=end,
+        solver=solver,
+        priority=1,
+        autoPriority=False,
+        enableHandles=True,
+        snapHandleToEffector=True,
+        sticky=False,
+        weight=1,
+        positionWeight=1,
+    )
+    ikh.visibility.set(visible)
+
+    ikh.rename(
+        config.name(
+            prefix='IKH',
+            description=description,
+            side=side,
+        ),
+    )
+
+    if parent:
+        ikh.setParent(parent)
+
+    if polevector:
+        pm.poleVectorConstraint(
+            polevector,
+            ikh,
+        )
+
+    return ikh
+
 #
 # # ------------------------------------------------------------------------------
 # class IKFKSetup(object):

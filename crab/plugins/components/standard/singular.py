@@ -3,29 +3,34 @@ import pymel.core as pm
 
 
 # ------------------------------------------------------------------------------
-class LocationComponent(crab.Component):
+class SingularComponent(crab.Component):
     """
     A segment represents a single rig element capable of building
     a guide along with a rig over that guide.
     """
 
-    identifier = 'Location'
+    identifier = 'Core : Singular'
     version = 1
 
     tooltips = dict(
         description='A descriptive name to apply to all objects',
         lock='Any control attributes you want to have locked',
         hide='Any control attributes you want to have hidden from the channel box',
+        shape='An optional name of a crab defined shape (nurbs curve) to assign to the control',
         side='Typically LF, MD or RT - denoting the side/location of the control'
     )
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
-        super(LocationComponent, self).__init__(*args, **kwargs)
+        super(SingularComponent, self).__init__(*args, **kwargs)
 
-        self.options.description = 'Location'
         self.options.lock = ''
         self.options.hide = 'v;'
+        self.options.shape = 'cube'
+
+        # -- This option is available to allow pre-existing joints
+        # -- to be used in place of creating a new one
+        self.options.pre_existing_joint = ''
 
     # --------------------------------------------------------------------------
     def create_skeleton(self, parent):
@@ -33,18 +38,28 @@ class LocationComponent(crab.Component):
         This should create your guide representation for your segment.
         The parent will be a pre-constructed crabSegment transform node.
 
-        :param parent:
-        :return:
+        :param parent: Parent to place the skeleton under
+        :type parent: pm.nt.DagNode
+
+        :return: bool
         """
-        # -- Create the joint for this singular
-        root_joint = crab.create.generic(
-            node_type='joint',
-            prefix=crab.config.SKELETON,
-            description='%s' % self.options.description,
-            side=self.options.side,
-            parent=parent,
-            match_to=parent,
-        )
+        # -- If we're targeting a pre-existing joint then we need
+        # -- to utilise it and update our options based upon on that
+        # -- joint
+        if self.options.pre_existing_joint:
+            root_joint = pm.PyNode(self.options.pre_existing_joint)
+
+            self.options.description = crab.config.get_description(root_joint.name())
+            self.options.side = crab.config.get_side(root_joint.name())
+
+        else:
+            # -- Create the joint for this singular
+            root_joint = crab.create.joint(
+                description=self.options.description,
+                side=self.options.side,
+                parent=parent,
+                match_to=parent,
+            )
 
         # -- Define this joint as being the skeleton root for
         # -- this component
@@ -71,28 +86,16 @@ class LocationComponent(crab.Component):
         root_joint = self.find_first('RootJoint')
 
         # -- Create a transform to use as a control
-        root_control = crab.create.control(
-            description='Rig%s' % self.options.description,
+        node = crab.create.control(
+            description=self.options.description,
             side=self.options.side,
             parent=parent,
             match_to=root_joint,
-            shape='cog',
+            shape=self.options.shape,
             lock_list=self.options.lock,
             hide_list=self.options.hide,
+            counter=crab.config.get_counter(root_joint.name()),
         )
-
-        location_control = crab.create.control(
-            description='%s' % self.options.description,
-            side=self.options.side,
-            parent=root_control,
-            match_to=root_control,
-            shape='arrow_x',
-            lock_list=self.options.lock,
-            hide_list=self.options.hide,
-        )
-        print('---')
-        if pm.upAxis(q=True, axis=True).upper() == 'Y':
-            crab.utils.shapes.spin(location_control, y=-90)
 
         # -- All joints should have a binding. The binding allows crab
         # -- to know what control parent to utilise when building skeletal
@@ -101,25 +104,10 @@ class LocationComponent(crab.Component):
         # -- control
         self.bind(
             root_joint,
-            root_control,
-            constrain=False,
-        )
-
-        # -- Constrain the joint to the location
-        pm.parentConstraint(
-            location_control,
-            root_joint,
-            mo=False,
-        )
-
-        # -- Constrain the joint to the location
-        pm.scaleConstraint(
-            location_control,
-            root_joint,
-            mo=False,
+            node,
         )
 
         # -- Select our tip joint
-        pm.select(root_control)
+        pm.select(node)
 
         return True
