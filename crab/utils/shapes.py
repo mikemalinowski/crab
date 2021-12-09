@@ -253,7 +253,7 @@ def shapes():
 
 
 # ------------------------------------------------------------------------------
-def spin(node, x=0.0, y=0.0, z=0.0):
+def spin(node, x=0.0, y=0.0, z=0.0, pivot=None):
     """
     Spins the shape around by the given x, y, z (local values)
 
@@ -269,8 +269,22 @@ def spin(node, x=0.0, y=0.0, z=0.0):
     :param z: Amount to spin on the shapes local Z axis in degrees
     :type z: float
 
-    :return:
+    :param pivot: Optional alternate pivot to rotate around. This can
+        either be a vector (pm.dt.Vector) or an actual object (pm.nt.Transform)
+    :type pivot: pm.dt.Vector or pm.nt.Transform
+
+    :return: None
     """
+    # -- If we're not given a pivot, then default
+    # -- to a zero vector.
+    pivot = pivot or pm.dt.Vector()
+
+    # -- If we're given a transform as a pivot, then read
+    # -- out a worldspace location vector
+    if isinstance(pivot, pm.nt.Transform):
+        pivot = pivot.getTranslation(space='world')
+
+    # -- Get a list of all the curves we need to modify
     all_curves = list()
 
     if isinstance(node, pm.nt.Transform):
@@ -288,12 +302,27 @@ def spin(node, x=0.0, y=0.0, z=0.0):
         if isinstance(curve, pm.nt.NurbsCurve)
     ]
 
-
     for curve in all_curves:
         for cv in range(curve.numCVs()):
+
+            # -- Get the cv in worldspace
+            worldspace_cv = pm.dt.Vector(curve.getCV(cv, space='world'))
+
+            # -- Get the relative vector between the cv and pivot
+            relative_cv = worldspace_cv - pivot
+
+            # -- Rotate our relative vector by the rotation values
+            # -- given to us
+            rotated_position = relative_cv.rotateBy([x * 0.017453, y * 0.017453, z * 0.017453])
+
+            # -- Add the worldspace pivot vector onto our rotated vector
+            # -- to give ourselves the final vector
+            final_position = rotated_position + pivot
+
             curve.setCV(
                 cv,
-                pm.dt.Vector(curve.getCV(cv)).rotateBy([x * 0.017453, y * 0.017453, z * 0.017453])
+                final_position,
+                space='world',
             )
 
         curve.updateCurve()
