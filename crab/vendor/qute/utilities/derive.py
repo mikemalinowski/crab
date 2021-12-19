@@ -25,7 +25,7 @@ def is_string(value):
 
 
 # ------------------------------------------------------------------------------
-def deriveWidget(value, label='', tooltip=''):
+def deriveWidget(value, label='', tooltip='', options=None):
     """
     Given the data type of the value, this will make a guess at the best
     fit ui element to represent that value.
@@ -48,9 +48,30 @@ def deriveWidget(value, label='', tooltip=''):
         return derived
 
     if is_string(value):
-        derived = QtWidgets.QLineEdit()
-        derived.setText(value)
-        derived.setToolTip(tooltip)
+
+        # -- If we are given options for a string, then we show it as a
+        # -- combo rather than a string entry
+        if options:
+            derived = QtWidgets.QComboBox()
+            derived.setToolTip(tooltip)
+
+            default_idx = 0
+
+            for idx, item in enumerate(options):
+                derived.addItem(item)
+
+                # -- If we have a match, store the idx so we can
+                # -- set the value to it
+                if item == value:
+                    default_idx = idx
+
+            derived.setCurrentIndex(default_idx)
+
+        else:
+            derived = QtWidgets.QLineEdit()
+            derived.setText(value)
+            derived.setToolTip(tooltip)
+
         return derived
 
     if value_type is float:

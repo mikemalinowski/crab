@@ -291,7 +291,7 @@ class Component(object):
             return None
 
         try:
-            meta_node.attr(config.GUIDE_ROOT_LINK_ATTR).inputs()[0]
+            return meta_node.attr(config.GUIDE_ROOT_LINK_ATTR).inputs()[0]
 
         except IndexError:
             return None

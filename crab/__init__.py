@@ -698,7 +698,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import imp
 
 from .core import Behaviour
 from .core import BehaviourUI
@@ -711,7 +710,7 @@ from .core.tools import RigTool
 
 from . import config
 from . import utils
-# from . import menu
+from . import create
 
 from .apps import animator
 from .apps import creator

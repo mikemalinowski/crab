@@ -111,7 +111,8 @@ class CrabCreator(qute.QWidget):
             }
         )
 
-        self.ui.editTab.tabBar().setStyleSheet('QTabBar::tab{max-height: 30px; min-height: 30px;max-width: 30px; min-width: 30px; padding: 2px;}')
+        self.ui.editTab.tabBar().setStyleSheet(
+            'QTabBar::tab{max-height: 30px; min-height: 30px;max-width: 30px; min-width: 30px; padding: 2px;}')
 
         # -- We hook up script jobs to allow the ui to auto refresh
         # -- based on internal maya events
@@ -337,11 +338,17 @@ class CrabCreator(qute.QWidget):
 
         # -- Now create a widget for each option
         for name, value in sorted(component_plugin.options.items()):
+
+            # -- Skip private options
+            if name.startswith('_'):
+                continue
+
             # -- Create a widget to represent this value
             widget = qute.deriveWidget(
                 value,
                 '',
                 component_plugin.tooltips.get(name),
+                options=component_plugin.options.get('_' + name),
             )
             widget.setObjectName(name)
 
@@ -403,7 +410,7 @@ class CrabCreator(qute.QWidget):
         the component and perform behaviour validation.
         """
         # -- If there is no selection we cannot do anything
-        #item = self.ui.appliedComponentList.currentItem()
+        # item = self.ui.appliedComponentList.currentItem()
 
         for item in self.ui.appliedComponentList.selectedItems():
 
@@ -435,9 +442,9 @@ class CrabCreator(qute.QWidget):
                         parent=self,
                     )
                     continue
-        
+
         self.populateAppliedComponents()
-        
+
     # --------------------------------------------------------------------------
     def populateAppliedComponents(self):
         """
@@ -522,11 +529,17 @@ class CrabCreator(qute.QWidget):
 
         # -- Now create a widget for each option
         for name, value in sorted(component_plugin.options.items()):
+
+            # -- Skip private options
+            if name.startswith('_'):
+                continue
+
             # -- Create a widget to represent this value
             widget = qute.deriveWidget(
                 value,
                 '',
                 component_plugin.tooltips.get(name),
+                options=component_plugin.options.get('_' + name),
             )
             widget.setObjectName(name)
 
@@ -705,11 +718,16 @@ class CrabCreator(qute.QWidget):
 
         if custom_ui:
             self.ui.behaviourListOptionsLayout.addWidget(
-                qute.QLabel('This widget has a custom UI. Please add it, then hop over to the applied behaviours tab to instigate its interface.')
+                qute.QLabel(
+                    'This widget has a custom UI. Please add it, then hop over to the applied behaviours tab to instigate its interface.')
             )
 
         # -- Now create a widget for each option
         for name, value in sorted(behaviour_plugin.options.items()):
+
+            # -- Skip private options
+            if name.startswith('_'):
+                continue
 
             # -- If we're dealing with an attribute that is to be specifically managed
             # -- by a ui element, then we ignore it
@@ -721,6 +739,7 @@ class CrabCreator(qute.QWidget):
                 value,
                 '',
                 behaviour_plugin.tooltips.get(name),
+                options=behaviour_plugin.options.get('_' + name),
             )
             widget.setObjectName(name)
 
@@ -874,6 +893,10 @@ class CrabCreator(qute.QWidget):
         # -- Now create a widget for each option
         for name, value in sorted(behaviour.options.items()):
 
+            # -- Skip private options
+            if name.startswith('_'):
+                continue
+
             # -- If we're dealing with an attribute that is to be specifically managed
             # -- by a ui element, then we ignore it
             if custom_ui and name not in custom_ui.unhandled_options():
@@ -884,6 +907,7 @@ class CrabCreator(qute.QWidget):
                 value,
                 '',
                 behaviour.tooltips.get(name),
+                options=behaviour.options.get('_' + name),
             )
             widget.setObjectName(name)
 
@@ -974,8 +998,7 @@ class CrabCreator(qute.QWidget):
         )()
 
         # -- Now create a widget for each option
-        for name, value in sorted(tool_plugin.options.items()):
-
+        for name, value in sorted(tool_plugin.options.iteritems()):
             # -- Create a widget to represent this value
             widget = qute.deriveWidget(
                 value,

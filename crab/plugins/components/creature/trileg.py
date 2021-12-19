@@ -13,6 +13,10 @@ class TriLegComponent(crab.Component):
     def __init__(self, *args, **kwargs):
         super(TriLegComponent, self).__init__(*args, **kwargs)
 
+        self.upper_twists = 0
+        self.mid_twists = 0
+        self.lower_twists = 0
+
     # ----------------------------------------------------------------------------------
     def create_skeleton(self, parent):
         """
@@ -159,6 +163,23 @@ class TriLegComponent(crab.Component):
         pm.select(joints)
         crab.tools.rigging().request('joints_oriswitch_rotations_to_orients')().run()
 
+
+        # -- Create the controller that stores all the attribute
+        # -- information. We create this early so we can drive
+        # -- controls with it
+        config_control = crab.create.control(
+            description='%sConfig' % self.options.description,
+            side=self.options.side,
+            parent=org,
+            match_to=rp_chain[0],
+            shape='config',
+            lock_list='sx;sy;sz;ty;tz;tz;rx;ry;rz',
+            hide_list='sx;sy;sz;ty;tz;tz;rx;ry;rz;v',
+        )
+        config_control.addAttr('ikfk', at='float', dv=0, k=True, min=0, max=1)
+        config_control.addAttr('ik_vis', at='float', dv=1, k=True, min=0, max=1)
+        config_control.addAttr('fk_vis', at='float', dv=0, k=True, min=0, max=1)
+
         # -- Lets start by creating a control to adjust/manipulate the
         # -- upper leg joint. By using the crab utility function to create
         # -- our controls we are guaranteed a crab control hierarchy, which other
@@ -185,6 +206,7 @@ class TriLegComponent(crab.Component):
             match_to=self.find_first('SkeletonFoot'),
             shape='foot'
         )
+        config_control.attr('ik_vis').connect(foot_control.attr('visibility'))
 
         # -- The reverse foot control acts like a heel control
         reverse_foot_control = crab.create.control(
@@ -196,6 +218,7 @@ class TriLegComponent(crab.Component):
             lock_list='tx;ty;tz;sx;sy;sz',
             hide_list='tx;ty;tz;sx;sy;sz;v',
         )
+        config_control.attr('ik_vis').connect(reverse_foot_control.attr('visibility'))
 
         # -- Scale up the control
         crab.utils.shapes.scale(
@@ -216,6 +239,7 @@ class TriLegComponent(crab.Component):
             lock_list='tx;ty;tz;sx;sy;sz',
             hide_list='tx;ty;tz;sx;sy;sz;v',
         )
+        config_control.attr('ik_vis').connect(toe_control.attr('visibility'))
 
         # -- Invert the toe rocker control
         crab.utils.shapes.scale(
@@ -288,6 +312,7 @@ class TriLegComponent(crab.Component):
             parent=ankle_solver_pivot,
             shape='sphere',
         )
+        config_control.attr('ik_vis').connect(ankle_solver_upvector.attr('visibility'))
 
         ankle_solver_upvector.setTranslation(
             crab.utils.maths.calculate_upvector_position(
@@ -344,28 +369,86 @@ class TriLegComponent(crab.Component):
             ankle_solver_pivot.rotateY,
         )
 
+        # -- Now we need to build the FK controllers
+        fk_parent = org
+        blend_parent = org
+        blends = list()
+
+        for ik_joint in rp_chain:
+
+            # -- Create the fk control
+            fk_control = crab.create.control(
+                description='FK' + crab.config.get_description(ik_joint),
+                side=self.options.side,
+                parent=fk_parent,
+                match_to=ik_joint,
+                shape='paddle',
+                lock_list='sx;sy;sz;ty;tz',
+                hide_list='sx;sy;sz;ty;tz;v',
+            )
+            config_control.attr('fk_vis').connect(fk_control.attr('visibility'))
+
+            # -- Now create the blend transforms
+            blend_transform = crab.create.generic(
+                node_type='transform',
+                prefix=crab.config.MECHANICAL,
+                description='Blend' + crab.config.get_description(ik_joint),
+                parent=blend_parent,
+                side=self.options.side,
+            )
+            blends.append(blend_transform)
+
+            # -- Constrain the blend transform between the fk
+            # -- and the ik control
+            pm.parentConstraint(
+                ik_joint,
+                blend_transform,
+                mo=False,
+            )
+
+            # -- Create the constraint setup between the IK and the FK
+            cns = pm.parentConstraint(
+                fk_control,
+                blend_transform,
+                mo=False,
+            )
+
+            cns.interpType.set(2)  # -- Shortest interpolation
+
+            # -- Hook up the IK constraint blend - which needs reversing
+            reverse_node = pm.createNode('reverse')
+            config_control.attr('ikfk').connect(reverse_node.inputX)
+            reverse_node.outputX.connect(cns.getWeightAliasList()[0])
+
+            # -- Hook up the FK constraint blend, which is direct
+            config_control.attr('ikfk').connect(cns.getWeightAliasList()[1])
+
+            # -- Redefine the parent variables
+            fk_parent = fk_control
+            blend_parent = blend_transform
+
         # -- Finally perform the binding - this constraints the relevent skeletal nodes
         # -- to the nodes in our control rig - but crucially the binding informs crab what
         # -- control any child component control rigs should use as their parent.
         self.bind(
             self.find_first('SkeletonUpperLeg'),
-            rp_chain[0],
+            blends[0],
         )
         self.bind(
             self.find_first('SkeletonLowerLeg'),
-            rp_chain[1],
+            blends[1],
         )
         self.bind(
             self.find_first('SkeletonAnkle'),
-            rp_chain[2],
+            blends[2],
         )
         self.bind(
             self.find_first('SkeletonFoot'),
-            rp_chain[3],
+            blends[3],
         )
         self.bind(
             self.find_first('SkeletonToe'),
-            rp_chain[4],
+            blends[4],
         )
 
         return True

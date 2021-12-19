@@ -5,6 +5,11 @@ import pymel.core as pm
 
 
 # --------------------------------------------------------------------------------------------------
+def up_axis():
+    return pm.upAxis(q=True, axis=True)
+
+
+# --------------------------------------------------------------------------------------------------
 def resolve_translation(vector):
     """
     This assumes a list of length 3 in the order of X, Y, Z where Y is considered the
