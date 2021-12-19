@@ -10,6 +10,7 @@ class LocationComponent(crab.Component):
     """
 
     identifier = 'Core : Location'
+    legacy_identifiers = ['Location']
     version = 1
 
     tooltips = dict(

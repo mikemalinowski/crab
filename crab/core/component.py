@@ -50,6 +50,10 @@ class Component(object):
     # -- will be presented for this item
     preview = None
 
+    # -- Legacy identifiers are only used to retain backward compatibility
+    # -- when changing an identifier.
+    legacy_identifiers = list()
+
     # -- This can be ignored
     _NON_ALPHA_NUMERICS = re.compile('[^0-9a-zA-Z]+')
 
@@ -153,6 +157,19 @@ class Component(object):
         self._meta = None
 
     # --------------------------------------------------------------------------
+    def save(self):
+        """
+        Saves any options information from this node back onto the scene
+        """
+
+        meta_node = self.meta()
+
+        # -- Write the data back out
+        meta_node.Options.set(
+            json.dumps(self.options),
+        )
+
+# --------------------------------------------------------------------------
     @classmethod
     def rich_help(cls):
         return dict(

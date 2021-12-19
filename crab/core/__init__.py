@@ -8,3 +8,5 @@ from ._factories import factory_manager
 from . import tools
 from .tools import AnimTool
 from .tools import RigTool
+
+from .rig import get

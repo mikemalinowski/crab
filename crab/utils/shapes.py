@@ -19,6 +19,10 @@ AXIS = dict(
 )
 
 
+# -- This is called a lot, and rarely changes, so we can cache it
+_SHAPE_NAMES = None
+
+
 # ------------------------------------------------------------------------------
 def write(node, filepath):
     """
@@ -250,6 +254,31 @@ def shapes():
                     )
 
     return shape_list
+
+
+# ------------------------------------------------------------------------------
+def shape_names(refresh=False):
+    """
+    Returns a list of all the available shapes
+
+    :return: list
+    """
+
+    global _SHAPE_NAMES
+
+    if _SHAPE_NAMES and not refresh:
+        return _SHAPE_NAMES
+
+    shape_names = list()
+
+    for shape in shapes():
+        shape_names.append(
+            os.path.basename(shape).split('.')[0],
+        )
+
+    _SHAPE_NAMES = shape_names
+
+    return shape_names
 
 
 # ------------------------------------------------------------------------------

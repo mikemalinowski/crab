@@ -10,6 +10,7 @@ class SingularComponent(crab.Component):
     """
 
     identifier = 'Core : Singular'
+    legacy_identifiers = ['Singular']
     version = 1
 
     tooltips = dict(

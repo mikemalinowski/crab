@@ -63,7 +63,7 @@ class Behaviour(object):
         return True
 
     # --------------------------------------------------------------------------
-    def ui(self):
+    def ui(self, parent=None):
         """
         This is an optional mechanism to implement a custom UI widget to be displayed
         in tools for a behaviour.

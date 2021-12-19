@@ -1,3 +1,5 @@
+import sys
+
 import crab
 from crab.vendor import qute
 
@@ -64,9 +66,12 @@ class SetDrivenKeyBehaviour(crab.Behaviour):
             print('%s is not of type AnimCurveU*' % node)
             return False
 
+        driver = self.resolve_input(node.attr('input')).name()
+        driven = self.resolve_output(node.attr('output')).name()
+
         curve_data = dict(
-            driver=node.attr('input').inputs(plugs=True)[0].name(),
-            driven=node.attr('output').outputs(plugs=True)[0].name(),
+            driver=driver,
+            driven=driven,
             node_type=node.nodeType(),
             post_infinity_type=node.getPostInfinityType().index,
             pre_infinity_type=node.getPreInfinityType().index,
@@ -136,6 +141,25 @@ class SetDrivenKeyBehaviour(crab.Behaviour):
                 oy=key_data['out_tangent'][1],
             )
 
+    def resolve_input(self, plug):
+
+        driver = plug.inputs(plugs=True)[0]
+
+        if isinstance(driver.node(), pm.nt.UnitConversion):
+            driver = driver.node().attr('input').inputs(plugs=True)[0]
+            return driver
+
+        return driver
+
+    def resolve_output(self, plug):
+
+        driven = plug.outputs(plugs=True)[0]
+
+        if isinstance(driven.node(), pm.nt.UnitConversion):
+            driven = driven.node(). attr('output').outputs(plugs=True)[0]
+            return driven
+
+        return driven
 
 # ------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
@@ -165,6 +189,7 @@ class SetDrivenKeyUI(crab.BehaviourUI):
             result = self.behaviour_instance.serialise()
 
         except:
+            print(sys.exc_info())
             pass
 
         finally:

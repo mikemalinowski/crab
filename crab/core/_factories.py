@@ -40,15 +40,33 @@ class ComponentFactory(factories.Factory):
 
             component_type = meta.attr(config.META_IDENTIFIER).get()
 
-            if component_type not in factory_manager().components.identifiers():
-                return None
-
             plugin = factory_manager().components.request(component_type)(node)
+
+            if not plugin:
+                print('Could not resolve component from %s' % node)
+                return None
 
             plugin.options.update(
                 json.loads(meta.attr(config.META_OPTIONS).get()),
             )
             return plugin
+
+    # --------------------------------------------------------------------------
+    def request(self, plugin_identifier, version=None):
+        """
+        We override the request so that we can fall back to legacy identifiers if
+        we should need to
+        """
+        result = super(ComponentFactory, self).request(plugin_identifier, version)
+
+        if result:
+            return result
+
+        for plugin in self.plugins():
+            if plugin_identifier in plugin.legacy_identifiers:
+                return plugin
+
+        return None
 
 
 # ------------------------------------------------------------------------------

@@ -47,9 +47,9 @@ class DefineAPoseTool(crab.RigTool):
                     if not joint.hasAttr(self.POSE_NAME):
                         joint.addAttr(self.POSE_NAME, at='matrix')
                     joint.attr(self.POSE_NAME).set(joint.getMatrix())
-            print ('Updated: {} on {}'.format(self.POSE_NAME, selection_state_text)),
+            pm.displayInfo('Updated: {} on {}'.format(self.POSE_NAME, selection_state_text))
         else:
-            print ('Action Cancelled: {}'.format(self.POSE_NAME)),
+            pm.displayInfo('Action Cancelled: {}'.format(self.POSE_NAME))
 
 
 # ------------------------------------------------------------------------------
@@ -124,11 +124,11 @@ class ApplyAPoseTool(crab.RigTool):
                     if rot:
                         joint.setRotation(rot)
 
-        print ('Loaded: {} to {} {}'.format(
+        pm.displayInfo('Loaded: {} to {} {}'.format(
             self.POSE_NAME,
             selection_state_text,
             rotation_only_text
-        )),
+        ))
 
 
 # ------------------------------------------------------------------------------

@@ -582,7 +582,13 @@ class Rig(object):
             proc(self).post_edit()
 
         # -- Show all guides
-        for guide_root in self.guide_roots():
+        for skeleton_component_root in self.skeleton_roots():
+            print(skeleton_component_root)
+            component_plugin = self.factories.components.find_from_node(skeleton_component_root)
+            guide_root = component_plugin.guide_root()
+
+            if not guide_root:
+                continue
 
             self.performing_action.emit('Linking Guides: {}'.format(guide_root))
 
@@ -857,9 +863,9 @@ class Rig(object):
         """
         results = list()
 
-        for child in reversed(
-                self.guide_org().getChildren(allDescendents=True)):
+        for child in reversed(self.guide_org().getChildren(allDescendents=True)):
             if self.factories.component_abstract.is_component_root(child):
+
                 results.append(child)
 
         return results
@@ -919,3 +925,16 @@ class Rig(object):
             Rig(attr.node().attr(config.RIG_ROOT_LINK_ATTR).inputs()[0])
             for attr in pm.ls('*.%s' % config.RIG_ROOT_LINK_ATTR, r=True)
         ]
+
+
+# ------------------------------------------------------------------------------
+def get():
+    """
+    Convenience function for getting the first crab rig in the scene
+    """
+    rigs = Rig.all()
+
+    if rigs:
+        return rigs[0]
+
+    return None
