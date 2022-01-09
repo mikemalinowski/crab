@@ -193,3 +193,21 @@ def distance_between(node_a, node_b):
     """
     delta = node_b.getTranslation(worldSpace=True) - node_a.getTranslation(worldspace=True)
     return delta.length()
+
+
+# ------------------------------------------------------------------------------
+def lerp(v1, v2, a):
+    """
+    Returns a vector which is the interpolation between v1 and v2
+
+    :param v1: Vector to lerp from
+    :type v1: pm.dt.Vector
+
+    :param v2: Vector to lerp to
+    :type v2: pm.dt.Vector
+
+    :param a: How much alpha to lerp
+    :type a: float
+    """
+    result = (v2 * a) + (v1 * (1.0 - a))
+    return result

@@ -151,6 +151,9 @@ class Component(object):
         self.options.description = 'unknown'
         self.options.side = config.MIDDLE
 
+        # -- We use this mechanism to expose locations as dropdowns
+        self.options._side = config.LOCATIONS
+
         # -- Store the node reference we are given, as this is what
         # -- we will use to find our meta
         self._reference = node

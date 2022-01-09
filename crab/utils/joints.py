@@ -100,7 +100,8 @@ def replicate(joint, parent, description=None):
         'translate',
         'rotate',
         'scale',
-        'jointOrient'
+        'jointOrient',
+        'preferredAngle',
     ]
 
     # -- Set the specific attributes

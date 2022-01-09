@@ -8,11 +8,13 @@ class StickyPatchComponent(crab.Component):
     Component to create a setup which follows a skin cluster
     """
     identifier = 'Utilities : Sticky Patch'
-    legacy_identifiers = ['Sticky Patch']
+    legacy_identifiers = ['Sticky Patch', 'General : Sticky Patch']
 
     # ----------------------------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(StickyPatchComponent, self).__init__(*args, **kwargs)
+
+        self.options.use_nurbs = False
 
     # -------------------------------------------------------------------------
     def create_skeleton(self, parent):
@@ -37,16 +39,30 @@ class StickyPatchComponent(crab.Component):
     # ----------------------------------------------------------------------------------------------
     def create_guide(self, parent):
 
-        # -- Create the mesh
-        xform, _ = pm.polyPlane(
-            w=1,
-            h=1,
-            sx=1,
-            sy=1,
-            ax=[0, 1, 0],
-            cuv=2,
-            ch=1,
-        )
+        if self.options.use_nurbs:
+            xform, _ = pm.nurbsPlane(
+                p=[0, 0, 0],
+                ax=[0, 0, 1],
+                w=1,
+                lr=1,
+                d=3,
+                u=1,
+                v=1,
+                ch=1
+            )
+
+        else:
+            # -- Create the mesh
+            xform, _ = pm.polyPlane(
+                w=1,
+                h=1,
+                sx=1,
+                sy=1,
+                ax=[0, 1, 0],
+                cuv=2,
+                ch=1,
+            )
+
         # -- Clear all history
         pm.delete(xform, constructionHistory=True)
 
@@ -219,7 +235,13 @@ class StickyPatchComponent(crab.Component):
         )
         follicle = follicle.getShape()
 
-        surface.attr('outMesh').connect(follicle.inputMesh)
+        if isinstance(surface, pm.nt.Mesh):
+            surface.attr('outMesh').connect(follicle.inputMesh)
+
+        else:
+            surface.attr('local').connect(follicle.inputSurface)
+
+        # -- Hook up the transform input
         surface.attr('worldMatrix[0]').connect(follicle.inputWorldMatrix)
 
         follicle.outTranslate.connect(follicle.getParent().translate)
@@ -262,3 +284,110 @@ class StickyPatchComponent(crab.Component):
             surfaceAssociation='closestPoint',
             influenceAssociation=['name', 'closestJoint', 'label'],
         )
+
+
+# -- Add a tool to convert poly mesh to nurbs mesh on this component
+class ConvertPolyToNurbs(crab.RigTool):
+
+    identifier = 'stickypatch_convert_to_nurbs'
+    display_name = 'Convert Sticky Mesh To Nurbs'
+
+    # --------------------------------------------------------------------------
+    def run(self, mesh=None, nurbs=None):
+        """
+        This is the main exection function for your tool. You may inspect
+        the options dictionary of the tool to tailor the behaviour of your
+        tool.
+
+        :return: True of successful.
+        """
+        mesh_xfo = mesh or pm.selected()[0]
+        nurbs_xfo = nurbs or pm.selected()[1]
+
+        mesh = mesh_xfo.getShape()
+        nurbs = nurbs_xfo.getShape()
+
+        # -- Copy the skinning between the mesh and the nurbs
+        crab.tools.rigging().request('skinning_copy_to_unbound_mesh')().run(
+            mesh,
+            nurbs,
+        )
+
+        # -- Find the follicle
+        follicle = mesh.outputs(type='follicle')[0]
+
+        # -- Disconnect the links between the follicle and the mesh
+        follicle.inputMesh.disconnect()
+        follicle.inputWorldMatrix.disconnect()
+
+        # -- Now connect the equivalent attributes to the surface
+        nurbs.local.connect(follicle.inputSurface)
+        nurbs.attr('worldMatrix[0]').connect(follicle.inputWorldMatrix)
+
+        # -- Repoint the meta
+        meta_node_attr = mesh_xfo.message.outputs(plugs=True, connections=True)[0][1]
+        meta_node_attr.disconnect()
+        nurbs_xfo.message.connect(meta_node_attr)
+
+        # -- Set component option
+        option_attr = meta_node_attr.node().attr('Options')
+        option_data = eval(option_attr.get())
+        option_data['use_nurbs'] = True
+
+        # -- Parent nurbs
+        nurbs_xfo.setParent(mesh_xfo.getParent())
+        return True
+
+
+# -- Add a tool to convert poly mesh to nurbs mesh on this component
+class ConvertNurbsToPoly(crab.RigTool):
+
+    identifier = 'stickypatch_convert_to_mesh'
+    display_name = 'Convert Sticky Nurbs To Mesh'
+
+    # --------------------------------------------------------------------------
+    def run(self, mesh=None, nurbs=None):
+        """
+        This is the main exection function for your tool. You may inspect
+        the options dictionary of the tool to tailor the behaviour of your
+        tool.
+
+        :return: True of successful.
+        """
+        nurbs_xfo = nurbs or pm.selected()[0]
+        mesh_xfo = mesh or pm.selected()[1]
+
+        mesh = mesh_xfo.getShape()
+        nurbs = nurbs_xfo.getShape()
+
+        # -- Copy the skinning between the mesh and the nurbs
+        crab.tools.rigging().request('skinning_copy_to_unbound_mesh')().run(
+            nurbs,
+            mesh,
+        )
+
+        # -- Find the follicle
+        follicle = mesh.outputs(type='follicle')[0]
+
+        # -- Disconnect the links between the follicle and the mesh
+        follicle.inputSurface.disconnect()
+        follicle.inputWorldMatrix.disconnect()
+
+        # -- Now connect the equivalent attributes to the surface
+        mesh.outMesh.connect(follicle.inputMesh)
+        mesh.attr('worldMatrix[0]').connect(follicle.inputWorldMatrix)
+
+        # -- Repoint the meta
+        meta_node_attr = nurbs_xfo.message.outputs(plugs=True, connections=True)[0][1]
+        meta_node_attr.disconnect()
+        mesh_xfo.message.connect(meta_node_attr)
+
+        # -- Set component option
+        option_attr = meta_node_attr.node().attr('Options')
+        option_data = eval(option_attr.get())
+        option_data['use_nurbs'] = False
+
+        # -- Parent nurbs
+        mesh_xfo.setParent(nurbs_xfo.getParent())
+
+        return True

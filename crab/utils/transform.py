@@ -1,6 +1,7 @@
 """
 This module contains functionality to help manipulate transformation data
 """
+import inspect
 import pymel.core as pm
 
 
@@ -116,3 +117,45 @@ def apply(node, tx=None, ty=None, tz=None, rx=None, ry=None, rz=None, sx=None, s
 
     if jz and node.hasAttr('jz'):
         node.attr('jointOrientZ').set(jz)
+
+
+# --------------------------------------------------------------------------------------------------
+def transform_attrs():
+    """
+    Returns a list of the transformation attributes
+    """
+    return [
+        'tx',
+        'ty',
+        'tz',
+        'rx',
+        'ry',
+        'rz',
+        'sx',
+        'sy',
+        'sz',
+    ]
+
+
+# --------------------------------------------------------------------------------------------------
+def setup_live_mirror(driver, driven, inversions=None):
+    """
+    Sets up live mirroring between two objects
+    """
+
+    for attr in transform_attrs():
+
+        # -- If it is locked, or already being driven by something, ignore it
+        if driven.attr(attr).isLocked() or len(driven.attr(attr).inputs()):
+            continue
+
+        if attr in inversions:
+            # -- Set up with inversion
+            reverse_node = pm.createNode('reverse')
+            driver.attr(attr).connect(reverse_node.inputX)
+            reverse_node.outputX.connect(driven.attr(attr))
+
+        else:
+            # -- Straight connection
+            driver.attr(attr).connect(driven.attr(attr))
+

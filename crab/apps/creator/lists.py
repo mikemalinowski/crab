@@ -212,23 +212,21 @@ class AppliedBehaviourListWidget(CrabItemListWidget):
         creator = self._getCreator()
 
         # -- We now have to get the options for the current behaviour
-        behaviour_data = dict()
+        behaviour_to_dupe = None
 
-        all_data = creator.rig.assigned_behaviours()
-
-        for potential_data in all_data:
-            if potential_data['id'] == item.identifier:
-                behaviour_data = potential_data
+        for behaviour in creator.rig.behaviours():
+            if behaviour.uuid == item.uuid:
+                behaviour_to_dupe = behaviour
                 break
 
         # -- If we could not find that data, do nothing
-        if not behaviour_data:
+        if not behaviour_to_dupe:
             return None
 
         # -- Create a new behaviour
         creator.rig.add_behaviour(
-            behaviour_data['type'],
-            **behaviour_data['options']
+            behaviour_to_dupe.identifier,
+            **behaviour_to_dupe.options
         )
 
         # -- Refresh the ui

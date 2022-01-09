@@ -40,11 +40,14 @@ class ComponentFactory(factories.Factory):
 
             component_type = meta.attr(config.META_IDENTIFIER).get()
 
-            plugin = factory_manager().components.request(component_type)(node)
+            plugin = factory_manager().components.request(component_type)
 
             if not plugin:
                 print('Could not resolve component from %s' % node)
                 return None
+
+            # -- Instance the plugin
+            plugin = plugin(node)
 
             plugin.options.update(
                 json.loads(meta.attr(config.META_OPTIONS).get()),

@@ -40,6 +40,7 @@ class SplineSpineComponent(crab.Component):
         self.options.align_controls_world = True
         self.options.facing_axis = 'Positive Y'
         self.options.up_axis = 'Positive X'
+        self.options.linear_hierarchy = False
 
         self.options._facing_axis = self.FACING_AXIS
         self.options._up_axis = self.UP_AXIS
@@ -293,6 +294,11 @@ class SplineSpineComponent(crab.Component):
             match_to=guide_drivers[2],
             shape='sphere',
         )
+
+        # -- If we need a linear hierarchy then reparent the controls
+        if self.options.linear_hierarchy:
+            crab.utils.hierarchy.get_org(tip_tweak_control).setParent(base_tweak_control)
+            crab.utils.hierarchy.get_org(tip_control).setParent(tip_tweak_control)
 
         # -- Tag all our controls - but tag them in the same order
         # -- as the drivers
