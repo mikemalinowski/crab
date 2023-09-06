@@ -1,14 +1,14 @@
-
 import re
 import json
 import pymel.core as pm
 
+from ..vendor import qute
 from .. import utils
 from .. import config
 from .. import create
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyMethodMayBeStatic
 class Component(object):
     """
@@ -22,7 +22,7 @@ class Component(object):
 
         * create_guide
             This is optional, and can be used to create a guide rig over
-            the skeleton if required. This is useful if you're building a
+            the skeleton if required. This is useful if you"re building a
             complex component.
 
         * create rig
@@ -33,14 +33,14 @@ class Component(object):
     """
 
     # -- This is a unique identifier for your component
-    identifier = ''
+    identifier = ""
 
     # -- This can be bumped if you want multiple versions of your
     # -- component in a production simultaneously.
     version = 0
 
     # -- This allows an icon to be defined
-    icon = utils.resources.get('component.png')
+    icon = utils.resources.get("component.png")
 
     # -- This allows for tooltips to be specified for the options of this component
     tooltips = dict()
@@ -55,9 +55,9 @@ class Component(object):
     legacy_identifiers = list()
 
     # -- This can be ignored
-    _NON_ALPHA_NUMERICS = re.compile('[^0-9a-zA-Z]+')
+    _NON_ALPHA_NUMERICS = re.compile("[^0-9a-zA-Z]+")
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def create_skeleton(self, parent):
         """
         This is where you should build your skeleton. `parent` is the node
@@ -70,7 +70,7 @@ class Component(object):
         """
         return True
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def create_guide(self, parent):
         """
         This function allows you to build a guide element.
@@ -81,7 +81,7 @@ class Component(object):
         """
         return True
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def link_guide(self):
         """
         This should perform the required steps to have the skeletal
@@ -92,7 +92,7 @@ class Component(object):
         """
         return True
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def unlink_guide(self):
         """
         This should perform the operation to unlink the guide from the
@@ -105,7 +105,7 @@ class Component(object):
         """
         return True
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def create_rig(self, parent):
         """
         This should create your animation rig for this segment. The parent
@@ -118,7 +118,7 @@ class Component(object):
         """
         return True
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyMethodMayBeStatic
     def skeleton_tools(self):
         """
@@ -129,7 +129,7 @@ class Component(object):
         """
         pass
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def animation_tools(self):
         """
         This may be used to return an optional QWidget to expose
@@ -139,16 +139,15 @@ class Component(object):
         """
         pass
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # -- You do not need to re-implement anything below this line.
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self, node=None):
-
         # -- All the options should be defined within this
         # -- dictionary
         self.options = utils.types.AttributeDict()
-        self.options.description = 'unknown'
+        self.options.description = "unknown"
         self.options.side = config.MIDDLE
 
         # -- We use this mechanism to expose locations as dropdowns
@@ -159,7 +158,7 @@ class Component(object):
         self._reference = node
         self._meta = None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def save(self):
         """
         Saves any options information from this node back onto the scene
@@ -172,16 +171,16 @@ class Component(object):
             json.dumps(self.options),
         )
 
-# --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     @classmethod
     def rich_help(cls):
         return dict(
             title=cls.identifier.title(),
             gif=cls.preview,
-            description=cls.__doc__.strip() if cls.__doc__ else '',
+            description=cls.__doc__.strip() if cls.__doc__ else "",
         )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def mark_as_skeletal_root(self, node):
         """
         This is used to define the root skeletal joint of a component. Whenever
@@ -209,7 +208,7 @@ class Component(object):
         node.outlinerColorG.set(0.7)
         node.outlinerColorB.set(1)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def mark_as_control_root(self, control_root, meta_node):
         """
         You should not need to ever call this function as it is called
@@ -233,7 +232,7 @@ class Component(object):
             ),
         )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def mark_as_guide_root(self, guide_root, meta_node):
         """
         You should not need to ever call this function as it is called
@@ -257,7 +256,7 @@ class Component(object):
             ),
         )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def skeletal_root(self):
         """
         This will return the transform which the skeletal structure
@@ -276,7 +275,7 @@ class Component(object):
         except IndexError:
             return None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyBroadException
     def control_root(self):
         """
@@ -296,7 +295,7 @@ class Component(object):
         except IndexError:
             return None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyBroadException
     def guide_root(self):
         """
@@ -316,7 +315,7 @@ class Component(object):
         except IndexError:
             return None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def meta(self):
         """
         This will return the meta node representing this component. Once found
@@ -335,19 +334,16 @@ class Component(object):
         node = self._reference
 
         while True:
-
             # -- If we have hit the scene root then there is nothing
             # -- more for us to do
             if not node:
                 return None
 
             # -- Cycle all the messaging attributes looking
-            # -- for an attribute of the type we're expecting
+            # -- for an attribute of the type we"re expecting
             for attribute in node.message.outputs(plugs=True):
-
-                # -- We're looking specifically for the crab identifer
-                if config.CONNECTION_PREFIX not in attribute.name(
-                        includeNode=False):
+                # -- We"re looking specifically for the crab identifer
+                if config.CONNECTION_PREFIX not in attribute.name(includeNode=False):
                     continue
 
                 # -- Cache the node so we do not need to repeat the
@@ -360,7 +356,7 @@ class Component(object):
             # -- to the next parent
             node = node.getParent()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def tag(self, target, label):
         """
         Shortcut for tagging to the meta root
@@ -372,7 +368,7 @@ class Component(object):
         """
         # -- Now we need to check if we need to add a new message
         # -- attribute or use a pre-existing one
-        attribute_name = 'crabLabel%s' % label
+        attribute_name = "crabLabel%s" % label
         meta_node = self.meta()
 
         if not meta_node.hasAttr(attribute_name):
@@ -384,12 +380,11 @@ class Component(object):
 
         # -- Get the attribute
         attr = meta_node.attr(attribute_name)
-        sub_attr = meta_node.attr('%s[%s]' % (attribute_name, 0))
+        sub_attr = meta_node.attr("%s[%s]" % (attribute_name, 0))
 
         for idx in range(attr.numElements() + 1):
-
             # -- Get the sub attribute plug
-            sub_attr = meta_node.attr('%s[%s]' % (attribute_name, idx))
+            sub_attr = meta_node.attr("%s[%s]" % (attribute_name, idx))
 
             # -- If it is empty, we can re-use it
             if not sub_attr.inputs():
@@ -397,8 +392,8 @@ class Component(object):
 
         target.message.connect(sub_attr)
 
-    # --------------------------------------------------------------------------
-    def find(self, label=''):
+    # ----------------------------------------------------------------------------------
+    def find(self, label=""):
         """
         Convenience function for performing a meta find against
         the component.
@@ -410,21 +405,21 @@ class Component(object):
 
         # -- Check that the expected attribute exists
         if label:
-            attribute_name = 'crabLabel%s' % label
+            attribute_name = "crabLabel%s" % label
             if meta_node.hasAttr(attribute_name):
                 return meta_node.attr(attribute_name).inputs()
 
         else:
             results = list()
             for attr in meta_node.listAttr(ud=True):
-                if 'crabLabel' in attr.name():
+                if "crabLabel" in attr.name():
                     results.extend(attr.inputs())
 
             return results
 
         return []
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def find_first(self, label):
         """
         Convenience function for performing a meta find against
@@ -440,7 +435,7 @@ class Component(object):
 
         return None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences,PyMethodMayBeStatic
     def bind(self, skeletal_joint, control, constrain=True, scale=True, **kwargs):
         """
@@ -450,28 +445,20 @@ class Component(object):
         skeletal joint.
         """
         if constrain:
-            pm.parentConstraint(
-                control,
-                skeletal_joint,
-                **kwargs
-            )
+            pm.parentConstraint(control, skeletal_joint, **kwargs)
 
-            pm.scaleConstraint(
-                control,
-                skeletal_joint,
-                **kwargs
-            )
+            pm.scaleConstraint(control, skeletal_joint, **kwargs)
 
         # -- Add a binding link between the skeletal joint and
         # -- the control
         if not skeletal_joint.hasAttr(config.BOUND):
             skeletal_joint.addAttr(
                 config.BOUND,
-                at='message',
+                at="message",
             )
         control.message.connect(skeletal_joint.attr(config.BOUND))
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
     def create_control_root(self, parent, meta_node):
         """
@@ -489,9 +476,11 @@ class Component(object):
         """
         # -- Create the node
         node = create.generic(
-            node_type='transform',
+            node_type="transform",
             prefix=config.RIG_COMPONENT,
-            description=self._NON_ALPHA_NUMERICS.sub('', self.options.description or self.identifier),
+            description=self._NON_ALPHA_NUMERICS.sub(
+                "", self.options.description or self.identifier
+            ),
             side=self.options.side,
             parent=parent,
             match_to=parent,
@@ -504,7 +493,7 @@ class Component(object):
 
         return node
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
     def create_guide_root(self, parent, meta_node):
         """
@@ -522,9 +511,11 @@ class Component(object):
         """
         # -- Create the node
         node = create.generic(
-            node_type='transform',
+            node_type="transform",
             prefix=config.GUIDE_COMPONENT,
-            description=self._NON_ALPHA_NUMERICS.sub('', self.options.description or self.identifier),
+            description=self._NON_ALPHA_NUMERICS.sub(
+                "", self.options.description or self.identifier
+            ),
             side=self.options.side,
             parent=parent,
             match_to=parent,
@@ -536,7 +527,7 @@ class Component(object):
         )
         return node
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
     def create_meta(self):
         """
@@ -547,66 +538,65 @@ class Component(object):
         :return: pm.nt.DependNode
         """
         # -- Create the node marker
-        meta_node = pm.createNode('network')
+        meta_node = pm.createNode("network")
         meta_node.rename(
             config.name(
                 prefix=config.META,
-                description=self._NON_ALPHA_NUMERICS.sub('', self.options.description or self.identifier),
+                description=self._NON_ALPHA_NUMERICS.sub(
+                    "", self.options.description or self.identifier
+                ),
                 side=self.options.side,
             )
         )
 
         # -- Add the attributes required for a component marker
-        meta_node.addAttr(
-            config.COMPONENT_MARKER,
-            dt='string'
-        )
+        meta_node.addAttr(config.COMPONENT_MARKER, dt="string")
 
         # -- Store the type of the component
         meta_node.addAttr(
             config.META_IDENTIFIER,
-            dt='string',
+            dt="string",
         )
         meta_node.attr(config.META_IDENTIFIER).set(self.identifier)
 
         meta_node.addAttr(
             config.META_VERSION,
-            at='float',
+            at="float",
         )
         meta_node.attr(config.META_VERSION).set(self.version)
 
         meta_node.addAttr(
             config.META_OPTIONS,
-            dt='string',
+            dt="string",
         )
         meta_node.attr(config.META_OPTIONS).set(json.dumps(self.options))
 
         meta_node.addAttr(
             config.META_CONTENTS,
-            dt='string',
+            dt="string",
         )
-        meta_node.attr(config.META_CONTENTS).set('[]')
+        meta_node.attr(config.META_CONTENTS).set("[]")
 
         # -- Add this various link attributes to the different
         # -- parts which make up the component
         meta_node.addAttr(
             config.SKELETON_ROOT_LINK_ATTR,
-            at='message',
+            at="message",
         )
 
         meta_node.addAttr(
             config.CONTROL_ROOT_LINK_ATTR,
-            at='message',
+            at="message",
         )
 
         meta_node.addAttr(
             config.GUIDE_ROOT_LINK_ATTR,
-            at='message',
+            at="message",
         )
 
         return meta_node
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     @classmethod
     def is_component_root(cls, node):
         """
@@ -619,15 +609,14 @@ class Component(object):
         :return: pm.nt.DependNode
         """
         for attr in node.message.outputs(plugs=True):
-
-            # -- We're looking specifically for the crab identifer
+            # -- We"re looking specifically for the crab identifer
             if config.CONNECTION_PREFIX not in attr.name(includeNode=False):
                 continue
 
             return attr.node()
         return None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def apply_options(self):
         """
         This will push any changes to the options dictionarly of this class
@@ -645,8 +634,8 @@ class Component(object):
             for component in rig.components():
 
                 # -- Alter some of the options
-                if 'lock' in component.options:
-                    component.options.lock = ''
+                if "lock" in component.options:
+                    component.options.lock = ""
 
                 # -- Push our changes back onto the meta node in the scene
                 component.apply_options()
@@ -658,11 +647,11 @@ class Component(object):
             json.dumps(self.options),
         )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def parent_component(self):
         return Component(self.skeletal_root().getParent())
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def child_components(self, recursive=False):
         """
         This will return all the child components of this component
@@ -686,9 +675,13 @@ class Component(object):
             if childs_component.skeletal_root() == self.skeletal_root():
                 continue
 
-            # -- If we're not recursive, we only want to look for children
+            # -- If we"re not recursive, we only want to look for children
             # -- which are direct descendents of this one
-            if not recursive and childs_component.parent_component().skeletal_root() != self.skeletal_root():
+            if (
+                not recursive
+                and childs_component.parent_component().skeletal_root()
+                != self.skeletal_root()
+            ):
                 continue
 
             child_components.append(childs_component)
@@ -696,26 +689,103 @@ class Component(object):
 
         return child_components
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
+    def skeletal_joints(self):
+        joints = list()
+        for joint in self.find():
+            if joint.name().startswith(config.SKELETON):
+                joints.append(joint)
+
+        return joints
+
+    # ----------------------------------------------------------------------------------
     def remove(self):
         """
         This will remove this crab component if possible
 
         :return: True if the component was removed
         """
-        # -- Get a list of all the skeletal joints and check if they are connected
-        # -- to any skin clusters. If they are then we do not remove the component
-        skinned_joints = list()
-        for joint in self.find():
-            if joint.name().startswith(config.SKELETON) and utils.skinning.is_skinned(joint):
-                skinned_joints.append(joint.name())
 
-        if skinned_joints:
-            print('%s could not be removed, as some of the joints are connected to skin clusters' % self.options.description)
-            print('\n' + '\n\t'.join(skinned_joints))
+        # -- This is a dictionary where the key will be a joint and the value
+        # -- will be a list of skin clusters using that joint
+        skin_dict = dict()
 
-            return False
+        for joint in self.skeletal_joints():
+            skin_dict[joint] = utils.skinning.connected_skins(joint)
 
+        # -- Define a variable which we will use to track how many skins continued to
+        # -- have weight after our non-forced removal
+        meshes_still_using_joints = list()
+
+        # -- Remove our joints from the skins providing they are not influencing the
+        # -- deformation
+        for joint, skin_clusters in skin_dict.items():
+            for skin_cluster in skin_clusters:
+                # -- Only remove the joint if it has zero weight (i.e, force=false)
+                success = utils.skinning.remove_joint_from_skin(
+                    skin=skin_cluster,
+                    joint=joint,
+                    force=False,
+                )
+
+                # -- If the joint could not be passively removed, mark it as still
+                # -- being used.
+                if not success:
+                    meshes_still_using_joints.extend(skin_cluster.getGeometry())
+
+        # -- Convert the mesh list to a unique list
+        meshes_still_using_joints = list(set(meshes_still_using_joints))
+
+        # -- Because the joint is still being used we now have to ask the user if its ok
+        # -- for us to forcefully remove the skin weights
+        if meshes_still_using_joints:
+            mesh_names = [mesh.name() for mesh in meshes_still_using_joints]
+
+            message = (
+                "The following meshes are still being used by joints "
+                "in this component. Do you want to forcefully remove them? {meshes}"
+            )
+
+            confirmation = qute.utilities.request.confirmation(
+                title="Joints Used By Skins",
+                label=message.format(
+                    meshes="\n" + "\n".join(mesh_names)
+                ),
+            )
+
+            # -- If the user decides not to proceed, lets just stop before we do any
+            # -- damage!
+            if not confirmation:
+                return
+
+            # -- The user has requested that we forcefully remove
+            # -- the joints from the skin
+            for joint, skin_clusters in skin_dict.items():
+                for skin_cluster in skin_clusters:
+                    # -- Force is true this time, which will cause a skin normalisation
+                    success = utils.skinning.remove_joint_from_skin(
+                        skin=skin_cluster,
+                        joint=joint,
+                        force=True,
+                    )
+
+                    if not success:
+
+                        message = (
+                            "Could not remove {joint} from {geometry}. "
+                            "Stopping further actions."
+                        )
+
+                        qute.utilities.request.message(
+                            title="Failure",
+                            label=message.format(
+                                joint=joint.name(),
+                                geometry=skin_cluster.getGeometry()[0],
+                            ),
+                        )
+                        return
+
+        # -- To reach here, we are good to remove our component
         # -- Start by re-parenting any child components to the parent of this
         # -- component
         parent = self.skeletal_root().getParent()
@@ -727,16 +797,19 @@ class Component(object):
         try:
             pm.delete(self.meta().attr(config.GUIDE_ROOT_LINK_ATTR).inputs())
 
-        except: pass
+        except:
+            pass
 
         try:
             pm.delete(self.skeletal_root())
 
-        except: pass
+        except:
+            pass
 
         try:
             pm.delete(self.meta())
 
-        except: pass
+        except:
+            pass
 
         return True

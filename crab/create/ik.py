@@ -1,14 +1,20 @@
-# import itertools
 import pymel.core as pm
-#
 
-# from . import basics
-# from . import controls
-# from .. import utils
 from .. import config
-#
 
-def _generate_ik(start, end, description, side, parent=None, visible=False, solver='ikRPsolver', polevector=None, **kwargs):
+
+# --------------------------------------------------------------------------------------
+def _generate_ik(
+    start,
+    end,
+    description,
+    side,
+    parent=None,
+    visible=False,
+    solver="ikRPsolver",
+    polevector=None,
+    **kwargs
+):
     """
     Private function to generate the ik, returning the result from the ik handle call
 
@@ -44,7 +50,7 @@ def _generate_ik(start, end, description, side, parent=None, visible=False, solv
 
     ikh.rename(
         config.name(
-            prefix='IKH',
+            prefix="IKH",
             description=description,
             side=side,
         ),
@@ -61,8 +67,19 @@ def _generate_ik(start, end, description, side, parent=None, visible=False, solv
 
     return result
 
-# ------------------------------------------------------------------------------
-def simple_ik(start, end, description, side, parent=None, visible=False, solver='ikRPsolver', polevector=None, **kwargs):
+
+# --------------------------------------------------------------------------------------
+def simple_ik(
+    start,
+    end,
+    description,
+    side,
+    parent=None,
+    visible=False,
+    solver="ikRPsolver",
+    polevector=None,
+    **kwargs
+):
     """
     This is a convenience function for generating an IK handle
     and having it named.
@@ -96,8 +113,10 @@ def simple_ik(start, end, description, side, parent=None, visible=False, solver=
     return result[0]
 
 
-# ------------------------------------------------------------------------------
-def spline_ik(start, end, description, side, parent=None, visible=False, polevector=None, **kwargs):
+# --------------------------------------------------------------------------------------
+def spline_ik(
+    start, end, description, side, parent=None, visible=False, polevector=None, **kwargs
+):
     """
     This is a convenience function for generating an IK handle
     and having it named.
@@ -119,10 +138,10 @@ def spline_ik(start, end, description, side, parent=None, visible=False, polevec
         end=end,
         description=description,
         side=side,
-        parent=None,
-        visible=False,
-        solver='ikSplineSolver',
-        polevector=None,
+        parent=parent,
+        visible=visible,
+        solver="ikSplineSolver",
+        polevector=polevector,
         **kwargs
     )
 

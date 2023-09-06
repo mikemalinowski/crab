@@ -7,16 +7,16 @@ from .. import create
 from . import hierarchy
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def zero(joint):
-    for axis in ['X', 'Y', 'Z']:
-        joint.attr('rotate%s' % axis).set(0)
-        joint.attr('translate%s' % axis).set(0)
-        joint.attr('scale%s' % axis).set(1)
-        joint.attr('jointOrient%s' % axis).set(0)
+    for axis in ["X", "Y", "Z"]:
+        joint.attr("rotate%s" % axis).set(0)
+        joint.attr("translate%s" % axis).set(0)
+        joint.attr("scale%s" % axis).set(1)
+        joint.attr("jointOrient%s" % axis).set(0)
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def replicate_chain(from_this, to_this, parent, world=True, replacements=None):
     """
     Replicates the joint chain exactly
@@ -46,7 +46,7 @@ def replicate_chain(from_this, to_this, parent, world=True, replacements=None):
                         prefix=config.get_prefix(potential_new_name),
                         description=config.get_description(potential_new_name),
                         side=config.get_side(potential_new_name),
-                        counter=config.get_counter(joint_to_trace), #potential_new_name),
+                        counter=config.get_counter(joint_to_trace),
                     )
                 )
 
@@ -68,7 +68,7 @@ def replicate_chain(from_this, to_this, parent, world=True, replacements=None):
     return new_joints
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def replicate(joint, parent, description=None):
     """
     Replicates an individual joint and makes it a child of the parent
@@ -97,16 +97,16 @@ def replicate(joint, parent, description=None):
 
     # -- Attributes to copy
     vector_attrs = [
-        'translate',
-        'rotate',
-        'scale',
-        'jointOrient',
-        'preferredAngle',
+        "translate",
+        "rotate",
+        "scale",
+        "jointOrient",
+        "preferredAngle",
     ]
 
     # -- Set the specific attributes
     for vector_attr in vector_attrs:
-        for axis in ['X', 'Y', 'Z']:
+        for axis in ["X", "Y", "Z"]:
             new_joint.attr(vector_attr + axis).set(
                 joint.attr(vector_attr + axis).get(),
             )
@@ -114,7 +114,7 @@ def replicate(joint, parent, description=None):
     return new_joint
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def reverse_chain(joints):
     """
     Reverses the hierarchy of the joint chain.
@@ -147,7 +147,7 @@ def reverse_chain(joints):
     return joints
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def move_rotations_to_joint_orients(joint):
     """
     Moves the rotations on the skeleton to the joint orients
@@ -161,7 +161,7 @@ def move_rotations_to_joint_orients(joint):
     ws_mat4 = joint.getMatrix(worldSpace=True)
 
     # -- Zero the joint orients
-    for attr in ['jointOrientX', 'jointOrientY', 'jointOrientZ']:
+    for attr in ["jointOrientX", "jointOrientY", "jointOrientZ"]:
         joint.attr(attr).set(0)
 
     # -- Now we can restore the matrix
@@ -169,20 +169,19 @@ def move_rotations_to_joint_orients(joint):
 
     # -- Now we can shift the values from the rotation to the orient
     # -- knowing that the world transform will be retained
-    for axis in ['X', 'Y', 'Z']:
-
+    for axis in ["X", "Y", "Z"]:
         # -- Set the orient value
-        joint.attr('jointOrient%s' % axis).set(
-            joint.attr('rotate%s' % axis).get(),
+        joint.attr("jointOrient%s" % axis).set(
+            joint.attr("rotate%s" % axis).get(),
         )
 
         # -- Zero the rotation value
-        joint.attr('rotate%s' % axis).set(0)
+        joint.attr("rotate%s" % axis).set(0)
 
     return None
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def move_joint_orients_to_rotations(joint):
     """
     Moves the values from the joint orient of the node to the rotation
@@ -197,14 +196,14 @@ def move_joint_orients_to_rotations(joint):
     ws_mat4 = joint.getMatrix(worldSpace=True)
 
     # -- Zero the joint orients
-    for attr in ['jointOrientX', 'jointOrientY', 'jointOrientZ']:
+    for attr in ["jointOrientX", "jointOrientY", "jointOrientZ"]:
         joint.attr(attr).set(0)
 
     # -- Now we can restore the matrix
     joint.setMatrix(ws_mat4, worldSpace=True)
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def write_joint_file(joints, filepath):
     """
     Writes out joint information to a json file to allow the joint
@@ -221,7 +220,6 @@ def write_joint_file(joints, filepath):
     all_joint_data = dict()
 
     for joint in joints:
-
         parent = joint.getParent()
 
         if parent not in joints:
@@ -235,27 +233,26 @@ def write_joint_file(joints, filepath):
             is_deformer=True,
         )
 
-        for type_ in ['translate', 'rotate', 'scale', 'jointOrient']:
-            for axis in ['X', 'Y', 'Z']:
-                joint_data['attributes'][type_ + axis] = joint.attr(
-                    type_ + axis).get()
+        for type_ in ["translate", "rotate", "scale", "jointOrient"]:
+            for axis in ["X", "Y", "Z"]:
+                joint_data["attributes"][type_ + axis] = joint.attr(type_ + axis).get()
 
         # -- If there is A or T pose attributes, record this as well
-        for pose_attr in ['APose', 'TPose']:
+        for pose_attr in ["APose", "TPose"]:
             if joint.hasAttr(pose_attr):
-                joint_data['attributes'][pose_attr] = list(
+                joint_data["attributes"][pose_attr] = list(
                     itertools.chain(*joint.attr(pose_attr).get())
                 )
 
         all_joint_data[joint.name()] = joint_data
 
-    with open(filepath, 'w') as f:
+    with open(filepath, "w") as f:
         json.dump(all_joint_data, f, sort_keys=True, indent=4)
 
     return None
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def load_joint_file(root_parent, all_joint_data, side_override=None):
     """
     Creates a joint hierarchy based on the given data. If the data
@@ -279,31 +276,30 @@ def load_joint_file(root_parent, all_joint_data, side_override=None):
         and the value is the generated joint
     """
     if not isinstance(all_joint_data, dict):
-        with open(all_joint_data, 'r') as f:
+        with open(all_joint_data, "r") as f:
             all_joint_data = json.load(f)
 
     generated_joint_map = dict()
 
     for joint_data in all_joint_data.values():
-
         # -- Create the joint
         pm.select(clear=True)
 
         joint = create.joint(
-                description=config.get_description(joint_data['name']),
-                side=side_override or config.get_side(joint_data['name']),
-                counter=config.get_counter(joint_data['name']),
-                is_deformer=joint_data.get('is_deformer', True),
-                radius=joint_data['attributes'].get('radius', 1),
-                parent=None,
+            description=config.get_description(joint_data["name"]),
+            side=side_override or config.get_side(joint_data["name"]),
+            counter=config.get_counter(joint_data["name"]),
+            is_deformer=joint_data.get("is_deformer", True),
+            radius=joint_data["attributes"].get("radius", 1),
+            parent=None,
         )
 
         # -- Set the joint attributes
-        generated_joint_map[joint_data['name']] = joint
+        generated_joint_map[joint_data["name"]] = joint
 
     # -- Now set up the parenting
     for identifier, joint in generated_joint_map.items():
-        parent_name = all_joint_data[identifier]['parent']
+        parent_name = all_joint_data[identifier]["parent"]
 
         if parent_name:
             joint.setParent(generated_joint_map[parent_name])
@@ -311,11 +307,11 @@ def load_joint_file(root_parent, all_joint_data, side_override=None):
         else:
             joint.setParent(root_parent)
 
-        for pose_attr in ['APose', 'TPose']:
-            if pose_attr in all_joint_data[identifier]['attributes']:
-                joint.addAttr(pose_attr, at='matrix')
+        for pose_attr in ["APose", "TPose"]:
+            if pose_attr in all_joint_data[identifier]["attributes"]:
+                joint.addAttr(pose_attr, at="matrix")
 
-        for name, value in all_joint_data[identifier]['attributes'].items():
+        for name, value in all_joint_data[identifier]["attributes"].items():
             if joint.hasAttr(name):
                 joint.attr(name).set(value)
 

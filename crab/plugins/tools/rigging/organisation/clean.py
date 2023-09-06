@@ -2,22 +2,22 @@ import crab
 import pymel.core as pm
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class CleanMeta(crab.RigTool):
     """
     This will clean/remove any redundant crab meta nodes along with any orphan
     guide roots
     """
 
-    identifier = 'clean_meta'
-    display_name = 'Clean Rig Meta'
-    icon = 'clean.png'
+    identifier = "clean_meta"
+    display_name = "Clean Rig Meta"
+    icon = "clean.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
 
         meta_nodes = [
-            node for node in pm.ls('META_*')
+            node for node in pm.ls("META_*")
             if node.hasAttr(crab.config.COMPONENT_MARKER)
         ]
 

@@ -2,7 +2,7 @@ import crab
 import pymel.core as pm
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class ColorControlsProcess(crab.Process):
     """
     Makes any bones which are part of the control hierarchy invisible
@@ -10,10 +10,10 @@ class ColorControlsProcess(crab.Process):
     """
 
     # -- Define the identifier for the plugin
-    identifier = 'ColourControls'
+    identifier = "ColourControls"
     version = 1
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
     def post_build(self):
         """
@@ -24,7 +24,7 @@ class ColorControlsProcess(crab.Process):
         """
         ignore_colour = crab.config.NON_ANIMATABLE_COLOUR
 
-        for control in self.rig.control_org().getChildren(ad=True, type='transform'):
+        for control in self.rig.control_org().getChildren(ad=True, type="transform"):
 
             # -- Get the colour to assign to this shape
             colour = self.get_colour(control)
@@ -51,7 +51,7 @@ class ColorControlsProcess(crab.Process):
                 shape.overrideColorG.set(colour[1] * (1.0 / 255))
                 shape.overrideColorB.set(colour[2] * (1.0 / 255))
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     @classmethod
     def get_colour(cls, node):
         if node.name().endswith(crab.config.LEFT):

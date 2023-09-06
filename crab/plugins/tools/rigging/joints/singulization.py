@@ -2,29 +2,29 @@ import crab
 import pymel.core as pm
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class SingulizeSelected(crab.RigTool):
 
-    identifier = 'joints_singulize_selected'
-    display_name = 'Singulize Selected'
-    icon = 'joints.png'
+    identifier = "joints_singulize_selected"
+    display_name = "Singulize Selected"
+    icon = "joints.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
         rig = crab.Rig(node=pm.selected()[0])
 
         for node in pm.selected():
-            rig.add_component('Singular', pre_existing_joint=node.name())
+            rig.add_component("Core : Singular", pre_existing_joint=node.name())
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class SingulizeAll(crab.RigTool):
 
-    identifier = 'joints_singulize_all'
-    display_name = 'Singulize All'
-    icon = 'joints.png'
+    identifier = "joints_singulize_all"
+    display_name = "Singulize All"
+    icon = "joints.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
 
         # -- Get the currently active rig
@@ -34,7 +34,7 @@ class SingulizeAll(crab.RigTool):
         # -- require singulizing
         all_joints = rig.skeleton_org().getChildren(
             allDescendents=True,
-            type='joint',
+            type="joint",
         )
 
         for joint in all_joints:
@@ -45,11 +45,11 @@ class SingulizeAll(crab.RigTool):
 
             # -- If the joint has crab meta attached, then we do not
             # -- want to singulize it
-            for possible_meta in joint.outputs(type='network'):
-                if possible_meta.hasAttr('crabComponent'):
+            for possible_meta in joint.outputs(type="network"):
+                if possible_meta.hasAttr("crabComponent"):
                     requires_singulizing = False
                     break
 
             # -- Singulize if required
             if requires_singulizing:
-                rig.add_component('Singular', pre_existing_joint=joint.name())
+                rig.add_component("Core : Singular", pre_existing_joint=joint.name())

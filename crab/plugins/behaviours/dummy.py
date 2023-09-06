@@ -8,22 +8,22 @@ class Duplicate(crab.Behaviour):
     This is meant as an example only to show how a behaviour
     can operate
     """
-    identifier = 'Duplicate'
+    identifier = "Duplicate"
     version = 1
 
     tooltips = dict(
-        parent='The node which the dupicated object should be parented under',
-        target='The object to duplicate',
+        parent="The node which the dupicated object should be parented under",
+        target="The object to duplicate",
     )
 
-    REQUIRED_NODE_OPTIONS = ['parent', 'target']
+    REQUIRED_NODE_OPTIONS = ["parent", "target"]
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(Duplicate, self).__init__(*args, **kwargs)
 
-        self.options.parent = ''
-        self.options.target = ''
+        self.options.parent = ""
+        self.options.target = ""
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences

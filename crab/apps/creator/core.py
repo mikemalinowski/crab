@@ -6,6 +6,8 @@ import traceback
 import pymel.core as pm
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 
+from . import lists
+
 from ... import core
 from ... import tools
 from ... import utils
@@ -13,7 +15,7 @@ from .. import tooltip
 from ...vendor import qute
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def get_help(name):
     """
     This is a convenience function to get files from the resources directory
@@ -25,8 +27,8 @@ def get_help(name):
     """
     possibility = os.path.join(
         os.path.dirname(__file__),
-        'resources',
-        'help',
+        "resources",
+        "help",
         name,
     )
 
@@ -34,15 +36,15 @@ def get_help(name):
     if not os.path.exists(possibility):
         possibility = os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-            'resources',
-            'help',
+            "resources",
+            "help",
             name,
         )
 
-    return possibility.replace('\\', '/')
+    return possibility.replace("\\", "/")
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def get_resource(name):
     """
     This is a convenience function to get files from the resources directory
@@ -54,7 +56,7 @@ def get_resource(name):
     """
     possibility = os.path.join(
         os.path.dirname(__file__),
-        'resources',
+        "resources",
         name,
     )
 
@@ -62,15 +64,15 @@ def get_resource(name):
     if not os.path.exists(possibility):
         possibility = os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-            'resources',
-            'icons',
+            "resources",
+            "icons",
             name,
         )
 
-    return possibility.replace('\\', '/')
+    return possibility.replace("\\", "/")
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences,PyPep8Naming,DuplicatedCode
 class CrabCreator(qute.QWidget):
     """
@@ -80,7 +82,7 @@ class CrabCreator(qute.QWidget):
 
     MIN_LABEL_WIDTH = 100
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self, parent=None):
         super(CrabCreator, self).__init__(parent=parent or qute.mainWindow())
 
@@ -88,31 +90,35 @@ class CrabCreator(qute.QWidget):
         self.setLayout(qute.slimify(qute.QVBoxLayout()))
 
         # -- Load in our ui file
-        self.ui = qute.loadUi(get_resource('creator.ui'))
+        self.ui = qute.loadUi(get_resource("creator.ui"))
         self.layout().addWidget(self.ui)
 
         # -- Create a help shortcut for showing the user rich help information
-        # -- for any widget that has an exposed 'rich_help' property
+        # -- for any widget that has an exposed "rich_help" property
         self.short = qute.QShortcut(qute.QKeySequence("F1"), self, self.showHelp)
 
         # -- Apply our styling, defining some differences
         qute.applyStyle(
             [
-                'space',
-                get_resource('creator.css'),
+                "space",
+                get_resource("creator.css"),
             ],
             self,
             **{
-                '_BACKGROUND_': '30, 30, 30',
-                '_ALTBACKGROUND_': '70, 70, 70',
-                '_FOREGROUND_': '255, 78, 0',
-                '_HIGHLIGHT_': '255, 100, 10',
-                '_TEXT_': '255, 255, 255',
+                "_BACKGROUND_": "30, 30, 30",
+                "_ALTBACKGROUND_": "70, 70, 70",
+                "_FOREGROUND_": "255, 78, 0",
+                "_HIGHLIGHT_": "255, 100, 10",
+                "_TEXT_": "255, 255, 255",
             }
         )
 
         self.ui.editTab.tabBar().setStyleSheet(
-            'QTabBar::tab{max-height: 30px; min-height: 30px;max-width: 30px; min-width: 30px; padding: 2px;}')
+            (
+                "QTabBar::tab{max-height: 30px; min-height: 30px;""
+                ""max-width: 30px; min-width: 30px; padding: 2px;}"
+            ),
+        )
 
         # -- We hook up script jobs to allow the ui to auto refresh
         # -- based on internal maya events
@@ -126,6 +132,10 @@ class CrabCreator(qute.QWidget):
         self.behaviour_option_widgets = list()
         self.applied_behaviour_option_widgets = list()
 
+        # -- Toggle tracker for monitoring if we should be
+        # -- showing our tool favourites
+        self._show_only_favourite_tools = False
+
         # -- Resolve any icon paths, this ensures all paths
         # -- will work on any machine
         self._resolveIcons()
@@ -135,9 +145,12 @@ class CrabCreator(qute.QWidget):
 
         # -- HACK
         self.ui.newRig.rich_help = dict(
-            title='Create New Rig',
-            description='This allows you to create new crab rig - giving you the abiility to start adding components and behaviours.',
-            gif=get_help('help_new_rig.gif')
+            title="Create New Rig",
+            description=(
+                "This allows you to create new crab rig - giving you the "
+                "abiility to start adding components and behaviours."
+            ),
+            gif=get_help("help_new_rig.gif"),
         )
 
         # -- Define our progress bar
@@ -156,6 +169,7 @@ class CrabCreator(qute.QWidget):
 
         # -- These are the signals for the editing buttons
         self.ui.runTool.clicked.connect(self.runTool)
+        self.ui.toggleFavouriteTools.clicked.connect(self.toggleFavouriteTools)
         self.ui.toolList.itemDoubleClicked.connect(self.runTool)
         self.ui.addComponent.clicked.connect(self.add_component)
         self.ui.addBehaviour.clicked.connect(self.add_behaviour)
@@ -168,10 +182,13 @@ class CrabCreator(qute.QWidget):
 
         # -- Callbacks for the lists which expose what the current
         # -- rig is made up from.
-        self.ui.appliedComponentList.currentRowChanged.connect(self.populateAppliedComponentOptions)
-        self.ui.appliedBehaviourList.currentRowChanged.connect(self.populateAppliedBehaviourOptions)
+        self.ui.appliedComponentList.currentRowChanged.connect(
+            self.populateAppliedComponentOptions)
+        self.ui.appliedBehaviourList.currentRowChanged.connect(
+            self.populateAppliedBehaviourOptions)
 
         # -- Connections to the component panel buttons
+        self.ui.recreateComponent.clicked.connect(self.recreateComponent)
         self.ui.removeComponent.clicked.connect(self.remove_component)
 
         # -- Connections to the behaviour panel buttons
@@ -183,15 +200,17 @@ class CrabCreator(qute.QWidget):
         # -- Filtering callbacks
         self.ui.toolFilter.textChanged.connect(self.populateTools)
         self.ui.newComponentFilter.textChanged.connect(self.populateComponents)
-        self.ui.appliedComponentFilter.textChanged.connect(self.populateAppliedComponents)
+        self.ui.appliedComponentFilter.textChanged.connect(
+            self.populateAppliedComponents)
         self.ui.newBehaviourFilter.textChanged.connect(self.populateBehaviours)
-        self.ui.appliedBehaviourFilter.textChanged.connect(self.populateAppliedBehaviours)
+        self.ui.appliedBehaviourFilter.textChanged.connect(
+            self.populateAppliedBehaviours)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # -- This set of functions are all related to the new/edit/build
     # -- iteration workflow.
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def refreshAll(self):
         self.rig = self.get_rig()
 
@@ -209,7 +228,7 @@ class CrabCreator(qute.QWidget):
             self.rig.build_started.connect(self.showProgressBar)
             self.rig.build_complete.connect(self.removeProgressBar)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def edit(self):
         """
         Initiates an edit of the currently active crab rig in the scene.
@@ -222,7 +241,7 @@ class CrabCreator(qute.QWidget):
         # -- Ensure our progress bar is always removed
         self.removeProgressBar(True)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyBroadException
     def build(self):
         """
@@ -238,11 +257,11 @@ class CrabCreator(qute.QWidget):
                 self.removeProgressBar(True)
 
                 if not result:
-                    raise Exception('Build Failure')
+                    raise Exception("Build Failure")
 
                 qute.utilities.request.message(
-                    title='Build Success',
-                    label='The rig build has been completed successfully',
+                    title="Build Success",
+                    label="The rig build has been completed successfully",
                     parent=self,
                 )
 
@@ -250,12 +269,15 @@ class CrabCreator(qute.QWidget):
                 self.removeProgressBar(False)
                 traceback.print_exc()
                 qute.utilities.request.message(
-                    title='Build Failure',
-                    label='Something went wrong during the rig build. See the script editor for details',
+                    title="Build Failure",
+                    label=(
+                        "Something went wrong during the rig build. "
+                        "See the script editor for details"
+                    ),
                     parent=self,
                 )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def new(self):
         """
         Creates a new crab rig, prompting for a name.
@@ -264,8 +286,8 @@ class CrabCreator(qute.QWidget):
         """
         name, ok = qute.QInputDialog.getText(
             self,
-            'Rig Name',
-            'Please give a name for the rig'
+            "Rig Name",
+            "Please give a name for the rig"
         )
 
         if not ok:
@@ -278,11 +300,11 @@ class CrabCreator(qute.QWidget):
         # -- Re-ppopulate the component lists
         self.refreshAll()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # -- This set of functions are focused on component editing
     # -- and adding
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def add_component(self):
         """
         Triggered when the user wants to add a component.
@@ -311,7 +333,7 @@ class CrabCreator(qute.QWidget):
             # -- Update the applied component list
             self.populateAppliedComponents()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def populateComponentOptions(self):
         """
         Triggered when a user changes selection in the component list, this
@@ -340,15 +362,15 @@ class CrabCreator(qute.QWidget):
         for name, value in sorted(component_plugin.options.items()):
 
             # -- Skip private options
-            if name.startswith('_'):
+            if name.startswith("_"):
                 continue
 
             # -- Create a widget to represent this value
             widget = qute.deriveWidget(
                 value,
-                '',
+                "",
                 component_plugin.tooltips.get(name),
-                options=component_plugin.options.get('_' + name),
+                options=component_plugin.options.get("_" + name),
             )
             widget.setObjectName(name)
 
@@ -363,10 +385,11 @@ class CrabCreator(qute.QWidget):
 
             # -- Finally, add it into the layout
             self.ui.componentListOptionsLayout.addLayout(
-                qute.addLabel(widget, self._createDisplayName(name), self.MIN_LABEL_WIDTH),
+                qute.addLabel(widget, self._createDisplayName(name),
+                              self.MIN_LABEL_WIDTH),
             )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def populateComponents(self):
         """
         Populates the component list with all the components available
@@ -388,9 +411,9 @@ class CrabCreator(qute.QWidget):
 
             if component_filter:
 
-                identifier_match = component_filter.lower() in component.identifier.lower()
+                match = component_filter.lower() in component.identifier.lower()
 
-                if not identifier_match:
+                if not match:
                     continue
 
             item = qute.QListWidgetItem(
@@ -403,7 +426,24 @@ class CrabCreator(qute.QWidget):
 
             self.ui.componentList.addItem(item)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
+    def recreateComponent(self):
+
+        for item in self.ui.appliedComponentList.selectedItems():
+
+            if not item:
+                continue
+
+            with utils.contexts.UndoChunk():
+                # -- We need to get the root from the name
+                root_name = item.text().split("(")[-1][:-1]
+
+                # -- Get the plugin
+                component_plugin = self.rig.factories.components.find_from_node(
+                    pm.PyNode(root_name))
+                self.rig.recreate_component(component_plugin)
+
+    # ----------------------------------------------------------------------------------
     def remove_component(self):
         """
         Triggered when the user wants to remove a component. This will remove
@@ -419,33 +459,40 @@ class CrabCreator(qute.QWidget):
 
             with utils.contexts.UndoChunk():
                 # -- We need to get the root from the name
-                root_name = item.text().split('(')[-1][:-1]
+                root_name = item.text().split("(")[-1][:-1]
 
                 # -- Get the plugin
-                component_plugin = self.rig.factories.components.find_from_node(pm.PyNode(root_name))
+                component_plugin = self.rig.factories.components.find_from_node(
+                    pm.PyNode(root_name))
 
                 # -- Remove the component
                 was_removed = component_plugin.remove()
 
                 if not was_removed:
                     qute.utilities.request.message(
-                        title='Component could not be removed',
-                        label='%s could not be removed. Please check the script editor for details' % component_plugin.options.description,
+                        title="Component could not be removed",
+                        label=(
+                            "%s could not be removed. Please check the "
+                            "script editor for details"
+                        ) % component_plugin.options.description,
                         parent=self,
                     )
                     continue
 
                 if not self.rig.validate_behaviours():
                     qute.utilities.request.message(
-                        title='Behaviour Validation Failure',
-                        label='After removing the component one or more behaviours are invalid. Please check the script editor for details',
+                        title="Behaviour Validation Failure",
+                        label=(
+                            "After removing the component one or more behaviours "
+                            "are invalid. Please check the script editor for details"
+                        ),
                         parent=self,
                     )
                     continue
 
         self.populateAppliedComponents()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def populateAppliedComponents(self):
         """
         Populates the list which shows all the components applied to the
@@ -467,7 +514,8 @@ class CrabCreator(qute.QWidget):
 
             if component_filter:
 
-                display_match = component_filter.lower() in component_instance.options.get('description', '').lower()
+                display_match = component_filter.lower() in component_instance.options.get(
+                    "description", "").lower()
                 identifier_match = component_filter.lower() in component_instance.identifier.lower()
 
                 if not identifier_match and not display_match:
@@ -476,7 +524,7 @@ class CrabCreator(qute.QWidget):
             if component_instance:
                 item = qute.QListWidgetItem(
                     qute.QIcon(component_instance.icon),
-                    '%s (%s)' % (
+                    "%s (%s)" % (
                         component_instance.identifier,
                         component_instance.skeletal_root().name(),
                     )
@@ -487,7 +535,7 @@ class CrabCreator(qute.QWidget):
 
                 self.ui.appliedComponentList.addItem(item)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def populateAppliedComponentOptions(self):
         """
         Triggered when the user selected an item from the applied
@@ -522,24 +570,25 @@ class CrabCreator(qute.QWidget):
         qute.emptyLayout(self.ui.appliedComponentListOptionsLayout)
 
         # -- We need to get the root from the name
-        root_name = item.text().split('(')[-1][:-1]
+        root_name = item.text().split("(")[-1][:-1]
 
         # -- Get the plugin
-        component_plugin = self.rig.factories.components.find_from_node(pm.PyNode(root_name))
+        component_plugin = self.rig.factories.components.find_from_node(
+            pm.PyNode(root_name))
 
         # -- Now create a widget for each option
         for name, value in sorted(component_plugin.options.items()):
 
             # -- Skip private options
-            if name.startswith('_'):
+            if name.startswith("_"):
                 continue
 
             # -- Create a widget to represent this value
             widget = qute.deriveWidget(
                 value,
-                '',
+                "",
                 component_plugin.tooltips.get(name),
-                options=component_plugin.options.get('_' + name),
+                options=component_plugin.options.get("_" + name),
             )
             widget.setObjectName(name)
 
@@ -562,14 +611,15 @@ class CrabCreator(qute.QWidget):
 
             # -- Finally, add it into the layout
             self.ui.appliedComponentListOptionsLayout.addLayout(
-                qute.addLabel(widget, self._createDisplayName(name), self.MIN_LABEL_WIDTH),
+                qute.addLabel(widget, self._createDisplayName(name),
+                              self.MIN_LABEL_WIDTH),
             )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # -- This set of functions are focused on the setup and editing
     # -- of behaviours
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyBroadException
     def add_behaviour(self):
         """
@@ -598,20 +648,20 @@ class CrabCreator(qute.QWidget):
             self.populateAppliedBehaviours()
 
             qute.utilities.request.message(
-                title='Behaviour Added',
-                label='%s has been added to the build recipe.' % behaviour_name,
+                title="Behaviour Added",
+                label="%s has been added to the build recipe." % behaviour_name,
                 parent=self,
             )
 
         except:
             traceback.print_exc()
             qute.utilities.request.message(
-                title='Behaviour Failure',
-                label='%s could not be added. Please check the script editor.' % behaviour_name,
+                title="Behaviour Failure",
+                label="%s could not be added. Please check the script editor." % behaviour_name,
                 parent=self,
             )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def remove_behaviour(self):
         """
         Removes the selected behaviour from the rig.
@@ -628,7 +678,7 @@ class CrabCreator(qute.QWidget):
 
         self.populateAppliedBehaviours()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def move_behaviour_up(self):
         """
         Moves the selected behaviour up one in the behaviour list
@@ -651,7 +701,7 @@ class CrabCreator(qute.QWidget):
 
         self.ui.appliedBehaviourList.setCurrentRow(current_row - 1)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def move_behaviour_down(self):
         """
         Moves the selected behaviour down one in the behaviour list
@@ -680,19 +730,19 @@ class CrabCreator(qute.QWidget):
         """
         if not self.rig.validate_behaviours():
             qute.utilities.request.message(
-                title='Validation Errors',
-                label='There were errors when validating. Please check the script editor',
+                title="Validation Errors",
+                label="There were errors when validating. Please check the script editor",
                 parent=self,
             )
 
         else:
             qute.utilities.request.message(
-                title='Validation Successful',
-                label='No validation errors were found',
+                title="Validation Successful",
+                label="No validation errors were found",
                 parent=self,
             )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def populateBehaviourOptions(self):
         """
         Triggered when a user selects a behaviour from the behaviour
@@ -719,17 +769,21 @@ class CrabCreator(qute.QWidget):
         if custom_ui:
             self.ui.behaviourListOptionsLayout.addWidget(
                 qute.QLabel(
-                    'This widget has a custom UI. Please add it, then hop over to the applied behaviours tab to instigate its interface.')
+                    (
+                        "This widget has a custom UI. Please add it, then hop over "
+                        "to the applied behaviours tab to instigate its interface."
+                    ),
+                ),
             )
 
         # -- Now create a widget for each option
         for name, value in sorted(behaviour_plugin.options.items()):
 
             # -- Skip private options
-            if name.startswith('_'):
+            if name.startswith("_"):
                 continue
 
-            # -- If we're dealing with an attribute that is to be specifically managed
+            # -- If we"re dealing with an attribute that is to be specifically managed
             # -- by a ui element, then we ignore it
             if custom_ui and name not in custom_ui.unhandled_options():
                 continue
@@ -737,9 +791,9 @@ class CrabCreator(qute.QWidget):
             # -- Create a widget to represent this value
             widget = qute.deriveWidget(
                 value,
-                '',
+                "",
                 behaviour_plugin.tooltips.get(name),
-                options=behaviour_plugin.options.get('_' + name),
+                options=behaviour_plugin.options.get("_" + name),
             )
             widget.setObjectName(name)
 
@@ -754,10 +808,11 @@ class CrabCreator(qute.QWidget):
 
             # -- Finally, add it into the layout
             self.ui.behaviourListOptionsLayout.addLayout(
-                qute.addLabel(widget, self._createDisplayName(name), self.MIN_LABEL_WIDTH),
+                qute.addLabel(widget, self._createDisplayName(name),
+                              self.MIN_LABEL_WIDTH),
             )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def populateBehaviours(self):
         """
         Fill the behaviour list with all the behaviours available
@@ -792,7 +847,7 @@ class CrabCreator(qute.QWidget):
 
             self.ui.behaviourList.addItem(item)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def populateAppliedBehaviours(self):
         """
         Looks at all the behaviours in the rig and lists them in the behaviour
@@ -828,10 +883,11 @@ class CrabCreator(qute.QWidget):
             # -- Create a specific object for this entry so we can
             # -- assign it a hidden id
             widget_item = qute.QListWidgetItem(
-                qute.QIcon(behaviour.icon if behaviour else ''),
-                '%s (%s)' % (
+                qute.QIcon(behaviour.icon if behaviour else ""),
+                "%s (%s) (%s)" % (
                     behaviour.identifier,
-                    behaviour.options.get('description', 'unknown'),
+                    behaviour.options.get("description", "unknown"),
+                    behaviour.options.get("side", ""),
                 )
             )
 
@@ -841,7 +897,7 @@ class CrabCreator(qute.QWidget):
             # -- Add the item
             self.ui.appliedBehaviourList.addItem(widget_item)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def populateAppliedBehaviourOptions(self):
         """
         Triggered when an applied behaviour is selected, this will show the
@@ -894,10 +950,10 @@ class CrabCreator(qute.QWidget):
         for name, value in sorted(behaviour.options.items()):
 
             # -- Skip private options
-            if name.startswith('_'):
+            if name.startswith("_"):
                 continue
 
-            # -- If we're dealing with an attribute that is to be specifically managed
+            # -- If we"re dealing with an attribute that is to be specifically managed
             # -- by a ui element, then we ignore it
             if custom_ui and name not in custom_ui.unhandled_options():
                 continue
@@ -905,9 +961,9 @@ class CrabCreator(qute.QWidget):
             # -- Create a widget to represent this value
             widget = qute.deriveWidget(
                 value,
-                '',
+                "",
                 behaviour.tooltips.get(name),
-                options=behaviour.options.get('_' + name),
+                options=behaviour.options.get("_" + name),
             )
             widget.setObjectName(name)
 
@@ -939,7 +995,7 @@ class CrabCreator(qute.QWidget):
                 ),
             )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # -- Tools
     def populateTools(self):
         """
@@ -952,6 +1008,12 @@ class CrabCreator(qute.QWidget):
 
         for tool in sorted(tools.rigging().identifiers()):
             tool = tools.rigging().request(tool)
+
+            # -- If we"re filtering by favourites, then check if this is in
+            # -- our favourites
+            if self._show_only_favourite_tools:
+                if not lists.CrabToolListWidget.isFavourite(tool.identifier):
+                    continue
 
             # -- Check if we have a tool filter
             tool_filter = self.ui.toolFilter.text()
@@ -977,7 +1039,7 @@ class CrabCreator(qute.QWidget):
 
             self.ui.toolList.addItem(item)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def populateToolOptions(self):
         """
         Triggered when the user selects a tool in teh tool panel. This
@@ -998,11 +1060,11 @@ class CrabCreator(qute.QWidget):
         )()
 
         # -- Now create a widget for each option
-        for name, value in sorted(tool_plugin.options.iteritems()):
+        for name, value in sorted(tool_plugin.options.items()):
             # -- Create a widget to represent this value
             widget = qute.deriveWidget(
                 value,
-                '',
+                "",
                 tool_plugin.tooltips.get(name),
             )
             widget.setObjectName(name)
@@ -1024,7 +1086,7 @@ class CrabCreator(qute.QWidget):
                 ),
             )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnusedLocal
     def runTool(self, *args, **kwargs):
         """
@@ -1053,10 +1115,27 @@ class CrabCreator(qute.QWidget):
             # -- Execute the tool
             tool_plugin.run()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
+    def toggleFavouriteTools(self):
+        """
+        Turns the favourite tools on or off
+        """
+        # -- Flip flop the value
+        self._show_only_favourite_tools = not self._show_only_favourite_tools
+
+        if self._show_only_favourite_tools:
+            self.ui.toggleFavouriteTools.setIcon(qute.QIcon(get_resource("star.png")))
+
+        else:
+            self.ui.toggleFavouriteTools.setIcon(
+                qute.QIcon(get_resource("blackstar.png")))
+
+        self.populateTools()
+
+    # ----------------------------------------------------------------------------------
     # -- These are general convenience functions for the ui
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyMethodMayBeStatic
     def get_rig(self):
         """
@@ -1071,7 +1150,7 @@ class CrabCreator(qute.QWidget):
 
         return rigs[0]
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def showProgressBar(self, action_count):
         """
         Create a new progress bar and set the action count
@@ -1079,22 +1158,22 @@ class CrabCreator(qute.QWidget):
         :param action_count:
         :return:
         """
-        gMainProgressBar = pm.mel.eval('$tmp = $gMainProgressBar')
+        gMainProgressBar = pm.mel.eval("$tmp = $gMainProgressBar")
         self._actionCount = action_count
         self._progressBar = pm.progressBar(
             gMainProgressBar,
             edit=True,
             beginProgress=True,
-            status='Editing Rig',
+            status="Editing Rig",
             minValue=0,
             maxValue=action_count,
 
         )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # -- These are functions dedicated to progress bars
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def updateProgressBar(self, label):
         """
         If a progress bar is present, it is incremented and updated with the given
@@ -1111,7 +1190,7 @@ class CrabCreator(qute.QWidget):
         self._progressBar.setStatus(label)
         self._progressBar.step()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnusedLocal
     def removeProgressBar(self, result):
         """
@@ -1124,10 +1203,10 @@ class CrabCreator(qute.QWidget):
             self._progressBar.endProgress()
             self._progressBar = None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # -- The functions below are UI construction methods
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     @classmethod
     def _createDisplayName(cls, name):
         """
@@ -1138,10 +1217,10 @@ class CrabCreator(qute.QWidget):
 
         :return: str
         """
-        name = name.replace('_', ' ')
+        name = name.replace("_", " ")
         return name.title()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
     def _resolveIcons(self):
         """
@@ -1149,24 +1228,27 @@ class CrabCreator(qute.QWidget):
 
         :return:
         """
-        self.ui.addComponent.setIcon(qute.QIcon(get_resource('add.png')))
-        self.ui.addBehaviour.setIcon(qute.QIcon(get_resource('add.png')))
+        self.ui.addComponent.setIcon(qute.QIcon(get_resource("add.png")))
+        self.ui.addBehaviour.setIcon(qute.QIcon(get_resource("add.png")))
 
-        self.ui.buildRig.setIcon(qute.QIcon(get_resource('build.png')))
-        self.ui.editRig.setIcon(qute.QIcon(get_resource('edit.png')))
-        self.ui.newRig.setIcon(qute.QIcon(get_resource('new.png')))
+        self.ui.buildRig.setIcon(qute.QIcon(get_resource("build.png")))
+        self.ui.editRig.setIcon(qute.QIcon(get_resource("edit.png")))
+        self.ui.newRig.setIcon(qute.QIcon(get_resource("new.png")))
 
-        self.ui.removeBehaviour.setIcon(qute.QIcon(get_resource('remove.png')))
-        self.ui.moveBehaviourDown.setIcon(qute.QIcon(get_resource('down.png')))
-        self.ui.moveBehaviourUp.setIcon(qute.QIcon(get_resource('up.png')))
-        self.ui.validateBehaviour.setIcon(qute.QIcon(get_resource('validate.png')))
+        self.ui.removeBehaviour.setIcon(qute.QIcon(get_resource("remove.png")))
+        self.ui.moveBehaviourDown.setIcon(qute.QIcon(get_resource("down.png")))
+        self.ui.moveBehaviourUp.setIcon(qute.QIcon(get_resource("up.png")))
+        self.ui.validateBehaviour.setIcon(qute.QIcon(get_resource("validate.png")))
 
-        self.ui.removeComponent.setIcon(qute.QIcon(get_resource('remove.png')))
-        self.ui.editTab.setTabIcon(0, qute.QIcon(get_resource('component.png')))
-        self.ui.editTab.setTabIcon(1, qute.QIcon(get_resource('behaviour.png')))
-        self.ui.editTab.setTabIcon(2, qute.QIcon(get_resource('search.png')))
+        self.ui.removeComponent.setIcon(qute.QIcon(get_resource("remove.png")))
+        self.ui.editTab.setTabIcon(0, qute.QIcon(get_resource("component.png")))
+        self.ui.editTab.setTabIcon(1, qute.QIcon(get_resource("behaviour.png")))
+        self.ui.editTab.setTabIcon(2, qute.QIcon(get_resource("search.png")))
 
-    # --------------------------------------------------------------------------
+        self.ui.toggleFavouriteTools.setIcon(qute.QIcon(get_resource("blackstar.png")))
+        self.ui.runTool.setIcon(qute.QIcon(get_resource("add.png")))
+
+    # ----------------------------------------------------------------------------------
     def _registerScriptJobs(self):
         """
         Registers script jobs for maya events. If the events have already
@@ -1179,8 +1261,8 @@ class CrabCreator(qute.QWidget):
         # -- Define the list of events we will register a refresh
         # -- with
         events = [
-            'NewSceneOpened',
-            'SceneOpened',
+            "NewSceneOpened",
+            "SceneOpened",
         ]
 
         for event in events:
@@ -1193,11 +1275,11 @@ class CrabCreator(qute.QWidget):
                 )
             )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def _unregisterScriptJobs(self):
         """
         This will unregster all the events tied with this UI. It will
-        then clear any registered ID's stored within the class.
+        then clear any registered ID"s stored within the class.
         """
         for job_id in self.script_job_ids:
             pm.scriptJob(
@@ -1216,7 +1298,7 @@ class CrabCreator(qute.QWidget):
         :return:
         """
         if isinstance(widget, qute.QLineEdit):
-            if str(widget.text()).startswith('FILELOAD;'):
+            if str(widget.text()).startswith("FILELOAD;"):
                 widget.setContextMenuPolicy(qute.Qt.CustomContextMenu)
                 widget.customContextMenuRequested.connect(
                     functools.partial(
@@ -1225,8 +1307,8 @@ class CrabCreator(qute.QWidget):
                         write=False
                     ),
                 )
-                widget.setText(widget.text().split(';')[-1])
-            elif str(widget.text()).startswith('FILESAVE;'):
+                widget.setText(widget.text().split(";")[-1])
+            elif str(widget.text()).startswith("FILESAVE;"):
                 widget.setContextMenuPolicy(qute.Qt.CustomContextMenu)
                 widget.customContextMenuRequested.connect(
                     functools.partial(
@@ -1235,7 +1317,7 @@ class CrabCreator(qute.QWidget):
                         write=True
                     ),
                 )
-                widget.setText(widget.text().split(';')[-1])
+                widget.setText(widget.text().split(";")[-1])
             else:
                 widget.setContextMenuPolicy(qute.Qt.CustomContextMenu)
                 widget.customContextMenuRequested.connect(
@@ -1245,7 +1327,7 @@ class CrabCreator(qute.QWidget):
                     ),
                 )
 
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------
     # noinspection PyUnusedLocal,PyUnresolvedReferences
     def show_path_menu(self, widget, *args, **kwargs):
         """
@@ -1259,8 +1341,8 @@ class CrabCreator(qute.QWidget):
         """
 
         fileMode = 0
-        if 'write' in kwargs:
-            if not kwargs['write']:
+        if "write" in kwargs:
+            if not kwargs["write"]:
                 fileMode = 1
 
         def file_browser(widget_):
@@ -1275,7 +1357,7 @@ class CrabCreator(qute.QWidget):
                 dialogStyle=2,
                 fileMode=fileMode,
                 startingDirectory=starting_directory,
-                caption='Select File'
+                caption="Select File"
             )
             if new_path:
                 new_path = new_path[0]
@@ -1287,7 +1369,7 @@ class CrabCreator(qute.QWidget):
         # -- Generate a menu
         menu = qute.menuFromDictionary(
             {
-                'Browse': functools.partial(
+                "Browse": functools.partial(
                     file_browser,
                     widget,
                 ),
@@ -1296,7 +1378,7 @@ class CrabCreator(qute.QWidget):
         )
         menu.exec_(qute.QCursor().pos())
 
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------
     # noinspection PyUnusedLocal,PyUnresolvedReferences
     def show_objects_menu(self, widget, *args, **kwargs):
         """
@@ -1316,16 +1398,16 @@ class CrabCreator(qute.QWidget):
                 pm.select(text)
 
         def set_from_selected(widget_):
-            qute.setBlindValue(widget_, ';'.join([n.name() for n in pm.selected()]))
+            qute.setBlindValue(widget_, ";".join([n.name() for n in pm.selected()]))
 
         # -- Generate a menu
         menu = qute.menuFromDictionary(
             {
-                'Set From Selection': functools.partial(
+                "Set From Selection": functools.partial(
                     set_from_selected,
                     widget,
                 ),
-                'Select': functools.partial(
+                "Select": functools.partial(
                     select_from_widget,
                     widget,
                 ),
@@ -1334,7 +1416,7 @@ class CrabCreator(qute.QWidget):
         )
         menu.exec_(qute.QCursor().pos())
 
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------
     # noinspection PyUnusedLocal
     def showHelp(self, *args, **kwargs):
         """
@@ -1355,12 +1437,12 @@ class CrabCreator(qute.QWidget):
                 # -- under the mouse
                 if isinstance(widget, qute.QListWidget):
                     # -- If we have an item under the mouse, lets switch this
-                    # -- to be the widget we're looking at
+                    # -- to be the widget we"re looking at
                     widget = widget.itemAt(widget.mapFromGlobal(qute.QCursor().pos()))
 
                 # -- If the widget is valid and it actually has some rich
                 # -- help data, we use it
-                if widget and hasattr(widget, 'rich_help') and widget.rich_help:
+                if widget and hasattr(widget, "rich_help") and widget.rich_help:
                     rich_help = widget.rich_help
                     break
 
@@ -1368,39 +1450,39 @@ class CrabCreator(qute.QWidget):
         # -- then lets display a tool tip
         if rich_help:
             tooltip.show_tooltip(
-                rich_help.get('title'),
-                rich_help.get('description'),
-                rich_help.get('gif'),
+                rich_help.get("title"),
+                rich_help.get("description"),
+                rich_help.get("gif"),
                 self,
             )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnusedLocal
     def showEvent(self, event):
         """
-        Maya re-uses UI's, so we regsiter our events whenever the ui
+        Maya re-uses UI"s, so we regsiter our events whenever the ui
         is shown
         """
         self._registerScriptJobs()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnusedLocal
     def hideEvent(self, event):
         """
-        Maya re-uses UI's, so we unregister the script job events whenever
+        Maya re-uses UI"s, so we unregister the script job events whenever
         the ui is not visible.
         """
         self._unregisterScriptJobs()
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
 class DockableCreator(MayaQWidgetDockableMixin, qute.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(DockableCreator, self).__init__(*args, **kwargs)
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences,PyUnusedLocal
 def launch(*args, **kwargs):
     window = DockableCreator(parent=qute.mainWindow())
@@ -1414,6 +1496,6 @@ def launch(*args, **kwargs):
     window.setCentralWidget(widget)
 
     # -- Set the window properties
-    window.setWindowTitle('Crab')
+    window.setWindowTitle("Crab")
 
     window.show(dockable=True)

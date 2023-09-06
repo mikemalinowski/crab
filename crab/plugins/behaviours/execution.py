@@ -4,18 +4,18 @@ import pymel.core as pm
 
 # ------------------------------------------------------------------------------
 class CodeExecutionBehaviour(crab.Behaviour):
-    identifier = 'Execute Code'
+    identifier = "Execute Code"
     version = 1
 
     tooltip = dict(
-        code='Python code to evaluate. This will evaluate using eval(your_code)'
+        code="Python code to evaluate. This will evaluate using eval(your_code)"
     )
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(CodeExecutionBehaviour, self).__init__(*args, **kwargs)
 
-        self.options.code = ''
+        self.options.code = ""
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences

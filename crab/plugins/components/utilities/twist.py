@@ -2,25 +2,28 @@ import crab
 
 import pymel.core as pm
 
-
+# --------------------------------------------------------------------------------------
 class TwistUtility(crab.Component):
     """
     This will create a twist bone between two other bones
     """
-    identifier = 'Utility : Twist'
+    identifier = "Utility : Twist"
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(TwistUtility, self).__init__(*args, **kwargs)
 
-        self.options.target_root = ''
-        self.options.target_effector = ''
+        self.options.target_root = ""
+        self.options.target_effector = ""
+
+        self.options.root_transform_reference = ""
+        self.options.effector_transform_reference = ""
 
         self.options.upv_x = 0
         self.options.upv_y = 100
         self.options.upv_z = 0
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def create_skeleton(self, parent):
 
         twist_joint = crab.create.joint(
@@ -30,13 +33,41 @@ class TwistUtility(crab.Component):
         )
 
         self.mark_as_skeletal_root(twist_joint)
-        self.tag(twist_joint, 'TwistJoint')
+        self.tag(twist_joint, "TwistJoint")
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def create_rig(self, parent):
 
-        start_target = pm.PyNode(self.options.target_root)
-        end_target = pm.PyNode(self.options.target_effector)
+        direct_start_target = pm.PyNode(self.options.target_root)
+        direct_end_target = pm.PyNode(self.options.target_effector)
+
+        end_target = crab.create.generic(
+            node_type="transform",
+            prefix=crab.config.MARKER,
+            description=self.options.description + "EndTarget",
+            parent=parent,
+            match_to=self.options.effector_transform_reference or direct_end_target,
+            side=self.options.side,
+        )
+        pm.parentConstraint(
+            direct_end_target,
+            end_target,
+            maintainOffset=True
+        )
+
+        start_target = crab.create.generic(
+            node_type="transform",
+            prefix=crab.config.MARKER,
+            description=self.options.description + "StartTarget",
+            parent=parent,
+            match_to=self.options.root_transform_reference or direct_start_target,
+            side=self.options.side,
+        )
+        pm.parentConstraint(
+            direct_start_target,
+            start_target,
+            maintainOffset=True
+        )
 
         # -- Create an organisational structure to manage the local
         # -- space of nodes
@@ -48,9 +79,9 @@ class TwistUtility(crab.Component):
 
         # -- Create the upvector
         upvector = crab.create.generic(
-            node_type='transform',
+            node_type="transform",
             prefix=crab.config.MARKER,
-            description=self.options.description + 'TwistVector',
+            description=self.options.description + "TwistVector",
             parent=org.getParent(),
             match_to=org,
             side=self.options.side,
@@ -70,7 +101,7 @@ class TwistUtility(crab.Component):
             weight=1,
             aimVector=[1, 0, 0],
             upVector=[0, 1, 0],
-            worldUpType='object',
+            worldUpType="object",
             worldUpObject=upvector.name(),
             worldUpVector=[0, 1, 0],
             maintainOffset=False,
@@ -78,17 +109,17 @@ class TwistUtility(crab.Component):
 
         # -- Create our start and end targets
         start = crab.create.generic(
-            node_type='transform',
+            node_type="transform",
             prefix=crab.config.MECHANICAL,
-            description=self.options.description + 'Start',
+            description=self.options.description + "Start",
             side=self.options.side,
             parent=org,
-            match_to=org,
+            match_to=self.options.root_transform_reference or org,
         )
 
         start.setTranslation(
-            start_target.getTranslation(space='world'),
-            space='world',
+            start_target.getTranslation(space="world"),
+            space="world",
         )
 
         # -- Constrain the start to the start target
@@ -100,17 +131,17 @@ class TwistUtility(crab.Component):
 
         # -- Create our start and end targets
         end = crab.create.generic(
-            node_type='transform',
+            node_type="transform",
             prefix=crab.config.MECHANICAL,
-            description=self.options.description + 'End',
+            description=self.options.description + "End",
             side=self.options.side,
             parent=start,
             match_to=start,
         )
 
         end.setTranslation(
-            end_target.getTranslation(space='world'),
-            space='world',
+            end_target.getTranslation(space="world"),
+            space="world",
         )
 
         # -- Constrain the end to the end target
@@ -140,13 +171,13 @@ class TwistUtility(crab.Component):
 
         # -- Create a control for this node
         control = crab.create.control(
-            description=self.options.description + 'Twist',
-            match_to=self.find_first('TwistJoint'),
+            description=self.options.description + "Twist",
+            match_to=self.find_first("TwistJoint"),
             side=self.options.side,
             parent=org,
-            shape='pin',
-            lock_list='tx;ty;tz;sx;sy;sz',
-            hide_list='tx;ty;tz;sx;sy;sz;v',
+            shape="pin",
+            lock_list="tx;ty;tz;sx;sy;sz",
+            hide_list="tx;ty;tz;sx;sy;sz;v",
         )
 
         # -- Create the attribute which will allow us
@@ -154,8 +185,8 @@ class TwistUtility(crab.Component):
         crab.utils.organise.add_separator_attr(control)
 
         control.addAttr(
-            'twist',
-            at='float',
+            "twist",
+            at="float",
             k=True,
             min=0,
             max=1,
@@ -170,8 +201,8 @@ class TwistUtility(crab.Component):
         )
 
         control_org.setRotation(
-            reader.getRotation(space='world'),
-            space='world',
+            reader.getRotation(space="world"),
+            space="world",
         )
 
         # -- Get zero node - this is the node
@@ -190,9 +221,9 @@ class TwistUtility(crab.Component):
 
         # -- Now create the multiply node
         mul_node = crab.create.generic(
-            node_type='floatMath',
+            node_type="floatMath",
             prefix=crab.config.MATH,
-            description=self.options.description + 'Blender',
+            description=self.options.description + "Blender",
             side=self.options.side,
         )
 
@@ -212,9 +243,9 @@ class TwistUtility(crab.Component):
         # -- allows us to blend the effect in and
         # -- out
         mul_out = crab.create.generic(
-            node_type='floatMath',
+            node_type="floatMath",
             prefix=crab.config.MATH,
-            description=self.options.description + 'Mute',
+            description=self.options.description + "Mute",
             side=self.options.side,
         )
 
@@ -252,7 +283,7 @@ class TwistUtility(crab.Component):
         # -- Finally, bind the driven object to the
         # -- control
         self.bind(
-            self.find_first('TwistJoint'),
+            self.find_first("TwistJoint"),
             control,
             maintainOffset=True,
         )
@@ -263,13 +294,13 @@ class TwistUtility(crab.Component):
 
         return controls
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def pose_reader(self, start, end):
 
         matrix_mul = crab.create.generic(
-            node_type='multMatrix',
+            node_type="multMatrix",
             prefix=crab.config.MATH,
-            description=self.options.description + 'TwistMul',
+            description=self.options.description + "TwistMul",
             side=self.options.side,
         )
 
@@ -277,18 +308,18 @@ class TwistUtility(crab.Component):
         start.matrix.connect(matrix_mul.matrixIn[1])
 
         decompose_matrix = crab.create.generic(
-            node_type='decomposeMatrix',
+            node_type="decomposeMatrix",
             prefix=crab.config.MATH,
-            description=self.options.description + 'TwistDec',
+            description=self.options.description + "TwistDec",
             side=self.options.side,
         )
 
         matrix_mul.matrixSum.connect(decompose_matrix.inputMatrix)
 
         quat_to_euler = crab.create.generic(
-            node_type='quatToEuler',
+            node_type="quatToEuler",
             prefix=crab.config.MATH,
-            description=self.options.description + 'TwistQ2E',
+            description=self.options.description + "TwistQ2E",
             side=self.options.side,
         )
 
@@ -296,9 +327,9 @@ class TwistUtility(crab.Component):
         decompose_matrix.outputQuatW.connect(quat_to_euler.inputQuatW)
 
         reader = crab.create.generic(
-            node_type='transform',
+            node_type="transform",
             prefix=crab.config.MECHANICAL,
-            description=self.options.description + 'TwistReader',
+            description=self.options.description + "TwistReader",
             side=self.options.side,
             match_to=start,
             parent=start,
@@ -308,10 +339,10 @@ class TwistUtility(crab.Component):
 
         return reader
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     @classmethod
     def distance_between(cls, a, b):
-        pos_a = a.getTranslation(space='world')
-        pos_b = b.getTranslation(space='world')
+        pos_a = a.getTranslation(space="world")
+        pos_b = b.getTranslation(space="world")
 
         return (pos_b - pos_a).length()

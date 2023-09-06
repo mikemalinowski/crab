@@ -13,19 +13,19 @@ class SetDrivenKeyBehaviour(crab.Behaviour):
     first manually create your set driven key up as you want it, then apply this behaviour.
 
     Once applied, select your set driven key node (easist way is in through the attribute editor
-    or the node editor) and then press the 'Copy' button in the 'Applied Behaviours' tab of
+    or the node editor) and then press the "Copy" button in the "Applied Behaviours" tab of
     crab.
 
     This will snapshot your set driven key and it will be re-created each time the rig
     is rebuilt.
     """
-    identifier = 'Set Driven Key'
+    identifier = "Set Driven Key"
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(SetDrivenKeyBehaviour, self).__init__(*args, **kwargs)
 
-        self.options.curve_data = ''
+        self.options.curve_data = ""
 
     # --------------------------------------------------------------------------
     def apply(self):
@@ -39,7 +39,7 @@ class SetDrivenKeyBehaviour(crab.Behaviour):
             curve_data = eval(self.options.curve_data)
 
         except:
-            raise Exception('Could not load curve data : %s' % self.options.curve_data)
+            raise Exception("Could not load curve data : %s" % self.options.curve_data)
 
         # -- Perform the deserialisation
         self.deserialise(curve_data)
@@ -53,21 +53,21 @@ class SetDrivenKeyBehaviour(crab.Behaviour):
     # --------------------------------------------------------------------------
     def serialise(self, node=None):
 
-        # -- If we're not given a specific node, then look at the selection
+        # -- If we"re not given a specific node, then look at the selection
         try:
             node = node or pm.selected()[0]
 
         except:
-            print('No set driven key provided.')
+            print("No set driven key provided.")
             return False
 
         # -- Check our node is valid
-        if 'animCurveU' not in node.nodeType():
-            print('%s is not of type AnimCurveU*' % node)
+        if "animCurveU" not in node.nodeType():
+            print("%s is not of type AnimCurveU*" % node)
             return False
 
-        driver = self.resolve_input(node.attr('input')).name()
-        driven = self.resolve_output(node.attr('output')).name()
+        driver = self.resolve_input(node.attr("input")).name()
+        driven = self.resolve_output(node.attr("output")).name()
 
         curve_data = dict(
             driver=driver,
@@ -98,7 +98,7 @@ class SetDrivenKeyBehaviour(crab.Behaviour):
                 out_tangent=[out_tangents_x[key_idx], out_tangents_y[key_idx]],
             )
 
-            curve_data['key_data'].append(key_data)
+            curve_data["key_data"].append(key_data)
 
         self.options.curve_data = str(curve_data)
         self.save()
@@ -109,36 +109,36 @@ class SetDrivenKeyBehaviour(crab.Behaviour):
     def deserialise(self, data):
 
         # -- Start by creating the node
-        node = pm.createNode(data['node_type'])
-        pm.PyNode(data['driver']).connect(node.attr('input'), force=True)
-        node.attr('output').connect(data['driven'], force=True)
+        node = pm.createNode(data["node_type"])
+        pm.PyNode(data["driver"]).connect(node.attr("input"), force=True)
+        node.attr("output").connect(data["driven"], force=True)
 
         # -- Set the curve data
-        node.preInfinity.set(data['pre_infinity_type'])
-        node.postInfinity.set(data['post_infinity_type'])
+        node.preInfinity.set(data["pre_infinity_type"])
+        node.postInfinity.set(data["post_infinity_type"])
 
         # -- Now build the curve
-        for key_data in data['key_data']:
+        for key_data in data["key_data"]:
             pm.setDrivenKeyframe(
-                data['driven'],
-                currentDriver=data['driver'],
-                driverValue=key_data['time'],
-                value=key_data['value'],
+                data["driven"],
+                currentDriver=data["driver"],
+                driverValue=key_data["time"],
+                value=key_data["value"],
             )
 
             # -- Get the key index
             key_idx = node.numKeys() - 1
 
             # -- Set the key properties
-            node.setInTangentType(key_idx, key_data['in_tangent_type'])
-            node.setOutTangentType(key_idx, key_data['out_tangent_type'])
+            node.setInTangentType(key_idx, key_data["in_tangent_type"])
+            node.setOutTangentType(key_idx, key_data["out_tangent_type"])
 
             pm.keyTangent(
                 index=[key_idx, key_idx],
-                ix=key_data['in_tangent'][0],
-                iy=key_data['in_tangent'][1],
-                ox=key_data['out_tangent'][0],
-                oy=key_data['out_tangent'][1],
+                ix=key_data["in_tangent"][0],
+                iy=key_data["in_tangent"][1],
+                ox=key_data["out_tangent"][0],
+                oy=key_data["out_tangent"][1],
             )
 
     def resolve_input(self, plug):
@@ -146,7 +146,7 @@ class SetDrivenKeyBehaviour(crab.Behaviour):
         driver = plug.inputs(plugs=True)[0]
 
         if isinstance(driver.node(), pm.nt.UnitConversion):
-            driver = driver.node().attr('input').inputs(plugs=True)[0]
+            driver = driver.node().attr("input").inputs(plugs=True)[0]
             return driver
 
         return driver
@@ -156,7 +156,7 @@ class SetDrivenKeyBehaviour(crab.Behaviour):
         driven = plug.outputs(plugs=True)[0]
 
         if isinstance(driven.node(), pm.nt.UnitConversion):
-            driven = driven.node(). attr('output').outputs(plugs=True)[0]
+            driven = driven.node(). attr("output").outputs(plugs=True)[0]
             return driven
 
         return driven
@@ -175,7 +175,7 @@ class SetDrivenKeyUI(crab.BehaviourUI):
         # -- Add a button to copy the currently selected
         # -- set driven key node - this will instigate a
         # -- serialisation of the data
-        self.serialiseButton = qute.QPushButton('Copy')
+        self.serialiseButton = qute.QPushButton("Copy")
         self.layout().addWidget(self.serialiseButton)
 
         # -- Hook up the signals and slots
@@ -195,18 +195,18 @@ class SetDrivenKeyUI(crab.BehaviourUI):
         finally:
             if not result:
                 qute.utilities.request.message(
-                    title='Could not copy',
-                    label='Something went wrong when recording the Set Driven Key. See the script editor for details. \n\nNote - you MUST select an AnimCurveU* node'
+                    title="Could not copy",
+                    label="Something went wrong when recording the Set Driven Key. See the script editor for details. \n\nNote - you MUST select an AnimCurveU* node"
                 )
                 return False
 
         qute.utilities.request.message(
-            title='Set Driven Key Recorded',
-            label='The set driven can has been successfully recorded',
+            title="Set Driven Key Recorded",
+            label="The set driven can has been successfully recorded",
             parent=self,
         )
         return True
 
     @classmethod
     def unhandled_options(cls):
-        return ['description']
+        return ["description"]

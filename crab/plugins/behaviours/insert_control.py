@@ -4,29 +4,29 @@ import pymel.core as pm
 
 # ------------------------------------------------------------------------------
 class InsertControlBehaviour(crab.Behaviour):
-    identifier = 'Insert Control'
+    identifier = "Insert Control"
     version = 1
 
     tooltips = dict(
-        parent='The parent node which the control will be placed under',
-        match_to='If given, the new control will be transformed matched to this node',
-        lock='A list of attributes to lock on the control',
-        hide='A list of attributes to hide from the channel box on the control',
-        shape='An optional crab shape name to assign to the control'
+        parent="The parent node which the control will be placed under",
+        match_to="If given, the new control will be transformed matched to this node",
+        lock="A list of attributes to lock on the control",
+        hide="A list of attributes to hide from the channel box on the control",
+        shape="An optional crab shape name to assign to the control"
     )
 
-    REQUIRED_NODE_OPTIONS = ['parent']
-    OPTIONAL_NODE_OPTIONS = ['match_to']
+    REQUIRED_NODE_OPTIONS = ["parent"]
+    OPTIONAL_NODE_OPTIONS = ["match_to"]
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(InsertControlBehaviour, self).__init__(*args, **kwargs)
 
-        self.options.parent = ''
-        self.options.match_to = ''
-        self.options.lock = 'sx;sy;sz'
-        self.options.hide = 'v;sx;sy;sz'
-        self.options.shape = 'cube'
+        self.options.parent = ""
+        self.options.match_to = ""
+        self.options.lock = "sx;sy;sz"
+        self.options.hide = "v;sx;sy;sz"
+        self.options.shape = "cube"
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
@@ -36,7 +36,7 @@ class InsertControlBehaviour(crab.Behaviour):
         parent = pm.PyNode(self.options.parent)
 
         # -- Store its children so we can re-parent them
-        children = parent.getChildren(type='transform')
+        children = parent.getChildren(type="transform")
 
         # -- Create a transform to use as a control
         control = crab.create.control(
@@ -72,29 +72,29 @@ class InsertControlBehaviour(crab.Behaviour):
 # ------------------------------------------------------------------------------
 class AddControl(crab.Behaviour):
 
-    identifier = 'Add Control'
+    identifier = "Add Control"
     version = 1
 
     tooltips = dict(
-        parent='The parent node which the control will be placed under',
-        match_to='If given, the new control will be transformed matched to this node',
-        lock='A list of attributes to lock on the control',
-        hide='A list of attributes to hide from the channel box on the control',
-        shape='An optional crab shape name to assign to the control'
+        parent="The parent node which the control will be placed under",
+        match_to="If given, the new control will be transformed matched to this node",
+        lock="A list of attributes to lock on the control",
+        hide="A list of attributes to hide from the channel box on the control",
+        shape="An optional crab shape name to assign to the control"
     )
 
-    REQUIRED_NODE_OPTIONS = ['parent']
-    OPTIONAL_NODE_OPTIONS = ['match_to']
+    REQUIRED_NODE_OPTIONS = ["parent"]
+    OPTIONAL_NODE_OPTIONS = ["match_to"]
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(AddControl, self).__init__(*args, **kwargs)
 
-        self.options.parent = ''
-        self.options.match_to = ''
-        self.options.lock = 'sx;sy;sz'
-        self.options.hide = 'v;sx;sy;sz'
-        self.options.shape = 'cube'
+        self.options.parent = ""
+        self.options.match_to = ""
+        self.options.lock = "sx;sy;sz"
+        self.options.hide = "v;sx;sy;sz"
+        self.options.shape = "cube"
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences

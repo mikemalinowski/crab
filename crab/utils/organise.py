@@ -1,7 +1,7 @@
 import pymel.core as pm
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def add_separator_attr(node):
     """
     Adds an underscored attribute as an attribute separator
@@ -11,7 +11,7 @@ def add_separator_attr(node):
 
     :return: None
     """
-    character = '_'
+    character = "_"
     name_to_use = character * 8
 
     while node.hasAttr(name_to_use):
@@ -25,7 +25,7 @@ def add_separator_attr(node):
     node.attr(name_to_use).lock()
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def add_to_layer(nodes, layer_name):
     """
     Adds a node to the layer with the given name. If that layer does not
@@ -41,7 +41,7 @@ def add_to_layer(nodes, layer_name):
     """
 
     # -- If the layer does not exist, we need to create it
-    if not pm.ls(layer_name, type='displayLayer'):
+    if not pm.ls(layer_name, type="displayLayer"):
         pm.createDisplayLayer(
             name=layer_name,
             empty=True,

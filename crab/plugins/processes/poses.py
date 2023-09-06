@@ -1,5 +1,4 @@
 import crab
-import pymel.core as pm
 
 
 # ------------------------------------------------------------------------------
@@ -10,7 +9,7 @@ class LayerProcess(crab.Process):
     """
 
     # -- Define the identifier for the plugin
-    identifier = 'Layer'
+    identifier = "Layer"
     version = 1
 
     # --------------------------------------------------------------------------
@@ -22,7 +21,7 @@ class LayerProcess(crab.Process):
 
         :return:
         """
-        crab.tools.rigging().request('poses_apply_a_pose')().run()
+        crab.tools.rigging().request("poses_apply_a_pose")().run()
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
@@ -33,4 +32,4 @@ class LayerProcess(crab.Process):
 
         :return:
         """
-        crab.tools.rigging().request('poses_apply_t_pose')().run()
+        crab.tools.rigging().request("poses_apply_t_pose")().run()

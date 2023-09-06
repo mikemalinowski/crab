@@ -10,4 +10,3 @@ from . import contexts
 from . import hierarchy
 from . import transform
 from . import resources
-from . import profiling

@@ -3,13 +3,13 @@ import crab
 import pymel.core as pm
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class ShapeStoreProcess(crab.Process):
     """
     This is an example only plugin showing what a process plugin might
     be used for.
     
-    In this case, we're going to snapshot all the NurbsCurve shape
+    In this case, we"re going to snapshot all the NurbsCurve shape
     nodes within the rig and store that information in a string attribute
     allowing us to re-apply the sames post build. 
     
@@ -18,10 +18,10 @@ class ShapeStoreProcess(crab.Process):
     """
 
     # -- Define the identifier for the plugin
-    identifier = 'shapeStore'
+    identifier = "shapeStore"
     version = 1
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def snapshot(self):
         """
         This is called before the control rig is destroyed, so we will 
@@ -31,15 +31,16 @@ class ShapeStoreProcess(crab.Process):
         """
         # -- Create an attribute on the rig node to store the shape
         # -- information on
-        if not self.rig.node().hasAttr('shapeInfo'):
+        if not self.rig.node().hasAttr("shapeInfo"):
             self.rig.node().addAttr(
-                'shapeInfo',
-                dt='string',
+                "shapeInfo",
+                dt="string",
             )
-            self.rig.node().shapeInfo.set('{}')
+            self.rig.node().shapeInfo.set("{}")
 
-        # -- We only want to snapshot the controls if the rig was built successfully - if the
-        # -- last build was a failure we dont store the control elements
+        # -- We only want to snapshot the controls if the rig was built
+        # -- successfully - if the last build was a failure we dont store the
+        # --  control elements
         if not self.rig.built_successfully():
             return
 
@@ -49,7 +50,7 @@ class ShapeStoreProcess(crab.Process):
 
         # -- Cycle over all the nodes in the control rig, skipping any
         # -- which do not look like controls
-        for node in self.rig.control_org().getChildren(ad=True, type='transform'):
+        for node in self.rig.control_org().getChildren(ad=True, type="transform"):
             if node.name().startswith(crab.config.CONTROL):
 
                 # -- Attempt to read the shape data
@@ -62,9 +63,9 @@ class ShapeStoreProcess(crab.Process):
 
         # -- Store all the data into the rig so we can call
         # -- upon it at a later stage
-        self.rig.node().attr('shapeInfo').set(json.dumps(data_sets))
+        self.rig.node().attr("shapeInfo").set(json.dumps(data_sets))
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
     def post_build(self):
         """
@@ -75,13 +76,13 @@ class ShapeStoreProcess(crab.Process):
         """
         # -- If the rig node does not have the attribute we store
         # -- shape info on, then there is little more we can do.
-        if not self.rig.node().hasAttr('shapeInfo'):
+        if not self.rig.node().hasAttr("shapeInfo"):
             return
 
         # -- Read the stored data, and return if anything goes wrong
         try:
             shape_data = json.loads(
-                self.rig.node().attr('shapeInfo').get(),
+                self.rig.node().attr("shapeInfo").get(),
             )
 
         except ValueError:
@@ -90,11 +91,11 @@ class ShapeStoreProcess(crab.Process):
         # -- Cycle over the data looking for matching names
         for data in shape_data:
 
-            if not pm.objExists(data['node']):
+            if not pm.objExists(data["node"]):
                 continue
 
             # -- Get the node in question
-            node = pm.PyNode(data['node'])
+            node = pm.PyNode(data["node"])
 
             # -- Remove any pre-existing shapes
             if node.getShapes():
@@ -102,12 +103,12 @@ class ShapeStoreProcess(crab.Process):
 
             # -- Now apply our new shapes
             apply(
-                pm.PyNode(data['node']),
+                pm.PyNode(data["node"]),
                 data,
             )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
 def read(node):
     """
@@ -125,8 +126,8 @@ def read(node):
     if not shapes:
         return None
 
-    # -- Define out output data. Right now we're only storing
-    # -- cv's, but we wrap it in a dict so we can expand it
+    # -- Define out output data. Right now we"re only storing
+    # -- cv"s, but we wrap it in a dict so we can expand it
     # -- later without compatibility issues.
     data = dict(
         node=node.name(),
@@ -146,19 +147,19 @@ def read(node):
         # -- Collect the positional data to an accuracy that is
         # -- reasonable.
         for cv in shape.getCVs():
-            node_data['cvs'].append(
+            node_data["cvs"].append(
                 [
                     round(value, 5)
                     for value in cv
                 ]
             )
 
-        data['curves'].append(node_data)
+        data["curves"].append(node_data)
 
     return data
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def apply(node, data):
     """
     Applies the given shape data to the given node.
@@ -172,13 +173,13 @@ def apply(node, data):
     :return: list(pm.nt.NurbsCurve, ...) 
     """
     shapes = list()
-    for curve_data in data['curves']:
+    for curve_data in data["curves"]:
 
-        # -- Create a curve with teh given cv's
+        # -- Create a curve with teh given cv"s
         transform = pm.curve(
-            p=curve_data['cvs'],
-            d=curve_data['degree'],
-            k=curve_data['knots'],
+            p=curve_data["cvs"],
+            d=curve_data["degree"],
+            k=curve_data["knots"],
         )
 
         # -- Parent the shape under the node

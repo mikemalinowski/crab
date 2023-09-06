@@ -2,7 +2,7 @@ import collections
 import pymel.core as pm
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def calculate_upvector_position(point_a, point_b, point_c, length=0.5):
     """
     Based on three points, this will calculate the position for an
@@ -24,7 +24,7 @@ def calculate_upvector_position(point_a, point_b, point_c, length=0.5):
     :return: pm.nt.Vector
     """
 
-    # -- If we're given transforms we need to convert them to
+    # -- If we"re given transforms we need to convert them to
     # -- vectors
     if isinstance(point_a, pm.nt.Transform):
         point_a = point_a.getTranslation(worldSpace=True)
@@ -55,43 +55,49 @@ def calculate_upvector_position(point_a, point_b, point_c, length=0.5):
     return result
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
-def global_mirror(transforms=None, across=None, behaviour=True, remap=None, translation_only=False):
-    """ 
+def global_mirror(
+    transforms=None,
+    across=None,
+    behaviour=True,
+    remap=None,
+    translation_only=False,
+):
+    """
     This function is taken from github with a minor modification. The
     author and credit goes to Andreas Ranman.
-    
+
     Github Url:
         https://gist.github.com/rondreas/1c6d4e5fc6535649780d5b65fc5a9283
-    
-    Mirrors transform across hyperplane. 
+
+    Mirrors transform across hyperplane.
 
     transforms -- list of Transform or string.
     across -- plane which to mirror across.
-    behaviour -- bool 
+    behaviour -- bool
 
     """
     # No specified transforms, so will get selection
     if not transforms:
-        transforms = pm.selected(type='transform')
+        transforms = pm.selected(type="transform")
 
     # Check to see all provided objects is an instance of pymel transform node,
     elif not all(map(lambda x: isinstance(x, pm.nt.Transform), transforms)):
-        raise ValueError("Passed node which wasn't of type: Transform")
+        raise ValueError("Passed node which wasn"t of type: Transform")
 
     # -- Ensure we have a mirror plane
     across = across or get_likely_mirror_plane(transforms[0])
 
     # Validate plane which to mirror across,
-    if not across in ('XY', 'YZ', 'XZ'):
+    if not across in ("XY", "YZ", "XZ"):
         raise ValueError(
-            "Keyword Argument: 'across' not of accepted value ('XY', 'YZ', 'XZ').")
+            "Keyword Argument: "across" not of accepted value ("XY", "YZ", "XZ")."
+        )
 
     stored_matrices = collections.OrderedDict()
 
     for transform in transforms:
-
         # Get the worldspace matrix, as a list of 16 float values
         mtx = pm.xform(transform, q=True, ws=True, m=True)
 
@@ -104,15 +110,16 @@ def global_mirror(transforms=None, across=None, behaviour=True, remap=None, tran
         t = [n * -1 for n in mtx[12:15]]
 
         # Set matrix based on given plane, and whether to include behaviour or not.
-        if str(across) == 'XY':
+        if str(across) == "XY":
             mtx[14] = t[2]  # set inverse of the Z translation
 
-            # Set inverse of all rotation columns but for the one we've set translate to.
+            # Set inverse of all rotation columns but for the one
+            # we"ve set translate to.
             if behaviour:
                 mtx[0:9:4] = rx
                 mtx[1:10:4] = ry
 
-        elif str(across) == 'YZ':
+        elif str(across) == "YZ":
             mtx[12] = t[0]  # set inverse of the X translation
 
             if behaviour:
@@ -138,31 +145,31 @@ def global_mirror(transforms=None, across=None, behaviour=True, remap=None, tran
         if translation_only:
             target.setTranslation(
                 stored_matrices[transform][12:15],
-                space='world',
+                space="world",
             )
 
         else:
             pm.xform(target, ws=True, m=stored_matrices[transform])
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def get_likely_mirror_plane(node):
     """
     Looks at the worldspace transform of a node and returns a mirror
     plane string of either XY, YZ or XZ
-    
+
     The worldspace translation of the node is used to determine this.
-    
+
     :param node: Node to test
     :type node: pm.nt.Transform
-    
+
     :return: str
     """
-    position = [abs(n) for n in node.getTranslation(node, worldSpace=True)]
+    position = [abs(n) for n in node.getTranslation(worldSpace=True)]
 
-    # -- We're only interested in a two dimensional plane, so pop
+    # -- We"re only interested in a two dimensional plane, so pop
     # -- out the Y axis
-    if pm.upAxis(q=True, axis=True) == 'y':
+    if pm.upAxis(q=True, axis=True) == "y":
         position.pop(1)
 
     else:
@@ -172,13 +179,13 @@ def get_likely_mirror_plane(node):
     prominent_axis = position.index(max(position))
 
     if prominent_axis == 0:
-        return 'YZ'
+        return "YZ"
 
     else:
-        return 'XZ'
+        return "XZ"
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def distance_between(node_a, node_b):
     """
     Returns the distance between two objects
@@ -191,11 +198,13 @@ def distance_between(node_a, node_b):
 
     :return: float
     """
-    delta = node_b.getTranslation(worldSpace=True) - node_a.getTranslation(worldspace=True)
+    delta = node_b.getTranslation(worldSpace=True) - node_a.getTranslation(
+        worldspace=True
+    )
     return delta.length()
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def lerp(v1, v2, a):
     """
     Returns a vector which is the interpolation between v1 and v2

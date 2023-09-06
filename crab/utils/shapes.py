@@ -2,7 +2,6 @@ import os
 import json
 import pymel.core as pm
 
-
 from .. import constants
 
 AXIS = dict(
@@ -18,12 +17,11 @@ AXIS = dict(
     ],
 )
 
-
 # -- This is called a lot, and rarely changes, so we can cache it
 _SHAPE_NAMES = None
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def write(node, filepath):
     """
     Writes the curve data of the given node to the given filepath
@@ -41,13 +39,13 @@ def write(node, filepath):
     if not data:
         return
 
-    with open(filepath, 'w') as f:
+    with open(filepath, "w") as f:
         json.dump(data, f, indent=4, sort_keys=True)
 
     return data
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
 def read(node):
     """
@@ -65,8 +63,8 @@ def read(node):
     if not shapes:
         return None
 
-    # -- Define out output data. Right now we're only storing
-    # -- cv's, but we wrap it in a dict so we can expand it
+    # -- Define out output data. Right now we"re only storing
+    # -- cv"s, but we wrap it in a dict so we can expand it
     # -- later without compatibility issues.
     data = dict(
         node=node.name(),
@@ -76,30 +74,24 @@ def read(node):
 
     # -- Cycle the shapes and store thm
     for shape in shapes:
-
         node_data = dict(
             cvs=list(),
             form=shape.f.get(),
             degree=shape.degree(),
-            knots=shape.getKnots()
+            knots=shape.getKnots(),
         )
 
         # -- Collect the positional data to an accuracy that is
         # -- reasonable.
         for cv in shape.getCVs():
-            node_data['cvs'].append(
-                [
-                    round(value, 5)
-                    for value in cv
-                ]
-            )
+            node_data["cvs"].append([round(value, 5) for value in cv])
 
-        data['curves'].append(node_data)
+        data["curves"].append(node_data)
 
     return data
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyTypeChecker
 def apply(node, data):
     """
@@ -115,19 +107,18 @@ def apply(node, data):
     """
     # -- If the data is a filepath we need to extract it
     if not isinstance(data, dict):
-
         # -- Check for a filepath
-        if not os.path.exists(data) or '/' not in data.replace('\\', '/'):
+        if not os.path.exists(data) or "/" not in data.replace("\\", "/"):
             # -- Look for a filename in the shape dir
             data = find_shape(data)
 
         # -- If the path still does not exist then we cannot do
         # -- anything with it
         if not data or not os.path.exists(data):
-            constants.log.warning('Could not find shape data for %s' % data)
+            constants.log.warning("Could not find shape data for %s" % data)
             return None
 
-        with open(data, 'r') as f:
+        with open(data, "r") as f:
             data = json.load(f)
 
     # -- Define a list which we will collate all the shapes
@@ -135,14 +126,16 @@ def apply(node, data):
     shapes = list()
 
     # -- Cycle over each curve element in the data
-    for curve_data in data['curves']:
-
-        # -- Create a curve with the given cv's
+    for curve_data in data["curves"]:
+        # -- Create a curve with the given cv"s
         transform = pm.curve(
-            p=[refine_from_up_axis(p, up_axis=data.get('up_axis', 'z')) for p in curve_data['cvs']],
-            d=curve_data['degree'],
-            k=curve_data['knots'],
-            # per=curve_data['form'],
+            p=[
+                refine_from_up_axis(p, up_axis=data.get("up_axis", "z"))
+                for p in curve_data["cvs"]
+            ],
+            d=curve_data["degree"],
+            k=curve_data["knots"],
+            # per=curve_data["form"],
         )
 
         # -- Parent the shape under the node
@@ -165,22 +158,22 @@ def apply(node, data):
     return shapes
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
-def refine_from_up_axis(position, up_axis='z'):
+def refine_from_up_axis(position, up_axis="z"):
     """
-    This will take a position vector, and alter it if the up axis is 
+    This will take a position vector, and alter it if the up axis is
     set to Z. This is because it is assumed that all shapes are drawn
     within a Y-Up orientation.
-    
+
     :param position: List of length3
-     
-    :return: List of length 3 
+
+    :return: List of length 3
     """
     # -- Get the current axis setting
     current_up_axis = pm.upAxis(q=True, axis=True)
 
-    # -- If we're working in the same axis space as the stored shape
+    # -- If we"re working in the same axis space as the stored shape
     # -- then we can simply return the list as it is
     if current_up_axis == up_axis:
         return position
@@ -195,20 +188,20 @@ def refine_from_up_axis(position, up_axis='z'):
     return altered_position
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def find_shape(name):
     """
     Looks for the shape with the given name. This will first look at any
     locations defined along the CRAB_PLUGIN_PATHS environment variable
     before inspecting built in shapes.
-    
+
     :param name: Name of shape to search for
     :type name: str
-    
-    :return: Absolute path to shape 
+
+    :return: Absolute path to shape
     """
     for path in shapes():
-        shape_name = os.path.basename(path).replace('.json', '')
+        shape_name = os.path.basename(path).replace(".json", "")
 
         if shape_name == name:
             return path
@@ -216,7 +209,7 @@ def find_shape(name):
     return None
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def shapes():
     """
     Returns a list of all the available shapes
@@ -228,8 +221,8 @@ def shapes():
     paths = [
         os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
-            'resources',
-            'shapes',
+            "resources",
+            "shapes",
         ),
     ]
 
@@ -237,7 +230,7 @@ def shapes():
     # -- variables we should add them here
     if constants.PLUGIN_ENVIRONMENT_VARIABLE in os.environ:
         paths.extend(
-            os.environ[constants.PLUGIN_ENVIRONMENT_VARIABLE].split(';'),
+            os.environ[constants.PLUGIN_ENVIRONMENT_VARIABLE].split(";"),
         )
 
     shape_list = list()
@@ -245,7 +238,7 @@ def shapes():
     for path in paths:
         for root, _, files in os.walk(path):
             for filename in files:
-                if filename.endswith('.json'):
+                if filename.endswith(".json"):
                     shape_list.append(
                         os.path.join(
                             root,
@@ -256,7 +249,7 @@ def shapes():
     return shape_list
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def shape_names(refresh=False):
     """
     Returns a list of all the available shapes
@@ -273,7 +266,7 @@ def shape_names(refresh=False):
 
     for shape in shapes():
         shape_names.append(
-            os.path.basename(shape).split('.')[0],
+            os.path.basename(shape).split(".")[0],
         )
 
     _SHAPE_NAMES = shape_names
@@ -281,7 +274,7 @@ def shape_names(refresh=False):
     return shape_names
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def spin(node, x=0.0, y=0.0, z=0.0, pivot=None):
     """
     Spins the shape around by the given x, y, z (local values)
@@ -304,14 +297,14 @@ def spin(node, x=0.0, y=0.0, z=0.0, pivot=None):
 
     :return: None
     """
-    # -- If we're not given a pivot, then default
+    # -- If we"re not given a pivot, then default
     # -- to a zero vector.
     pivot = pivot or pm.dt.Vector()
 
-    # -- If we're given a transform as a pivot, then read
+    # -- If we"re given a transform as a pivot, then read
     # -- out a worldspace location vector
     if isinstance(pivot, pm.nt.Transform):
-        pivot = pivot.getTranslation(space='world')
+        pivot = pivot.getTranslation(space="world")
 
     # -- Get a list of all the curves we need to modify
     all_curves = list()
@@ -325,24 +318,21 @@ def spin(node, x=0.0, y=0.0, z=0.0, pivot=None):
         all_curves.append(node)
 
     # -- Validate that all entries are nurbs curves
-    all_curves = [
-        curve
-        for curve in all_curves
-        if isinstance(curve, pm.nt.NurbsCurve)
-    ]
+    all_curves = [curve for curve in all_curves if isinstance(curve, pm.nt.NurbsCurve)]
 
     for curve in all_curves:
         for cv in range(curve.numCVs()):
-
             # -- Get the cv in worldspace
-            worldspace_cv = pm.dt.Vector(curve.getCV(cv, space='world'))
+            worldspace_cv = pm.dt.Vector(curve.getCV(cv, space="world"))
 
             # -- Get the relative vector between the cv and pivot
             relative_cv = worldspace_cv - pivot
 
             # -- Rotate our relative vector by the rotation values
             # -- given to us
-            rotated_position = relative_cv.rotateBy([x * 0.017453, y * 0.017453, z * 0.017453])
+            rotated_position = relative_cv.rotateBy(
+                [x * 0.017453, y * 0.017453, z * 0.017453]
+            )
 
             # -- Add the worldspace pivot vector onto our rotated vector
             # -- to give ourselves the final vector
@@ -351,13 +341,13 @@ def spin(node, x=0.0, y=0.0, z=0.0, pivot=None):
             curve.setCV(
                 cv,
                 final_position,
-                space='world',
+                space="world",
             )
 
         curve.updateCurve()
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def scale(node, x=1, y=1, z=1, uniform=1):
     """
     scales the shape across x, y and z locally
@@ -391,14 +381,10 @@ def scale(node, x=1, y=1, z=1, uniform=1):
         all_curves.append(node)
 
     # -- Validate that all entries are nurbs curves
-    all_curves = [
-        curve
-        for curve in all_curves
-        if isinstance(curve, pm.nt.NurbsCurve)
-    ]
+    all_curves = [curve for curve in all_curves if isinstance(curve, pm.nt.NurbsCurve)]
 
     for curve in all_curves:
-        print('curve : %s' % curve)
+        print("curve : %s" % curve)
         print(x)
         for cv in range(curve.numCVs()):
             cv_position = curve.getCV(cv)
@@ -409,6 +395,6 @@ def scale(node, x=1, y=1, z=1, uniform=1):
                     cv_position[0] * x * uniform,
                     cv_position[1] * y * uniform,
                     cv_position[2] * z * uniform,
-                ]
+                ],
             )
         curve.updateCurve()

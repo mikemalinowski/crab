@@ -8,10 +8,10 @@ import functools
 from ...vendor import qute
 from ...vendor import scribble
 
-_SCRIBBLE_PREFIX = 'crabanimator_'
+_SCRIBBLE_PREFIX = "crabanimator_"
 
 
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def get(tool_identifier, defaults=None):
     """
     Returns the settings stored for a given tool
@@ -24,14 +24,14 @@ def get(tool_identifier, defaults=None):
      
     :return: dict 
     """
-    
+
     # -- Construct our scribble key
     scribble_key = _SCRIBBLE_PREFIX + tool_identifier
-    
+
     # -- Get the stored options. This will be an empty dictionary if there
     # -- were not stored options
     stored_options = scribble.get(scribble_key)
-    
+
     # -- If we have been given defaults, we use them as a base, and then layer
     # -- the stored options over the top
     if defaults:
@@ -42,7 +42,7 @@ def get(tool_identifier, defaults=None):
     return stored_options
 
 
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def show_options(tool_identifier, defaults=None, pos=None, parent=None):
     """
     This function will show the options panel for the given scribble key.
@@ -60,7 +60,10 @@ def show_options(tool_identifier, defaults=None, pos=None, parent=None):
     # -- want to be generating lots of windows
     if _OptionsWindow.ACTIVE_INSTANCE:
         try:
-            _OptionsWindow.ACTIVE_INSTANCE.buildOptions(tool_identifier, defaults=defaults)
+            _OptionsWindow.ACTIVE_INSTANCE.buildOptions(
+                tool_identifier,
+                defaults=defaults,
+            )
 
             if pos:
                 _OptionsWindow.ACTIVE_INSTANCE.setGeometry(
@@ -77,7 +80,7 @@ def show_options(tool_identifier, defaults=None, pos=None, parent=None):
         except:
             # -- If anything goes wrong during the window re-use code we simply
             # -- log it and create a new window
-            print('Could not re-use window. Creating new window.')
+            print("Could not re-use window. Creating new window.")
             print(sys.exc_info())
             pass
 
@@ -88,8 +91,8 @@ def show_options(tool_identifier, defaults=None, pos=None, parent=None):
         defaults=defaults,
         parent=parent
     )
-    
-    # -- If we're given a specific location to place the window, we do that now
+
+    # -- If we"re given a specific location to place the window, we do that now
     if pos:
         _OptionsWindow.ACTIVE_INSTANCE.setGeometry(
             pos.x(),
@@ -97,14 +100,14 @@ def show_options(tool_identifier, defaults=None, pos=None, parent=None):
             1,
             1,
         )
-    
+
     # -- Ensure the window is visible
     _OptionsWindow.ACTIVE_INSTANCE.show()
     _OptionsWindow.ACTIVE_INSTANCE.raise_()
     return _OptionsWindow.ACTIVE_INSTANCE
 
 
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
 class _OptionsWidget(qute.QWidget):
     """
@@ -119,7 +122,7 @@ class _OptionsWidget(qute.QWidget):
 
     """
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self, tool_identifier, defaults=None, parent=True):
         super(_OptionsWidget, self).__init__(parent=parent)
 
@@ -137,7 +140,7 @@ class _OptionsWidget(qute.QWidget):
 
         # -- Add our title and separator - so we can distinguish between
         # -- the title and the options
-        self.main_label = qute.QLabel('Tool Options')
+        self.main_label = qute.QLabel("Tool Options")
         self.layout().addWidget(self.main_label)
 
         self.line = qute.QFrame()
@@ -155,7 +158,7 @@ class _OptionsWidget(qute.QWidget):
             defaults=defaults,
         )
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def buildOptions(self, tool_identifier, defaults=None):
         """
         This triggers a rebuild of all the options, based on the given tool
@@ -190,7 +193,7 @@ class _OptionsWidget(qute.QWidget):
 
             # -- If any setting starts with an underscore we assume
             # -- it is a visual hint or private
-            if key.startswith('_'):
+            if key.startswith("_"):
                 continue
 
             # -- Get the current value
@@ -200,8 +203,8 @@ class _OptionsWidget(qute.QWidget):
             # -- a visual override. This allows for strings to be displayed as
             # -- lists etc.
             visual_override = None
-            if '_' + key in settings:
-                visual_override = settings['_' + key]
+            if "_" + key in settings:
+                visual_override = settings["_" + key]
 
             # -- Generate a widget to represent this value
             _widget = qute.utilities.derive.deriveWidget(
@@ -234,7 +237,7 @@ class _OptionsWidget(qute.QWidget):
                 )
             )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def _createDisplayName(self, name):
         """
         Convenience function for turning strings into nicer display strings
@@ -249,17 +252,17 @@ class _OptionsWidget(qute.QWidget):
         for idx, letter in enumerate(name):
             if letter.isupper():
                 if idx != len(name):
-                    resolved_name.append(' ')
+                    resolved_name.append(" ")
 
             resolved_name.append(letter)
 
-        resolved_name = ''.join(resolved_name)
-        resolved_name = resolved_name.replace('_', ' ')
+        resolved_name = "".join(resolved_name)
+        resolved_name = resolved_name.replace("_", " ")
         resolved_name = resolved_name.title()
 
         return resolved_name
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def _storeChange(self, key, widget, *args, **kwargs):
         """
         This is used to trigger a save of settings values.
@@ -281,7 +284,7 @@ class _OptionsWidget(qute.QWidget):
         # -- Save the changes
         options.save()
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def leaveEvent(self, event):
         """
         Whenever we leave this widgets area we want to hide the window
@@ -299,7 +302,8 @@ class _OptionsWidget(qute.QWidget):
             self.window().hide()
 
 
-# --------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
+# noinspection PyUnresolvedReferences
 class _OptionsWindow(qute.QMainWindow):
     """
     Main window which shows the options information
@@ -314,7 +318,7 @@ class _OptionsWindow(qute.QMainWindow):
     PEN = qute.QPen(qute.Qt.black, 1)
     ROUNDING = 8
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self, tool_identifier, defaults=None, parent=None):
         super(_OptionsWindow, self).__init__(parent=parent)
 
@@ -332,11 +336,11 @@ class _OptionsWindow(qute.QMainWindow):
             ),
         )
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def buildOptions(self, tool_identifier, defaults=None):
         self.centralWidget().buildOptions(tool_identifier, defaults=defaults)
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def paintEvent(self, event):
         """
         We override the paint event to allow us to draw with nice rounded edges
@@ -358,7 +362,7 @@ class _OptionsWindow(qute.QMainWindow):
         gradient.setColorAt(1, qute.QColor(50, 50, 50, a=150))
 
         qp.setPen(self.PEN)
-        qp.setBrush(gradient) # self.BACKGROUND_COLOR)
+        qp.setBrush(gradient)  # self.BACKGROUND_COLOR)
 
         qp.drawRoundedRect(
             0,

@@ -6,31 +6,30 @@ import crab
 from crab.vendor import qute
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class StoreShapeTool(crab.RigTool):
     """
     Exposes the functionality to store a shape into the crab shape repository
     or to a given path
     """
-    identifier = 'shape_io_store'
-    display_name = 'Store Shape'
-    icon = 'shapes.png'
+    identifier = "shape_io_store"
+    display_name = "Store Shape"
+    icon = "shapes.png"
     tooltips = dict(
-        name='The name to store this shape under',
+        name="The name to store this shape under",
     )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(StoreShapeTool, self).__init__()
-        self.options.name = ''
+        self.options.name = ""
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self, node=None):
-
         save_path = os.path.join(
             os.path.dirname(crab.__file__),
-            'shapes',
-            '%s.json' % self.options.name,
+            "shapes",
+            "%s.json" % self.options.name,
         )
 
         crab.utils.shapes.write(
@@ -39,28 +38,31 @@ class StoreShapeTool(crab.RigTool):
         )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class ApplyShapeTool(crab.RigTool):
     """
     Exposes the functionality to store a shape into the crab shape repository
     or to a given path
     """
-    identifier = 'shape_io_apply'
-    display_name = 'Apply Shape'
-    icon = 'shapes.png'
+    identifier = "shape_io_apply"
+    display_name = "Apply Shape"
+    icon = "shapes.png"
     tooltips = dict(
-        shapes='List of preset shapes that can be applied. You can alteratively make your own!',
+        shapes=(
+            "List of preset shapes that can be applied. You can alteratively "
+            "make your own!"
+        ),
     )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(ApplyShapeTool, self).__init__()
         self.options.shapes = [
-            os.path.basename(path).replace('.json', '')
+            os.path.basename(path).replace(".json", "")
             for path in crab.utils.shapes.shapes()
         ]
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self, node=None, shape_name=None):
 
         if not node:
@@ -76,17 +78,17 @@ class ApplyShapeTool(crab.RigTool):
             )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class MatchCVsTool(crab.RigTool):
     """
     Matches the cvs (in worldspace) between two curves, providing they have
     the same cv count
     """
-    identifier = 'shape_match_cvs'
-    display_name = 'Mimic Shape CVs'
-    icon = 'shapes.png'
+    identifier = "shape_match_cvs"
+    display_name = "Mimic Shape CVs"
+    icon = "shapes.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self, source=None, target=None):
 
         source = source or pm.selected()[0]
@@ -99,10 +101,10 @@ class MatchCVsTool(crab.RigTool):
             target = target.getShape()
 
         # -- We now need to match the cv positions of our curves
-        # -- against the guide cv's
+        # -- against the guide cv"s
         if source.numCVs() != target.numCVs():
             raise Exception(
-                'Source curve has {} cvs but the target curve has {}.'.format(
+                "Source curve has {} cvs but the target curve has {}.".format(
                     source.numCVs(),
                     target.numCVs(),
                 ),
@@ -110,39 +112,38 @@ class MatchCVsTool(crab.RigTool):
 
         # -- Cycle the cvs and match their position
         for idx in range(source.numCVs()):
-
             # -- Match the worldspace cv positions
             target.setCV(
                 idx,
-                source.getCV(idx, space='world'),
-                space='world',
+                source.getCV(idx, space="world"),
+                space="world",
             )
 
         target.updateCurve()
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class StoreRigShapeData(crab.RigTool):
     """
     This tool allows for all the shape data in a rig to be written out
     to a json file to allow it to be transferred to other rigs/scenes
     """
-    identifier = 'shape_rig_store'
-    display_name = 'Store Rig Shapes To File'
-    icon = 'shapes.png'
+    identifier = "shape_rig_store"
+    display_name = "Store Rig Shapes To File"
+    icon = "shapes.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(StoreRigShapeData, self).__init__()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self, filepath=None, rig_node=None, silent=False):
 
-        # -- If we're not given a file path we need to ask for one
+        # -- If we"re not given a file path we need to ask for one
         if not filepath:
             filepath = qute.quick.getFilepath(
                 save=True,
-                title='Save Rig Shape Data',
+                title="Save Rig Shape Data",
             )
 
         # -- If no filepath was given (either through code or through
@@ -152,31 +153,31 @@ class StoreRigShapeData(crab.RigTool):
 
         # -- Get the shape info attribute
         if rig_node:
-            attr = rig_node.attr('shapeInfo')
+            attr = rig_node.attr("shapeInfo")
 
         else:
             # -- In this scenario we need to find the shape info attribute
             # -- but as crab has a one-editable-rig-per-scene rule we can
             # -- make an assumption about it
             possibilities = pm.ls(
-                '*.shapeInfo',
+                "*.shapeInfo",
                 r=True,
             )
 
-            # -- If no rigs were found prompt the user - unless we're
+            # -- If no rigs were found prompt the user - unless we"re
             # -- running silently
             if not possibilities:
                 if not silent:
                     qute.quick.confirm(
-                        'Shape Save Error',
-                        'No shape info attribute could be found'
+                        "Shape Save Error",
+                        "No shape info attribute could be found"
                     )
                 return False
 
             attr = possibilities[0]
 
         # -- Write the file out to disk
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(
                 json.loads(attr.get()),
                 f,
@@ -185,29 +186,29 @@ class StoreRigShapeData(crab.RigTool):
             )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class LoadRigShapeData(crab.RigTool):
     """
     This tool allows for shape data to be loaded from a json file and
     applied to the rig.
     """
-    identifier = 'shape_rig_load'
-    display_name = 'Load Rig Shapes From File'
-    icon = 'shapes.png'
+    identifier = "shape_rig_load"
+    display_name = "Load Rig Shapes From File"
+    icon = "shapes.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(LoadRigShapeData, self).__init__()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self, filepath=None, rig_node=None, silent=False):
 
-        # -- If we're not given a file path we need to ask for one
+        # -- If we"re not given a file path we need to ask for one
         if not filepath:
             filepath = qute.quick.getFilepath(
                 save=False,
-                title='Save Rig Shape Data',
-                filter_='*.json'
+                title="Save Rig Shape Data",
+                filter_="*.json"
             )
 
         # -- If no filepath was given (either through code or through
@@ -217,24 +218,24 @@ class LoadRigShapeData(crab.RigTool):
 
         # -- Get the shape info attribute
         if rig_node:
-            attr = rig_node.attr('shapeInfo')
+            attr = rig_node.attr("shapeInfo")
 
         else:
             # -- In this scenario we need to find the shape info attribute
             # -- but as crab has a one-editable-rig-per-scene rule we can
             # -- make an assumption about it
             possibilities = pm.ls(
-                '*.shapeInfo',
+                "*.shapeInfo",
                 r=True,
             )
 
-            # -- If no rigs were found prompt the user - unless we're
+            # -- If no rigs were found prompt the user - unless we"re
             # -- running silently
             if not possibilities:
                 if not silent:
                     qute.quick.confirm(
-                        'Shape Save Error',
-                        'No shape info attribute could be found'
+                        "Shape Save Error",
+                        "No shape info attribute could be found"
                     )
                 return False
 
@@ -246,7 +247,7 @@ class LoadRigShapeData(crab.RigTool):
         rig.edit()
 
         # -- Now write the new shape data into the rig
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
 
             # -- Convert the json to a flat structure
             attr.set(json.dumps(json.load(f)))

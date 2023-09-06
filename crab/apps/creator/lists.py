@@ -2,9 +2,10 @@
 import collections
 
 from ...vendor import qute
+from ...vendor import scribble
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyPep8Naming,PyUnresolvedReferences
 class CrabItemListWidget(qute.QListWidget):
     """
@@ -13,11 +14,11 @@ class CrabItemListWidget(qute.QListWidget):
 
     COPIED_DATA = None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(CrabItemListWidget, self).__init__(*args, **kwargs)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def _getCreator(self):
         """
         Returns the Crab Creator window
@@ -28,7 +29,7 @@ class CrabItemListWidget(qute.QListWidget):
         p = self.parent()
 
         while True:
-            if hasattr(p, 'ui'):
+            if hasattr(p, "ui"):
                 return p
 
             if not p:
@@ -36,7 +37,7 @@ class CrabItemListWidget(qute.QListWidget):
 
             p = p.parent()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def _getOptionsLayout(self, name):
         """
         This function looks for the options layout that represents this
@@ -53,9 +54,9 @@ class CrabItemListWidget(qute.QListWidget):
         if not creator:
             return None
 
-        return getattr(creator.ui, name + 'OptionsLayout')
+        return getattr(creator.ui, name + "OptionsLayout")
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def _getOptions(self, name):
         """
         Returns a dictionary of the options current presented
@@ -77,7 +78,7 @@ class CrabItemListWidget(qute.QListWidget):
 
         return options
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def mousePressEvent(self, event):
         """
         We use this to implement the context menu
@@ -91,7 +92,7 @@ class CrabItemListWidget(qute.QListWidget):
             self.showMenu()
             return
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     @classmethod
     def getNonLabelWidgets(cls, layout):
         """
@@ -115,7 +116,7 @@ class CrabItemListWidget(qute.QListWidget):
 
         return results
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def copyOptions(self):
         """
         Copies the options to a class attribute to allow them to be pasted
@@ -125,7 +126,7 @@ class CrabItemListWidget(qute.QListWidget):
         """
         CrabItemListWidget.COPIED_DATA = self._getOptions(self.objectName()).copy()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def pasteOptions(self):
         """
         If there are any copied attributes then any matching options
@@ -148,7 +149,7 @@ class CrabItemListWidget(qute.QListWidget):
                     CrabItemListWidget.COPIED_DATA[widget.objectName()],
                 )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def menuItems(self):
         """
         This should be re-implemented if you want specific list widgets to expose
@@ -158,12 +159,12 @@ class CrabItemListWidget(qute.QListWidget):
         """
         menu = collections.OrderedDict()
 
-        menu['Copy Options'] = self.copyOptions
-        menu['Paste Options'] = self.pasteOptions
+        menu["Copy Options"] = self.copyOptions
+        menu["Paste Options"] = self.pasteOptions
 
         return menu
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def showMenu(self):
         """
         This will popup the context menu
@@ -175,11 +176,11 @@ class CrabItemListWidget(qute.QListWidget):
         menu.popup(qute.QCursor().pos())
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyPep8Naming,PyUnresolvedReferences
 class AppliedBehaviourListWidget(CrabItemListWidget):
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def menuItems(self):
         """
         This should be re-implemented if you want specific list widgets to expose
@@ -189,11 +190,11 @@ class AppliedBehaviourListWidget(CrabItemListWidget):
         """
         menu = super(AppliedBehaviourListWidget, self).menuItems()
 
-        menu['Duplicate'] = self.duplicateBehaviour
+        menu["Duplicate"] = self.duplicateBehaviour
 
         return menu
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def duplicateBehaviour(self):
         """
         Duplication code for applied behaviours
@@ -231,3 +232,95 @@ class AppliedBehaviourListWidget(CrabItemListWidget):
 
         # -- Refresh the ui
         creator.populateAppliedBehaviours()
+
+
+# --------------------------------------------------------------------------------------
+# noinspection PyPep8Naming,PyUnresolvedReferences
+class CrabToolListWidget(CrabItemListWidget):
+
+    # ----------------------------------------------------------------------------------
+    def menuItems(self):
+        """
+        This should be re-implemented if you want specific list widgets to expose
+        further right click context functionality.
+
+        :return:
+        """
+        menu = collections.OrderedDict()
+
+        if not self.currentItem():
+            return menu
+
+        print(self.currentItem().text())
+        if self.isFavourite(self.currentItem().identifier):
+            menu["Unmark As Favourite"] = self.unmarkAsFavourite
+
+        else:
+            menu["Mark As Favourite"] = self.markAsFavourite
+
+        return menu
+
+    # ----------------------------------------------------------------------------------
+    def markAsFavourite(self):
+
+        # -- If there is no current item then we do nothing
+        if not self.currentItem():
+            return
+
+        # -- Load our stored settings
+        settings = scribble.get("crab_creator_tools")
+
+        # -- Read out the current list of favourites
+        current_favourites = settings.get("favourites", list())
+
+        # -- Add in the item, so long as its not
+        # -- already in there
+        if self.currentItem().identifier not in current_favourites:
+            current_favourites.append(self.currentItem().identifier)
+
+        # -- Write the updated settings
+        settings["favourites"] = current_favourites
+        settings.save()
+
+        # -- Retrigger a tool population
+        self._getCreator().populateTools()
+
+    # ----------------------------------------------------------------------------------
+    def unmarkAsFavourite(self):
+
+        # -- If there is no current item then we do nothing
+        if not self.currentItem():
+            return
+
+        # -- Load our stored settings
+        settings = scribble.get("crab_creator_tools")
+
+        # -- Read out the current list of favourites
+        current_favourites = settings.get("favourites", list())
+
+        # -- Remove the item only if it is there
+        if self.currentItem().identifier in current_favourites:
+            current_favourites.remove(self.currentItem().identifier)
+
+        # -- Write the updated settings
+        settings["favourites"] = current_favourites
+        settings.save()
+
+        # -- Retrigger a tool population
+        self._getCreator().populateTools()
+
+    # ----------------------------------------------------------------------------------
+    @classmethod
+    def isFavourite(cls, name):
+
+        # -- Load our stored settings
+        settings = scribble.get("crab_creator_tools")
+
+        # -- Read out the current list of favourites
+        current_favourites = settings.get("favourites", list())
+
+        # -- Remove the item only if it is there
+        if name in current_favourites:
+            return True
+
+        return False

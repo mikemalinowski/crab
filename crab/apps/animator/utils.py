@@ -1,7 +1,7 @@
 import os
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def get_resource(name):
     """
     This is a convenience function to get files from the resources directory
@@ -13,7 +13,6 @@ def get_resource(name):
     """
     return os.path.join(
         os.path.dirname(__file__),
-        'resources',
+        "resources",
         name,
-    ).replace('\\', '/')
-
+    ).replace("\\", "/")

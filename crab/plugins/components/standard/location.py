@@ -9,24 +9,24 @@ class LocationComponent(crab.Component):
     a guide along with a rig over that guide.
     """
 
-    identifier = 'Core : Location'
-    legacy_identifiers = ['Location']
+    identifier = "Core : Location"
+    legacy_identifiers = ["Location"]
     version = 1
 
     tooltips = dict(
-        description='A descriptive name to apply to all objects',
-        lock='Any control attributes you want to have locked',
-        hide='Any control attributes you want to have hidden from the channel box',
-        side='Typically LF, MD or RT - denoting the side/location of the control'
+        description="A descriptive name to apply to all objects",
+        lock="Any control attributes you want to have locked",
+        hide="Any control attributes you want to have hidden from the channel box",
+        side="Typically LF, MD or RT - denoting the side/location of the control"
     )
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(LocationComponent, self).__init__(*args, **kwargs)
 
-        self.options.description = 'Location'
-        self.options.lock = ''
-        self.options.hide = 'v;'
+        self.options.description = "Location"
+        self.options.lock = ""
+        self.options.hide = "v;"
 
     # --------------------------------------------------------------------------
     def create_skeleton(self, parent):
@@ -39,9 +39,9 @@ class LocationComponent(crab.Component):
         """
         # -- Create the joint for this singular
         root_joint = crab.create.generic(
-            node_type='joint',
+            node_type="joint",
             prefix=crab.config.SKELETON,
-            description='%s' % self.options.description,
+            description="%s" % self.options.description,
             side=self.options.side,
             parent=parent,
             match_to=parent,
@@ -51,11 +51,11 @@ class LocationComponent(crab.Component):
         # -- this component
         self.mark_as_skeletal_root(root_joint)
 
-        # -- We'll tag this joint with a label so we can easily
+        # -- We"ll tag this joint with a label so we can easily
         # -- find it from within the create_rig function.
         self.tag(
             target=root_joint,
-            label='RootJoint'
+            label="RootJoint"
         )
 
         # -- Select the tip joint
@@ -66,33 +66,33 @@ class LocationComponent(crab.Component):
     # --------------------------------------------------------------------------
     def create_rig(self, parent):
 
-        # -- We're given the skeleton component instance, so we can
+        # -- We"re given the skeleton component instance, so we can
         # -- utilise the find method to find the joint we need to build
         # -- a control against
-        root_joint = self.find_first('RootJoint')
+        root_joint = self.find_first("RootJoint")
 
         # -- Create a transform to use as a control
         root_control = crab.create.control(
-            description='Rig%s' % self.options.description,
+            description="Rig%s" % self.options.description,
             side=self.options.side,
             parent=parent,
             match_to=root_joint,
-            shape='cog',
+            shape="cog",
             lock_list=self.options.lock,
             hide_list=self.options.hide,
         )
 
         location_control = crab.create.control(
-            description='%s' % self.options.description,
+            description="%s" % self.options.description,
             side=self.options.side,
             parent=root_control,
             match_to=root_control,
-            shape='arrow_x',
+            shape="arrow_x",
             lock_list=self.options.lock,
             hide_list=self.options.hide,
         )
-        print('---')
-        if pm.upAxis(q=True, axis=True).upper() == 'Y':
+        print("---")
+        if pm.upAxis(q=True, axis=True).upper() == "Y":
             crab.utils.shapes.spin(location_control, y=-90)
 
         # -- All joints should have a binding. The binding allows crab

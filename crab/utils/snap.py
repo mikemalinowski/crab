@@ -1,16 +1,15 @@
 import pymel.core as pm
 
-# from .. import config
 from .. import create
 
 
-# ------------------------------------------------------------------------------
-def new(node, target, label='', resets=None):
+# --------------------------------------------------------------------------------------
+def new(node, target, label="", resets=None):
     """
     Creates a snap mapping from the given node to the target. The current
     offset between the two are stored during this process, allowing for that
     offset to be retained when a snap is requested.
-    
+
     :param node: The node which can be snapped
     :type node: pm.nt.Transform
 
@@ -19,6 +18,9 @@ def new(node, target, label='', resets=None):
 
     :param label: An identifier for the snap offset
     :type label: str
+
+    :param resets: If given, those objects will be zero"d on snap
+    :type resets: list or None
 
     :return: Snap node containing the offset
     :rtype: pm.nt.DependNode
@@ -62,22 +64,22 @@ def new(node, target, label='', resets=None):
         offset_mat4,
     )
 
-    # -- If we're given any resets, hook them up now
+    # -- If we"re given any resets, hook them up now
     if resets:
         for node_to_zero in resets:
-            plug = snap_node.attr('nodesToZero').elementByLogicalIndex(
-                snap_node.attr('nodesToZero').numElements(),
+            plug = snap_node.attr("nodesToZero").elementByLogicalIndex(
+                snap_node.attr("nodesToZero").numElements(),
             )
             node_to_zero.message.connect(plug)
 
     return snap_node
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def remove(node, label=None):
     """
     Removes any snap relationships on the given node. If a label
-    is given then only relationships with that label will be 
+    is given then only relationships with that label will be
     removed.
 
     :param node: The node in which the snap relationships should
@@ -101,9 +103,7 @@ def remove(node, label=None):
     # -- Check if we need to filter by a specified lable
     if label:
         to_delete = [
-            snap_node
-            for snap_node in snap_nodes
-            if snap_node.label.get() == label
+            snap_node for snap_node in snap_nodes if snap_node.label.get() == label
         ]
 
     # -- Remove the relationships
@@ -113,7 +113,7 @@ def remove(node, label=None):
     return delete_count
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def labels(node):
     """
     Gives access to all the labels assigned to the given node.
@@ -123,20 +123,17 @@ def labels(node):
 
     :return: list(str, str, str, ...)
     """
-    found_labels = [
-        snap_node.label.get()
-        for snap_node in get(node)
-    ]
+    found_labels = [snap_node.label.get() for snap_node in get(node)]
 
     return list(set(found_labels))
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def members(label, namespace=None, from_nodes=None):
     """
     This function allows you to query all the nodes which contain
-    relationships with a specified label. 
-    
+    relationships with a specified label.
+
     :param label: The label to query for
     :type label: str
 
@@ -151,13 +148,12 @@ def members(label, namespace=None, from_nodes=None):
     :return: list(pm.nt.Transform, pm.nt.Transform, ...)
     """
     # -- Get all the snap nodes
-    snap_nodes = pm.ls('*.isCrabSnap', r=True, o=True)
+    snap_nodes = pm.ls("*.isCrabSnap", r=True, o=True)
 
     # -- Define our output
     matched = list()
 
     for snap_node in snap_nodes:
-
         # -- Skip nodes which do not have matching labels
         if snap_node.label.get() != label:
             continue
@@ -168,7 +164,6 @@ def members(label, namespace=None, from_nodes=None):
 
         # -- Filter by the node list if given
         if from_nodes:
-
             source_node = snap_node.snapSource.inputs()
 
             if not source_node:
@@ -179,10 +174,10 @@ def members(label, namespace=None, from_nodes=None):
 
         matched.append(snap_node)
 
-    return sorted(matched, key=lambda x: x.snapSource.inputs()[0].longName().count('|'))
+    return sorted(matched, key=lambda x: x.snapSource.inputs()[0].longName().count("|"))
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def get(node, target=None, label=None):
     """
     Returns teh snap nodes assigned to the given node
@@ -190,7 +185,7 @@ def get(node, target=None, label=None):
     :param node: Node to query
     :type node: pm.nt.Transform
 
-    :param target: If given, only snap nodes which bind the node and the 
+    :param target: If given, only snap nodes which bind the node and the
         target together are returned.
     :type target: pm.nt.Transform
 
@@ -205,18 +200,18 @@ def get(node, target=None, label=None):
     # -- to our snapSource
     possibilities = [
         attr.node()
-        for attr in node.message.outputs(type='network', plugs=True)
-        if attr.name(includeNode=False) == 'snapSource'
+        for attr in node.message.outputs(type="network", plugs=True)
+        if attr.name(includeNode=False) == "snapSource"
     ]
 
-    # -- Ensure we're only dealing with snap nodes
+    # -- Ensure we"re only dealing with snap nodes
     possibilities = [
         possibility
         for possibility in possibilities
-        if possibility.hasAttr('isCrabSnap')
+        if possibility.hasAttr("isCrabSnap")
     ]
 
-    # -- If we're asked to get by label lets restrict
+    # -- If we"re asked to get by label lets restrict
     # -- to that now
     if label:
         possibilities = [
@@ -225,7 +220,7 @@ def get(node, target=None, label=None):
             if possibility.label.get() == label
         ]
 
-    # -- If we're given a specific target lets filter
+    # -- If we"re given a specific target lets filter
     # -- out anything else
     if target:
         possibilities = [
@@ -237,7 +232,7 @@ def get(node, target=None, label=None):
     return possibilities
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def snappable(node):
     """
     Returns True if the given node has any snap nodes linked to it
@@ -250,7 +245,7 @@ def snappable(node):
     return len(get(node)) > 0
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
 def snap(node, target, start_time=None, end_time=None, key=True):
     """
@@ -295,17 +290,17 @@ def snap(node, target, start_time=None, end_time=None, key=True):
 
     # -- Get the list of nodes to reset
     zero_these = list()
-    if snap_nodes[0].hasAttr('nodesToZero'):
+    if snap_nodes[0].hasAttr("nodesToZero"):
         zero_these = snap_nodes[0].nodesToZero.inputs()
 
-    # -- Use the current time if we're not given specific
+    # -- Use the current time if we"re not given specific
     # -- frame ranges
     start_time = start_time if start_time is not None else int(pm.currentTime())
     end_time = end_time if end_time is not None else int(pm.currentTime())
 
     # -- Cycle the frame range ensuring we dont accidentally
     # -- drop off the last frame
-    for frame in range(start_time, end_time+1):
+    for frame in range(start_time, end_time + 1):
         pm.setCurrentTime(frame)
 
         _set_worldspace_matrix(
@@ -326,7 +321,7 @@ def snap(node, target, start_time=None, end_time=None, key=True):
             pm.setKeyframe(node)
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
 def snap_label(label=None, restrict_to=None, start_time=None, end_time=None, key=True):
     """
@@ -355,28 +350,24 @@ def snap_label(label=None, restrict_to=None, start_time=None, end_time=None, key
     :return:
     """
     # -- Get a list of all the snap nodes with this label
-    snap_nodes = members(
-        label,
-        from_nodes=restrict_to
-    )
+    snap_nodes = members(label, from_nodes=restrict_to)
 
-    # -- Use the current time if we're not given specific
+    # -- Use the current time if we"re not given specific
     # -- frame ranges
     start_time = start_time if start_time is not None else int(pm.currentTime())
     end_time = end_time if end_time is not None else int(pm.currentTime())
 
     # -- Log some information, which is useful to know
-    print('Snap Nodes : %s' % snap_nodes)
-    print('start time : %s' % start_time)
-    print('end time : %s' % end_time)
+    print("Snap Nodes : %s" % snap_nodes)
+    print("start time : %s" % start_time)
+    print("end time : %s" % end_time)
 
     # -- Cycle the frame range ensuring we dont accidentally
     # -- drop off the last frame
-    for frame in range(start_time, end_time+1):
+    for frame in range(start_time, end_time + 1):
         pm.setCurrentTime(frame)
 
         for snap_node in snap_nodes:
-
             # -- NOTE: We *could* group the target/node together
             # -- outside the frame iteration as an optimisation. For
             # -- the sake of code simplicity on the first pass its
@@ -412,7 +403,7 @@ def snap_label(label=None, restrict_to=None, start_time=None, end_time=None, key
             )
 
             # -- Get the list of nodes to reset
-            if snap_node.hasAttr('nodesToZero'):
+            if snap_node.hasAttr("nodesToZero"):
                 zero_these = snap_node.nodesToZero.inputs()
 
                 # -- Zero any nodes which require it
@@ -421,69 +412,69 @@ def snap_label(label=None, restrict_to=None, start_time=None, end_time=None, key
 
                     if key or start_time != end_time:
                         pm.setKeyframe(node_to_zero)
-            
+
             # -- Key the match if we need to
             if key or start_time != end_time:
                 pm.setKeyframe(node)
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def _new_node():
     """
     Snap relationships are stored on network nodes with a very specific
     attribute setup. This function creates that setup for us.
-    
+
     :return: pm.nt.Network
     """
     snap_node = create.generic(
-        node_type='network',
-        prefix='SNP',
-        description='Meta',
-        side='NA',
+        node_type="network",
+        prefix="SNP",
+        description="Meta",
+        side="NA",
     )
 
-    # -- Add an attribute to ensure we can always identify 
+    # -- Add an attribute to ensure we can always identify
     # -- this node
     snap_node.addAttr(
-        'isCrabSnap',
-        at='bool',
+        "isCrabSnap",
+        at="bool",
         dv=True,
     )
 
     snap_node.addAttr(
-        'label',
-        dt='string',
+        "label",
+        dt="string",
     )
 
     # -- Next add the relationship attributes
     snap_node.addAttr(
-        'snapTarget',
-        at='message',
+        "snapTarget",
+        at="message",
     )
 
     snap_node.addAttr(
-        'snapSource',
-        at='message',
+        "snapSource",
+        at="message",
     )
 
     # -- We add our attributes for offset data
     snap_node.addAttr(
-        'offsetMatrix',
-        dt='matrix',
+        "offsetMatrix",
+        dt="matrix",
     )
 
     # -- Define a list of items which should be reset whenever
     # -- this snap is acted upon
     snap_node.addAttr(
-        'nodesToZero',
-        at='message',
+        "nodesToZero",
+        at="message",
         multi=True,
     )
 
     return snap_node
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def _set_worldspace_matrix(node, target, offset_matrix):
     """
     Sets the worldspace matrix of the given node to that of the target
@@ -508,22 +499,21 @@ def _set_worldspace_matrix(node, target, offset_matrix):
     )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def _zero_node(node):
     """
-    Zero's the nodes
+    Zero"s the nodes
 
     :param node:
     :return:
     """
     for attr in node.listAttr(k=True):
-
         attr_name = attr.name(includeNode=False)
 
-        if 'scale' in attr_name:
+        if "scale" in attr_name:
             value = 1.0
 
-        elif 'translate' in attr_name or 'rotate' in attr_name:
+        elif "translate" in attr_name or "rotate" in attr_name:
             value = 0.0
 
         else:
@@ -531,7 +521,7 @@ def _zero_node(node):
 
         try:
             attr.set(value)
-        except:
+        except (RuntimeError, pm.MayaAttributeError):
             pass
 
     for attr in node.listAttr(k=True, ud=True):
@@ -544,5 +534,5 @@ def _zero_node(node):
         try:
             attr.set(value)
 
-        except:
+        except (RuntimeError, pm.MayaAttributeError):
             continue

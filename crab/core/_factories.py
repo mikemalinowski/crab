@@ -8,17 +8,17 @@ from .. import config
 from .. import constants
 from ..vendor import factories
 
-
 _FACTORY_MANAGER = None
 
 
+# --------------------------------------------------------------------------------------
 class ComponentFactory(factories.Factory):
     """
     Inherited factory which exposes additional functionality to resolve the component
     plugin from a node in maya
     """
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     @classmethod
     def find_from_node(cls, node):
         """
@@ -31,7 +31,6 @@ class ComponentFactory(factories.Factory):
         :return: crab.Component instance
         """
         while True:
-
             meta = Component.is_component_root(node)
 
             if not meta:
@@ -43,7 +42,7 @@ class ComponentFactory(factories.Factory):
             plugin = factory_manager().components.request(component_type)
 
             if not plugin:
-                print('Could not resolve component from %s' % node)
+                print("Could not resolve component from %s" % node)
                 return None
 
             # -- Instance the plugin
@@ -54,7 +53,7 @@ class ComponentFactory(factories.Factory):
             )
             return plugin
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def request(self, plugin_identifier, version=None):
         """
         We override the request so that we can fall back to legacy identifiers if
@@ -72,21 +71,20 @@ class ComponentFactory(factories.Factory):
         return None
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class Factories(object):
     """
     This holds all three factories which a crab rig workflow relies upon
     """
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
-
         # -- This is a library of all the components available
         # -- to the rig
         self.components = ComponentFactory(
             abstract=Component,
-            plugin_identifier='identifier',
-            versioning_identifier='version',
+            plugin_identifier="identifier",
+            versioning_identifier="version",
             paths=constants.PLUGIN_LOCATIONS,
             envvar=constants.PLUGIN_ENVIRONMENT_VARIABLE,
         )
@@ -96,8 +94,8 @@ class Factories(object):
         # -- build.
         self.processes = factories.Factory(
             abstract=Process,
-            plugin_identifier='identifier',
-            versioning_identifier='version',
+            plugin_identifier="identifier",
+            versioning_identifier="version",
             paths=constants.PLUGIN_LOCATIONS,
             envvar=constants.PLUGIN_ENVIRONMENT_VARIABLE,
         )
@@ -106,8 +104,8 @@ class Factories(object):
         # -- to the rig
         self.behaviours = factories.Factory(
             abstract=Behaviour,
-            plugin_identifier='identifier',
-            versioning_identifier='version',
+            plugin_identifier="identifier",
+            versioning_identifier="version",
             paths=constants.PLUGIN_LOCATIONS,
             envvar=constants.PLUGIN_ENVIRONMENT_VARIABLE,
         )
@@ -125,7 +123,7 @@ class Factories(object):
         return Process
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def factory_manager():
     """
     Resolving large plugin banks for multiple factories can take time, therefore

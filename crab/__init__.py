@@ -183,12 +183,12 @@ then see the controls generated over the skeleton.
 ### Editing the Controls
 
 The chances are that the control shapes will be either too small or
-too large for your geometry. However you can go in and alter the CV's
+too large for your geometry. However you can go in and alter the CV"s
 of any controls and these control changes will be retained during each
 rebuild of the rig.
 
 You may put the rig back into an editable state at any time by clicking
-the _Edit_ button. WHen back in edit mode you're free to re-adjust the
+the _Edit_ button. WHen back in edit mode you"re free to re-adjust the
 proportion of your skeleton or add and remove components.
 
 Clicking _Build_ when the rig is already built will simply place the rig
@@ -220,7 +220,7 @@ interact with the results of other behaviours generated before it.
 
 ### Building Behaviours
 
-When you apply a behaviour to a Rig through the Crab UI, you're adding
+When you apply a behaviour to a Rig through the Crab UI, you"re adding
 a behaviour specification to the list of applied behaviours but the
 actual behaviour itself will not be generated until you trigger
 a build of the rig.
@@ -326,7 +326,7 @@ import crab
 
 class ExampleComponent(crab.Component):
     
-    identifier = 'Example'
+    identifier = "Example"
     
     def __init__():
         super(ExampleComponent, self).__init__()
@@ -343,7 +343,7 @@ within the UI.
 #### create_skeleton
 
 This method is where you should implement the code which generates
-the skeletal structure. You're given the parent as an argument and
+the skeletal structure. You"re given the parent as an argument and
 everything you build in this function should be part of a joint hierarchy
 under the parent.
 
@@ -380,11 +380,11 @@ Here we can see an example of this function being implemented.
         # -- this component
         self.mark_as_skeletal_root(root_joint)
 
-        # -- We'll tag this joint with a label so we can easily
+        # -- We"ll tag this joint with a label so we can easily
         # -- find it from within the create_rig function.
         self.tag(
             target=root_joint,
-            label='RootJoint'
+            label="RootJoint"
         )
 
         # -- Select the tip joint
@@ -403,7 +403,7 @@ by the skeletal hierarchy.
 An example of where this function is particularly useful is when implementing
 a leg component which contains foot roll features. Such features are
 aided by guide markers allowing hte user to tweak the points of rotations
-for the controls. The supporting 'guides' can be generated within this
+for the controls. The supporting "guides" can be generated within this
 function and read from within the __create_rig__ function.
 
 TODO: Requires example
@@ -422,7 +422,7 @@ the __guide_component__ as arguments:
 ```
 
 When building a control rig there are some tasks which must be carried
-out. Every joint in your skeletal must be 'bound' to an item in your
+out. Every joint in your skeletal must be "bound" to an item in your
 control rig. This is of crucial importance because someone may add
 a component as a child of any joint, and therefore Crab needs to determine
 which node in your rig is a correlating control rig parent.
@@ -440,10 +440,10 @@ the __create_skeleton__ example.
 ```python
     def create_rig(self, parent):
 
-        # -- We're given the skeleton component instance, so we can
+        # -- We"re given the skeleton component instance, so we can
         # -- utilise the find method to find the joint we need to build
         # -- a control against
-        root_joint = self.find('RootJoint')[0]
+        root_joint = self.find("RootJoint")[0]
 
         # -- Create a transform to use as a control. This method
         # -- is a convenience function which handles the name
@@ -496,9 +496,9 @@ creation. This is shown in the example here:
 import crab
 
 location_marker = crab.create.generic(
-    node_type='transform',
+    node_type="transform",
     prefix=crab.config.MARKER,
-    description='SomeLocation',
+    description="SomeLocation",
     side=crab.config.LEFT,
     parent=some_other_node,
     match_to=another_node_in_the_scene,
@@ -523,10 +523,10 @@ of four transforms:
 
 This list allows for behaviours to be bound to controls and offsets for tools
 to utilise. When a _match_to_ argument is given the _ORG_ is the node to be
-matched meaning all the other nodes by default will be zero'd. 
+matched meaning all the other nodes by default will be zero"d. 
 
 The other main difference with the control is that you can assign it a shape.
-Shapes are stored as json data and can be found in the 'shapes' directory
+Shapes are stored as json data and can be found in the "shapes" directory
 within crab. Equally, if you want to use your own shapes you can place them
 anywhere under paths defined by the __CRAB_PLUGIN_PATHS__ environment variable.
 
@@ -537,7 +537,7 @@ __NurbsCurve__ under it, then running the following code:
 import crab
 import pymel.core as pm
 
-crab.utils.shapes.write(pm.selected()[0], r'C:\my_shape.json')
+crab.utils.shapes.write(pm.selected()[0], r"C:\my_shape.json")
 ```
 
 ### Behaviour Plugin
@@ -567,13 +567,13 @@ import crab
 
 class ExampleBehaviour(crab.Behaviour):
     
-    identifier = 'Example Behaviour'
+    identifier = "Example Behaviour"
     
     def __init__(self):
         super(ExampleBehaviour, self).__init__()
 
-        self.options.target = ''
-        self.options.drive_this = ''
+        self.options.target = ""
+        self.options.drive_this = ""
 ```
 
 Beyond that we need only to implement the __apply__ method.
@@ -590,8 +590,8 @@ Beyond that we need only to implement the __apply__ method.
 ````
 
 This is a rather simplistic example, but it shows our exposure of two options
-where we expect the names of the nodes we're interested in to be defined. Then
-within our __apply__ method we're simply getting those two objects and constraining
+where we expect the names of the nodes we"re interested in to be defined. Then
+within our __apply__ method we"re simply getting those two objects and constraining
 them together.
 
 
@@ -614,14 +614,14 @@ import pymel.core as pm
 # ------------------------------------------------------------------------------
 class SkinConnect(crab.RigTool):
 
-    identifier = 'Skin : (Dis)Connect'
+    identifier = "Skin : (Dis)Connect"
     
     def __init__(self):
         super(SkinConnect, self).__init__()
         self.options.connect = True
         
     def run(self):
-        for skin in pm.ls(type='skinCluster'):
+        for skin in pm.ls(type="skinCluster"):
             skin.moveJointsMode(self.options.connect)
 ```
 
@@ -653,14 +653,14 @@ import crab
 import pymel.core as pm
 
 class MoveByOne(crab.tools.AnimTool):
-    identifier = 'Move By One'
-    icon = 'path_to_icon'
+    identifier = "Move By One"
+    icon = "path_to_icon"
     
     @classmethod
     def viable(cls, node):
         
-        # -- Only return true if this node has the word 'Foo' in
-        if 'Foo' in node.name():
+        # -- Only return true if this node has the word "Foo" in
+        if "Foo" in node.name():
             return cls.PRIORITY_SHOW
         return cls.DONT_SHOW
               
@@ -669,7 +669,7 @@ class MoveByOne(crab.tools.AnimTool):
             node.translateX.set(node.translateX.get() + 1)
 ```
 
-In this tool we're specifically only showing the user the tool if it satisfies
+In this tool we"re specifically only showing the user the tool if it satisfies
 a particular requirement otherwise we ask it not to be displayed.
 
 If we want our tool to always be visible we can just return ```cls.ALWAYS_SHOW```
@@ -716,4 +716,6 @@ from .apps import animator
 from .apps import creator
 from .apps import menu
 
-__version__ = '3.0.0'
+from .core.rig import get
+
+__version__ = "4.0.0"

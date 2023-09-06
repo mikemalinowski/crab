@@ -3,20 +3,18 @@ import crab
 import pymel.core as pm
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class ZeroWSRotationsTool(crab.RigTool):
+    identifier = "transforms_zero_ws_transform"
+    display_name = "Transforms : Zero World Space Rotation"
+    icon = "transforms.png"
 
-    identifier = 'transforms_zero_ws_transform'
-    display_name = 'Zero WS Transforms'
-    icon = 'transforms.png'
-
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(ZeroWSRotationsTool, self).__init__()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self, these_nodes=None):
-
         # -- Take the given variables as a priority. If they are
         # -- not given we use the options, and if they are also
         # -- not given then we take the current selection
@@ -29,7 +27,7 @@ class ZeroWSRotationsTool(crab.RigTool):
             )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class ObjectAimTool(crab.RigTool):
     """
     This will aim the first object at the second object. You can also provide
@@ -37,22 +35,28 @@ class ObjectAimTool(crab.RigTool):
 
     This is the equivalent of using an aimConstraint + delete operation.
     """
-    identifier = 'transforms_aim_at'
-    display_name = 'Aim At'
-    icon = 'transforms.png'
+    identifier = "transforms_aim_at"
+    display_name = "Transforms : Aim At"
+    icon = "transforms.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(ObjectAimTool, self).__init__()
 
-        self.options.aim_this = ''
-        self.options.at_this = ''
-        self.options.up_target = ''
+        self.options.aim_this = ""
+        self.options.at_this = ""
+        self.options.up_target = ""
         self.options.flip_aim = False
         self.options.flip_up = False
 
-    # --------------------------------------------------------------------------
-    def run(self, aim_this=None, at_this=None, up_target=None, flip_aim=False, flip_up=False):
+    # ----------------------------------------------------------------------------------
+    def run(self,
+            aim_this=None,
+            at_this=None,
+            up_target=None,
+            flip_aim=False,
+            flip_up=False,
+            ):
 
         aim_this = aim_this or self.options.aim_this
         at_this = at_this or self.options.at_this
@@ -105,22 +109,21 @@ class ObjectAimTool(crab.RigTool):
         pm.delete(temp_constraint)
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class MoveChildBoneTool(crab.RigTool):
-    identifier = 'transforms_move_child_bone'
-    display_name = 'Move Child Bone'
-    icon = 'transforms.png'
+    identifier = "transforms_move_child_bone"
+    display_name = "Transforms : Move Child Bone"
+    icon = "transforms.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(MoveChildBoneTool, self).__init__()
 
-        self.options.child_bone = ''
-        self.options.target = ''
+        self.options.child_bone = ""
+        self.options.target = ""
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self, child_bone=None, target=None):
-
         # -- Take the given variables as a priority. If they are
         # -- not given we use the options, and if they are also
         # -- not given then we take the current selection
@@ -149,23 +152,23 @@ class MoveChildBoneTool(crab.RigTool):
         )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class FollicleTool(crab.RigTool):
-    identifier = 'transforms_create_follicle'
-    display_name = 'Create Follicle'
-    icon = 'transforms.png'
+    identifier = "transforms_create_follicle"
+    display_name = "Transforms : Create Follicle"
+    icon = "transforms.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(FollicleTool, self).__init__()
 
-        self.options.parent = ''
-        self.options.surface = ''
-        self.options.drive = ''
-        self.options.description = ''
-        self.options.side = ['MD', 'RT', 'LF']
+        self.options.parent = ""
+        self.options.surface = ""
+        self.options.drive = ""
+        self.options.description = ""
+        self.options.side = ["MD", "RT", "LF"]
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
     def run(self, parent=None, surface=None, drive=None):
 
@@ -197,7 +200,7 @@ class FollicleTool(crab.RigTool):
             is_mesh = True
 
         follicle = crab.create.generic(
-            node_type='follicle',
+            node_type="follicle",
             prefix=crab.config.MECHANICAL,
             description=self.options.description,
             side=self.options.side,
@@ -207,12 +210,12 @@ class FollicleTool(crab.RigTool):
         follicle = follicle.getShape()
 
         if is_mesh:
-            surface.attr('outMesh').connect(follicle.inputMesh)
+            surface.attr("outMesh").connect(follicle.inputMesh)
 
         else:
-            surface.attr('local').connect(follicle.inputSurface)
+            surface.attr("local").connect(follicle.inputSurface)
 
-        surface.attr('worldMatrix[0]').connect(follicle.inputWorldMatrix)
+        surface.attr("worldMatrix[0]").connect(follicle.inputWorldMatrix)
 
         follicle.outTranslate.connect(follicle.getParent().translate)
         follicle.outRotate.connect(follicle.getParent().rotate)
@@ -222,18 +225,18 @@ class FollicleTool(crab.RigTool):
             # -- Set the UV positions
             if is_mesh:
                 u, v = surface.getUVAtPoint(
-                    drive.getTranslation(space='world'),
-                    space='world',
+                    drive.getTranslation(space="world"),
+                    space="world",
                 )
 
             else:
                 _, u, v = surface.closestPoint(
-                    drive.getTranslation(space='world'),
-                    space='world',
+                    drive.getTranslation(space="world"),
+                    space="world",
                 )
 
-            follicle.attr('parameterU').set(u)
-            follicle.attr('parameterV').set(v)
+            follicle.attr("parameterU").set(u)
+            follicle.attr("parameterV").set(v)
 
             pm.parentConstraint(
                 follicle.getParent(),
@@ -242,46 +245,45 @@ class FollicleTool(crab.RigTool):
             )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class CopyTransformValue(crab.RigTool):
-    identifier = 'transforms_copy_values'
-    display_name = 'Copy Values'
-    icon = 'transforms.png'
+    identifier = "transforms_copy_values"
+    display_name = "Transforms : Copy Values"
+    icon = "transforms.png"
     tooltips = dict(
-        copy_from_this='Target object to copy the transform values from',
-        copy_to_this='Object to apply the transform data to',
-        mirror_play='Optional mirror plane when copying',
+        copy_from_this="Target object to copy the transform values from",
+        copy_to_this="Object to apply the transform data to",
+        mirror_play="Optional mirror plane when copying",
     )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(CopyTransformValue, self).__init__()
 
-        self.options.copy_from_this = ''
-        self.options.copy_to_this = ''
-        self.options.mirror_plane = ['None', 'XZ', 'XY', 'YZ']
+        self.options.copy_from_this = ""
+        self.options.copy_to_this = ""
+        self.options.mirror_plane = ["None", "XZ", "XY", "YZ"]
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
-
         copy_from_this = self.options.copy_from_this or pm.selected()[0]
         copy_to_this = self.options.copy_to_this or pm.selected()[1]
         transform_attributes = [
-            'translateX',
-            'translateY',
-            'translateZ',
-            'rotateX',
-            'rotateY',
-            'rotateZ',
-            'scaleX',
-            'scaleY',
-            'scaleZ',
+            "translateX",
+            "translateY",
+            "translateZ",
+            "rotateX",
+            "rotateY",
+            "rotateZ",
+            "scaleX",
+            "scaleY",
+            "scaleZ",
         ]
         mirror_values_look_up = {
-            'None': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-            'XZ': [1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, 1.0, 1.0],
-            'XY': [1.0, 1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0],
-            'YZ': [-1.0, 1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0],
+            "None": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+            "XZ": [1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, 1.0, 1.0],
+            "XY": [1.0, 1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0],
+            "YZ": [-1.0, 1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0],
         }
         mirror_values_list = mirror_values_look_up[self.options.mirror_plane]
 
@@ -293,3 +295,30 @@ class CopyTransformValue(crab.RigTool):
                 )
 
 
+# --------------------------------------------------------------------------------------
+class ScaleTranslationsTool(crab.RigTool):
+    identifier = "transforms_scale_translation_values"
+    display_name = "Transforms : Scales Translation Values"
+    icon = "transforms.png"
+    tooltips = dict(
+        scale="How much to scale the translation values by",
+    )
+
+    # ----------------------------------------------------------------------------------
+    def __init__(self):
+        super(ScaleTranslationsTool, self).__init__()
+
+        self.options.scale = 1.0
+
+    # ----------------------------------------------------------------------------------
+    def run(self, these_nodes=None):
+
+        # -- Take the given variables as a priority. If they are
+        # -- not given we use the options, and if they are also
+        # -- not given then we take the current selection
+        these_nodes = these_nodes or pm.selected()
+
+        for node in these_nodes:
+            for axis in ["X", "Y", "Z"]:
+                attr = node.attr("translate%s" % axis)
+                attr.set(attr.get() * self.options.scale)

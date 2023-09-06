@@ -1,6 +1,4 @@
-
-
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyMethodMayBeStatic
 class Process(object):
     """
@@ -22,14 +20,16 @@ class Process(object):
             This is called after all the components and behaviours are built,
             allowing  you to perform any actions against the rig as a whole.
     """
-    identifier = 'unknown'
-    version = 1
 
-    # --------------------------------------------------------------------------
+    identifier = "unknown"
+    version = 1
+    order = 0
+
+    # ----------------------------------------------------------------------------------
     def __init__(self, rig):
         self.rig = rig
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def snapshot(self):
         """
         This is done before the control rig is destroyed and its your
@@ -42,7 +42,7 @@ class Process(object):
         """
         pass
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def post_edit(self):
         """
         This is called after the control is destroyed, leaving the skeleton
@@ -53,7 +53,7 @@ class Process(object):
         """
         pass
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def pre_build(self):
         """
         This is called after validation but before the components are started
@@ -63,7 +63,7 @@ class Process(object):
         """
         pass
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def post_build(self):
         """
         This is called after all the components and behaviours are built,
@@ -73,7 +73,7 @@ class Process(object):
         """
         pass
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def validate(self):
         """
         This occurs before the pre_build and should NOT modify the rig in any form. It

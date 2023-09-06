@@ -3,28 +3,28 @@ import crab
 import pymel.core as pm
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class NameTool(crab.RigTool):
 
-    identifier = 'naming_assign_name'
-    display_name = 'Assign Name'
-    icon = 'naming.png'
+    identifier = "naming_assign_name"
+    display_name = "Assign Name"
+    icon = "naming.png"
 
     tooltips = dict(
-        prefix='What prefix (type) should be assigned',
-        description='The descriptive part of the name to be assigned',
-        location='Examples are LF, RT, MD etc',
+        prefix="What prefix (type) should be assigned",
+        description="The descriptive part of the name to be assigned",
+        location="Examples are LF, RT, MD etc",
     )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(NameTool, self).__init__()
 
         self.options.prefix = crab.config.PREFIXES
-        self.options.description = ''
+        self.options.description = ""
         self.options.location = crab.config.LOCATIONS
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
 
         prefix = self.options.prefix
@@ -46,23 +46,23 @@ class NameTool(crab.RigTool):
             )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class PrefixTool(crab.RigTool):
 
-    identifier = 'naming_rename_prefix'
-    display_name = 'Rename : Prefix'
-    icon = 'naming.png'
+    identifier = "naming_rename_prefix"
+    display_name = "Rename : Prefix"
+    icon = "naming.png"
     tooltips = dict(
-        prefix='What prefix (type) should be assigned',
+        prefix="What prefix (type) should be assigned",
     )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(PrefixTool, self).__init__()
 
-        self.options.prefix = ''
+        self.options.prefix = ""
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
 
         prefix = self.options.prefix
@@ -79,23 +79,23 @@ class PrefixTool(crab.RigTool):
             )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class SuffixTool(crab.RigTool):
 
-    identifier = 'naming_rename_suffix'
-    display_name = 'Rename : Suffix'
-    icon = 'naming.png'
+    identifier = "naming_rename_suffix"
+    display_name = "Rename : Suffix"
+    icon = "naming.png"
     tooltips = dict(
-        suffix='What suffix (location) should be assigned. Examples are LF, RT, MD etc',
+        suffix="What suffix (location) should be assigned. Examples are LF, RT, MD etc",
     )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(SuffixTool, self).__init__()
 
-        self.options.suffix = ''
+        self.options.suffix = ""
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
 
         suffix = self.options.suffix
@@ -112,25 +112,25 @@ class SuffixTool(crab.RigTool):
             )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class FindReplaceTool(crab.RigTool):
 
-    identifier = 'naming_find_and_replace'
-    display_name = 'Rename : Find / Replace'
-    icon = 'naming.png'
+    identifier = "naming_find_and_replace"
+    display_name = "Rename : Find / Replace"
+    icon = "naming.png"
     tooltips = dict(
-        find='What text in the name should be replaced',
-        replace='What to replace any found mactches with',
+        find="What text in the name should be replaced",
+        replace="What to replace any found mactches with",
     )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(FindReplaceTool, self).__init__()
 
-        self.options.find = ''
-        self.options.replace = ''
+        self.options.find = ""
+        self.options.replace = ""
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
 
         find = self.options.find

@@ -599,6 +599,35 @@
                             </widget>
                            </item>
                            <item>
+                            <widget class="QPushButton" name="recreateComponent">
+                             <property name="minimumSize">
+                              <size>
+                               <width>32</width>
+                               <height>32</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>32</width>
+                               <height>32</height>
+                              </size>
+                             </property>
+                             <property name="text">
+                              <string/>
+                             </property>
+                             <property name="icon">
+                              <iconset>
+                               <normaloff>remove.png</normaloff>remove.png</iconset>
+                             </property>
+                             <property name="iconSize">
+                              <size>
+                               <width>32</width>
+                               <height>32</height>
+                              </size>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
                             <spacer name="verticalSpacer_5">
                              <property name="orientation">
                               <enum>Qt::Vertical</enum>
@@ -1111,7 +1140,10 @@
                     <widget class="QLineEdit" name="toolFilter"/>
                    </item>
                    <item>
-                    <widget class="QListWidget" name="toolList">
+                    <widget class="CrabToolListWidget" name="toolList">
+                     <property name="contextMenuPolicy">
+                      <enum>Qt::DefaultContextMenu</enum>
+                     </property>
                      <property name="alternatingRowColors">
                       <bool>true</bool>
                      </property>
@@ -1130,6 +1162,48 @@
                    <property name="spacing">
                     <number>0</number>
                    </property>
+                   <item>
+                    <widget class="QPushButton" name="toggleFavouriteTools">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                       <horstretch>32</horstretch>
+                       <verstretch>32</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>32</width>
+                       <height>32</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>32</width>
+                       <height>32</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="icon">
+                      <iconset>
+                       <normaloff>star.png</normaloff>star.png</iconset>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="verticalSpacer_7">
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>40</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
                    <item>
                     <widget class="QPushButton" name="runTool">
                      <property name="minimumSize">
@@ -1158,19 +1232,6 @@
                       </size>
                      </property>
                     </widget>
-                   </item>
-                   <item>
-                    <spacer name="verticalSpacer_7">
-                     <property name="orientation">
-                      <enum>Qt::Vertical</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>20</width>
-                       <height>40</height>
-                      </size>
-                     </property>
-                    </spacer>
                    </item>
                   </layout>
                  </item>
@@ -1238,6 +1299,11 @@
   </customwidget>
   <customwidget>
    <class>AppliedBehaviourListWidget</class>
+   <extends>QListWidget</extends>
+   <header>crab/apps/creator/lists.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CrabToolListWidget</class>
    <extends>QListWidget</extends>
    <header>crab/apps/creator/lists.h</header>
   </customwidget>

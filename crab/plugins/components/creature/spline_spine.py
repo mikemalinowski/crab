@@ -2,49 +2,48 @@ import crab
 import pymel.core as pm
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class SplineSpineComponent(crab.Component):
     """
     This creates a spline spine component consisting of a variable amount of joints
     and four controls.
     """
 
-    identifier = 'Core : Creature : Spline Spine'
+    identifier = "Core : Creature : Spline Spine"
 
     FACING_AXIS = [
-        'Positive X',
-        'Negative X',
-        'Positive Y',
-        'Negative Y',
-        'Positive Z',
-        'Negative Z',
+        "Positive X",
+        "Negative X",
+        "Positive Y",
+        "Negative Y",
+        "Positive Z",
+        "Negative Z",
     ]
 
     UP_AXIS = [
-        'Positive Y',
-        'Negative Y',
-        'Closest Y',
-        'Positive Z',
-        'Negative Z',
-        'Closest Z',
-        'Positive X',
-        'Negative X',
-        'Closest X',
+        "Positive Y",
+        "Negative Y",
+        "Closest Y",
+        "Positive Z",
+        "Negative Z",
+        "Closest Z",
+        "Positive X",
+        "Negative X",
+        "Closest X",
     ]
 
     def __init__(self, *args, **kwargs):
         super(SplineSpineComponent, self).__init__(*args, **kwargs)
 
-        self.options.description = 'Spine'
+        self.options.description = "Spine"
         self.options.joint_count = 10
         self.options.align_controls_world = True
-        self.options.facing_axis = 'Positive Y'
-        self.options.up_axis = 'Positive X'
+        self.options.facing_axis = "Positive Y"
+        self.options.up_axis = "Positive X"
         self.options.linear_hierarchy = False
 
         self.options._facing_axis = self.FACING_AXIS
         self.options._up_axis = self.UP_AXIS
-
 
     # ----------------------------------------------------------------------------------
     def create_skeleton(self, parent):
@@ -62,7 +61,7 @@ class SplineSpineComponent(crab.Component):
         # -- Joints in maya always parent under the currently
         # -- selected object. So we will keep track of the parent
         # -- variable, and to start with, this will be the parent
-        # -- we're given by crab.
+        # -- we"re given by crab.
         joint_parent = parent
 
         # -- Lets start by creating our joint elements
@@ -77,7 +76,7 @@ class SplineSpineComponent(crab.Component):
             )
 
             # -- Translate the joint upward
-            attr_name = 'translate%s' % self.options.up_axis[-1].upper()#crab.utils.transform.up_axis().upper()
+            attr_name = "translate%s" % crab.utils.transform.up_axis().upper()
             offset = 100.0 / (self.options.joint_count - 1)
             current_joint.attr(attr_name).set(offset)
 
@@ -89,7 +88,7 @@ class SplineSpineComponent(crab.Component):
             # -- We tag the joint so we can easily access them later
             self.tag(
                 current_joint,
-                'SkeletalJoint',
+                "SkeletalJoint",
             )
 
             # -- Mark this current joint as the parent for the next
@@ -107,10 +106,10 @@ class SplineSpineComponent(crab.Component):
         :return:
         """
         # -- Get a list of all our skeletal joints
-        skeletal_joints = self.find('SkeletalJoint')
+        skeletal_joints = self.find("SkeletalJoint")
 
         spline_builder = SplineIKSetup(
-            description='%sGuide' % self.options.description,
+            description="%sGuide" % self.options.description,
             side=self.options.side,
             joints_to_trace=skeletal_joints,
             parent=self.guide_root(),
@@ -121,10 +120,10 @@ class SplineSpineComponent(crab.Component):
 
         self.tag(
             spline_builder.org,
-            'SplineGuideOrg',
+            "SplineGuideOrg",
         )
 
-        for driver, guide in zip(spline_builder.drivers, self.find('GuideDriver')):
+        for driver, guide in zip(spline_builder.drivers, self.find("GuideDriver")):
 
             driver.setMatrix(
                 guide.getMatrix(worldSpace=True),
@@ -139,7 +138,7 @@ class SplineSpineComponent(crab.Component):
             )
 
         for skeleton_joint, mech_joint in zip(skeletal_joints, spline_builder.mechanical_joints):
-            print('linking shit')
+            print("linking shit")
             pm.parentConstraint(
                 mech_joint,
                 skeleton_joint,
@@ -155,11 +154,11 @@ class SplineSpineComponent(crab.Component):
         :return:
         """
         # -- triggered on build?
-        for spline_guide in self.find('SplineGuideOrg'):
-            print('Removing guide spline : %s' % spline_guide)
+        for spline_guide in self.find("SplineGuideOrg"):
+            print("Removing guide spline : %s" % spline_guide)
             pm.delete(spline_guide)
 
-        print('unlinking guide')
+        print("unlinking guide")
 
     # ----------------------------------------------------------------------------------
     def create_guide(self, parent):
@@ -181,54 +180,54 @@ class SplineSpineComponent(crab.Component):
         """
 
         # -- Get the skeletal joints
-        skeletal_joints = self.find('SkeletalJoint')
+        skeletal_joints = self.find("SkeletalJoint")
 
         # -- Create base guide
         base_guide = crab.create.guide(
-            description='%sBase' % self.options.description,
+            description="%sBase" % self.options.description,
             side=self.options.side,
             parent=parent,
             match_to=skeletal_joints[0],
         )
         self.tag(
             base_guide,
-            'GuideDriver',
+            "GuideDriver",
         )
 
         # -- Create base guide child
         base_tweak_guide = crab.create.guide(
-            description='%sBaseTweaker' % self.options.description,
+            description="%sBaseTweaker" % self.options.description,
             side=self.options.side,
             parent=parent,
             match_to=skeletal_joints[(int(len(skeletal_joints) / 3) * 1)],
         )
         self.tag(
             base_tweak_guide,
-            'GuideDriver',
+            "GuideDriver",
         )
 
         # -- Create base guide child
         tip_tweak_guide = crab.create.guide(
-            description='%sTipTweaker' % self.options.description,
+            description="%sTipTweaker" % self.options.description,
             side=self.options.side,
             parent=parent,
             match_to=skeletal_joints[(int(len(skeletal_joints) / 3) * 2)],
         )
         self.tag(
             tip_tweak_guide,
-            'GuideDriver',
+            "GuideDriver",
         )
 
         # -- Create tip guide
         tip_guide = crab.create.guide(
-            description='%sTip' % self.options.description,
+            description="%sTip" % self.options.description,
             side=self.options.side,
             parent=parent,
             match_to=skeletal_joints[-1],
         )
         self.tag(
             tip_guide   ,
-            'GuideDriver',
+            "GuideDriver",
         )
 
         return True
@@ -242,7 +241,7 @@ class SplineSpineComponent(crab.Component):
         """
         print(self.options.facing_axis)
         # -- Get the guide drivers, so we can place them correctly
-        guide_drivers = self.find('GuideDriver')
+        guide_drivers = self.find("GuideDriver")
 
         org = crab.create.org(
             description=self.options.description,
@@ -252,47 +251,47 @@ class SplineSpineComponent(crab.Component):
 
         # -- Create base guide
         master_control = crab.create.control(
-            description='%sMaster' % self.options.description,
+            description="%sMaster" % self.options.description,
             side=self.options.side,
             parent=org,
             match_to=guide_drivers[0],
-            shape='sphere',
+            shape="sphere",
         )
 
         # -- Create base guide
         base_control = crab.create.control(
-            description='%sBase' % self.options.description,
+            description="%sBase" % self.options.description,
             side=self.options.side,
             parent=master_control,
             match_to=guide_drivers[0],
-            shape='sphere',
+            shape="sphere",
         )
 
         # -- Create tip guide
         tip_control = crab.create.control(
-            description='%sTip' % self.options.description,
+            description="%sTip" % self.options.description,
             side=self.options.side,
             parent=master_control,
             match_to=guide_drivers[3],
-            shape='sphere',
+            shape="sphere",
         )
 
         # -- Create base guide child
         base_tweak_control = crab.create.control(
-            description='%sBaseTweaker' % self.options.description,
+            description="%sBaseTweaker" % self.options.description,
             side=self.options.side,
             parent=base_control,
             match_to=guide_drivers[1],
-            shape='sphere',
+            shape="sphere",
         )
 
         # -- Create base guide child
         tip_tweak_control = crab.create.control(
-            description='%sTipTweaker' % self.options.description,
+            description="%sTipTweaker" % self.options.description,
             side=self.options.side,
             parent=tip_control,
             match_to=guide_drivers[2],
-            shape='sphere',
+            shape="sphere",
         )
 
         # -- If we need a linear hierarchy then reparent the controls
@@ -302,13 +301,13 @@ class SplineSpineComponent(crab.Component):
 
         # -- Tag all our controls - but tag them in the same order
         # -- as the drivers
-        self.tag(base_control, 'MappedControl')
-        self.tag(base_tweak_control, 'MappedControl')
-        self.tag(tip_tweak_control, 'MappedControl')
-        self.tag(tip_control, 'MappedControl')
+        self.tag(base_control, "MappedControl")
+        self.tag(base_tweak_control, "MappedControl")
+        self.tag(tip_tweak_control, "MappedControl")
+        self.tag(tip_control, "MappedControl")
 
         # -- Now constrain the ik spline setup to these controls
-        skeletal_joints = self.find('SkeletalJoint')
+        skeletal_joints = self.find("SkeletalJoint")
 
         spline_builder = SplineIKSetup(
             description=self.options.description,
@@ -320,7 +319,7 @@ class SplineSpineComponent(crab.Component):
         )
         spline_builder.create()
 
-        for driver, control in zip(spline_builder.drivers, self.find('MappedControl')):
+        for driver, control in zip(spline_builder.drivers, self.find("MappedControl")):
             pm.parentConstraint(
                 control,
                 driver,
@@ -336,7 +335,6 @@ class SplineSpineComponent(crab.Component):
         return True
 
 
-
 # --------------------------------------------------------------------------------------
 class SplineIKSetup(object):
     """
@@ -348,7 +346,7 @@ class SplineIKSetup(object):
     """
 
     # ----------------------------------------------------------------------------------
-    def __init__(self, description, side, joints_to_trace, parent, facing_axis='Positive Y', up_axis='Positive X'):
+    def __init__(self, description, side, joints_to_trace, parent, facing_axis="Positive Y", up_axis="Positive X"):
         super(SplineIKSetup, self).__init__()
 
         # -- Store our inputs
@@ -399,7 +397,7 @@ class SplineIKSetup(object):
             simplifyCurve=True,
             numSpans=1,
             rootTwistMode=False,
-            twistType='linear',
+            twistType="linear",
         )
         ik_handle.setParent(self.org)
 
@@ -407,7 +405,7 @@ class SplineIKSetup(object):
         curve.rename(
             crab.config.name(
                 prefix=crab.config.SPLINE,
-                description='%sSplineIK' % self.description,
+                description="%sSplineIK" % self.description,
                 side=self.side,
             ),
         )
@@ -426,7 +424,7 @@ class SplineIKSetup(object):
             cls_xfo.rename(
                 crab.config.name(
                     prefix=crab.config.CLUSTER,
-                    description='%sSplineCluster' % self.description,
+                    description="%sSplineCluster" % self.description,
                     side=self.side,
                 ),
             )
@@ -436,7 +434,7 @@ class SplineIKSetup(object):
 
             # -- Create the driver for this item
             driver = crab.create.generic(
-                node_type='transform',
+                node_type="transform",
                 prefix=crab.config.MARKER,
                 description=self.description,
                 side=self.side,
@@ -447,7 +445,7 @@ class SplineIKSetup(object):
             # -- Clusters are a nightmare with pivots, so lets manually set the
             # -- position of the driver before moving the cluster under it
             translation = cls_xfo.getPivots(worldSpace=True)[0]
-            driver.setTranslation(translation, space='world')
+            driver.setTranslation(translation, space="world")
 
             # -- Store the driver
             self.drivers.append(driver)
@@ -461,9 +459,9 @@ class SplineIKSetup(object):
 
                 # -- Create the upvector rotator
                 rotator = crab.create.generic(
-                    node_type='transform',
+                    node_type="transform",
                     prefix=crab.config.PIVOT,
-                    description='%sUpvRotator' % self.description,
+                    description="%sUpvRotator" % self.description,
                     side=self.side,
                     parent=driver,
                     match_to=driver,
@@ -471,7 +469,7 @@ class SplineIKSetup(object):
 
                 # -- Now add the upvector
                 upvector = crab.create.generic(
-                    node_type='transform',
+                    node_type="transform",
                     prefix=crab.config.UPVECTOR,
                     description=self.description,
                     side=self.side,
@@ -491,23 +489,23 @@ class SplineIKSetup(object):
         self.drivers[2].setParent(self.drivers[3])
 
         # -- Create the upvector setup, start by setting the facing axis
-        ik_handle.dForwardAxis.set(self.facing_axis) # 2 if crab.utils.transform.up_axis() == 'y' else 4)
-        ik_handle.dWorldUpAxis.set(self.up_axis) # 6)
+        ik_handle.dForwardAxis.set(self.facing_axis)
+        ik_handle.dWorldUpAxis.set(self.up_axis)
 
         # -- Create the upvector links
         ik_handle.dTwistControlEnable.set(True)
         ik_handle.dWorldUpType.set(2)  # -- Object Up (Start/End)
-        self.upvectors[0].attr('worldMatrix[0]').connect(ik_handle.dWorldUpMatrix)
-        self.upvectors[1].attr('worldMatrix[0]').connect(ik_handle.dWorldUpMatrixEnd)
+        self.upvectors[0].attr("worldMatrix[0]").connect(ik_handle.dWorldUpMatrix)
+        self.upvectors[1].attr("worldMatrix[0]").connect(ik_handle.dWorldUpMatrixEnd)
 
         # -- Now we need to hook up the stretch mechanism
-        curve_info = pm.createNode('curveInfo')
-        curve.getShape().attr('worldSpace[0]').connect(curve_info.inputCurve)
+        curve_info = pm.createNode("curveInfo")
+        curve.getShape().attr("worldSpace[0]").connect(curve_info.inputCurve)
 
         # -- Create the float math, which allows us to divde the curve
         # -- up
-        float_node = pm.createNode('floatMath')
-        float_node.attr('operation').set(3)  # Divide
+        float_node = pm.createNode("floatMath")
+        float_node.attr("operation").set(3)  # Divide
         curve_info.arcLength.connect(float_node.floatA)
         float_node.floatB.set(len(self.mechanical_joints) - 1)
 
@@ -517,6 +515,6 @@ class SplineIKSetup(object):
             if idx == 0:
                 continue
 
-            float_node.outFloat.connect(mechanical_joint.attr('translate%s' % SplineSpineComponent.UP_AXIS[self.up_axis][-1].upper()))
+            float_node.outFloat.connect(mechanical_joint.attr("translate%s" % SplineSpineComponent.UP_AXIS[self.up_axis][-1].upper()))
 
         return True

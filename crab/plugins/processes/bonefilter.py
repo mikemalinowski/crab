@@ -1,7 +1,7 @@
 import crab
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class BoneFilterProcess(crab.Process):
     """
     Makes any bones which are part of the control hierarchy invisible
@@ -9,10 +9,10 @@ class BoneFilterProcess(crab.Process):
     """
 
     # -- Define the identifier for the plugin
-    identifier = 'BoneFilter'
+    identifier = "BoneFilter"
     version = 1
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
     def post_build(self):
         """
@@ -21,5 +21,5 @@ class BoneFilterProcess(crab.Process):
 
         :return: 
         """
-        for joint in self.rig.control_org().getChildren(ad=True, type='joint'):
+        for joint in self.rig.control_org().getChildren(ad=True, type="joint"):
             joint.drawStyle.set(2)  # -- Hide

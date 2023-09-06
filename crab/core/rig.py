@@ -1,6 +1,7 @@
 import json
 import uuid
 import time
+import operator
 import traceback
 import maya.cmds as mc
 import pymel.core as pm
@@ -13,28 +14,28 @@ from .. import create
 from ..constants import log
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class Signal(object):
     """
     A simple signal emmisison mechanism to allow for events within functions
     to trigger mid-call callbacks.
     """
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         self._callables = list()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def connect(self, item):
         self._callables.append(item)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def emit(self, *args, **kwargs):
         for item in self._callables:
             item(*args, **kwargs)
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class Rig(object):
     """
     The rig class represents the main interfacing class for a crab rig. From
@@ -47,7 +48,7 @@ class Rig(object):
 
         >>> import crab
         >>>
-        >>> new_rig = crab.Rig.create(name='MyRig')
+        >>> new_rig = crab.Rig.create(name="MyRig")
 
     You can then use this variable to add new components
 
@@ -56,10 +57,10 @@ class Rig(object):
         >>> import crab
         >>>
         >>> # -- Build a new rig
-        >>> new_rig = crab.Rig.create(name='MyRig')
+        >>> new_rig = crab.Rig.create(name="MyRig")
         >>>
         >>> # -- Add a component to the rig
-        >>> new_rig.add_component('Location')
+        >>> new_rig.add_component("Location")
         >>>
         >>> # -- Build the rig
         >>> new_rig.build()
@@ -68,9 +69,8 @@ class Rig(object):
         >>> new_rig.edit()
     """
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self, node):
-
         # -- Delcare our signals to allow mechanisms to tie into the rig
         # -- processes. Lets start with the edit signals
         self.edit_started = Signal()  # -- Will pass the number of actions
@@ -92,18 +92,18 @@ class Rig(object):
         self._meta = None
         self._reference = node
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def built_successfully(self):
         """
         Checks if the rig was successfully built last time the build
         was attempted
         """
-        if self.node().hasAttr('built_successfully'):
+        if self.node().hasAttr("built_successfully"):
             return self.node().built_successfully.get()
 
         return True
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     @classmethod
     def create(cls, name=None):
         """
@@ -115,9 +115,9 @@ class Rig(object):
         """
         # -- Create the node which all others will go under
         rig_root = create.generic(
-            node_type='transform',
+            node_type="transform",
             prefix=config.RIG_ROOT,
-            description=name or 'CrabRig',
+            description=name or "CrabRig",
             side=config.MIDDLE,
         )
 
@@ -125,90 +125,46 @@ class Rig(object):
         # -- this allow mechanisms to check whether they should run or whether there
         # -- may be issues
         rig_root.addAttr(
-            'built_successfully',
-            at='bool',
+            "built_successfully",
+            at="bool",
             dv=True,
         )
 
-        # -- Create the node marker
-        rig_meta = pm.createNode('network')
-        rig_meta.rename(
-            config.name(
-                prefix=config.META,
-                description=name,
-                side=config.MIDDLE,
-            )
-        )
-
-        # -- Add the attributes required for a component marker
-        rig_meta.addAttr(
-            config.RIG_ROOT_LINK_ATTR,
-            at='message'
-        )
-        rig_root.message.connect(rig_meta.attr(config.RIG_ROOT_LINK_ATTR))
-
-        # -- Add this various link attributes to the different
-        # -- parts which make up the component
-        rig_meta.addAttr(
-            config.SKELETON_ROOT_LINK_ATTR,
-            at='message',
-        )
-
-        rig_meta.addAttr(
-            config.CONTROL_ROOT_LINK_ATTR,
-            at='message',
-        )
-
-        rig_meta.addAttr(
-            config.GUIDE_ROOT_LINK_ATTR,
-            at='message',
-        )
-        rig_meta.addAttr(
-            config.BEHAVIOUR_DATA,
-            dt='string',
-        )
-        rig_meta.attr(config.BEHAVIOUR_DATA).set('[]')
-
-        # -- Create our sub-category nodes. These allow us to create
-        # -- clear distinctions between our control rig, skeleton and
-        # -- guides.
         control_root = create.generic(
-            node_type='transform',
+            node_type="transform",
             prefix=config.ORG,
-            description='ControlRig',
+            description="ControlRig",
             side=config.MIDDLE,
             parent=rig_root,
-        )
-        control_root.message.connect(
-            rig_meta.attr(config.CONTROL_ROOT_LINK_ATTR),
         )
 
         skeleton_root = create.generic(
-            node_type='transform',
+            node_type="transform",
             prefix=config.ORG,
-            description='Skeleton',
+            description="Skeleton",
             side=config.MIDDLE,
             parent=rig_root,
-        )
-        skeleton_root.message.connect(
-            rig_meta.attr(config.SKELETON_ROOT_LINK_ATTR),
         )
 
         guide_root = create.generic(
-            node_type='transform',
+            node_type="transform",
             prefix=config.ORG,
-            description='Guide',
+            description="Guide",
             side=config.MIDDLE,
             parent=rig_root,
         )
-        guide_root.message.connect(
-            rig_meta.attr(config.GUIDE_ROOT_LINK_ATTR),
+
+        cls.create_meta(
+            rig_root=rig_root,
+            skeleton_root=skeleton_root,
+            control_root=control_root,
+            guide_root=guide_root,
         )
 
         create.generic(
-            node_type='transform',
+            node_type="transform",
             prefix=config.ORG,
-            description='Geometry',
+            description="Geometry",
             side=config.MIDDLE,
             parent=rig_root,
         )
@@ -217,11 +173,82 @@ class Rig(object):
         pm.select(skeleton_root)
 
         # -- Debug build information
-        log.debug('Created new Crab Rig')
+        log.debug("Created new Crab Rig")
 
         return Rig(rig_root)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
+    @classmethod
+    def create_meta(
+        cls,
+        rig_root,
+        skeleton_root=None,
+        control_root=None,
+        guide_root=None,
+    ):
+        if not skeleton_root:
+            skeleton_root = utils.hierarchy.find_below(rig_root, "Skeleton")
+
+        if not control_root:
+            control_root = utils.hierarchy.find_below(rig_root, "ControlRig")
+
+        if not guide_root:
+            guide_root = utils.hierarchy.find_below(rig_root, "Guide")
+
+        # -- Create the node marker
+        rig_meta = pm.createNode("network")
+        rig_meta.rename(
+            config.name(
+                prefix=config.META,
+                description=config.get_description(rig_root),
+                side=config.MIDDLE,
+            )
+        )
+
+        # -- Add the attributes required for a component marker
+        rig_meta.addAttr(config.RIG_ROOT_LINK_ATTR, at="message")
+        rig_root.message.connect(rig_meta.attr(config.RIG_ROOT_LINK_ATTR))
+
+        # -- Add this various link attributes to the different
+        # -- parts which make up the component
+        rig_meta.addAttr(
+            config.SKELETON_ROOT_LINK_ATTR,
+            at="message",
+        )
+
+        rig_meta.addAttr(
+            config.CONTROL_ROOT_LINK_ATTR,
+            at="message",
+        )
+
+        rig_meta.addAttr(
+            config.GUIDE_ROOT_LINK_ATTR,
+            at="message",
+        )
+        rig_meta.addAttr(
+            config.BEHAVIOUR_DATA,
+            dt="string",
+        )
+        rig_meta.attr(config.BEHAVIOUR_DATA).set("[]")
+
+        # -- Create our sub-category nodes. These allow us to create
+        # -- clear distinctions between our control rig, skeleton and
+        # -- guides.
+        control_root.message.connect(
+            rig_meta.attr(config.CONTROL_ROOT_LINK_ATTR),
+        )
+
+        skeleton_root.message.connect(
+            rig_meta.attr(config.SKELETON_ROOT_LINK_ATTR),
+        )
+
+        guide_root.message.connect(
+            rig_meta.attr(config.GUIDE_ROOT_LINK_ATTR),
+        )
+
+        return rig_meta
+
+    # ----------------------------------------------------------------------------------
     def meta(self):
         """
         This will attempt to return the meta node for the rig. Typically you
@@ -239,12 +266,11 @@ class Rig(object):
         if self._meta:
             return self._meta
 
-        # -- We'll need to cycle up from the given reference node
+        # -- We"ll need to cycle up from the given reference node
         # -- so we declare a variable to do this
         node = self._reference
 
         while True:
-
             # -- If we have hit the scene root then there is nothing
             # -- more we can do
             if not node:
@@ -253,8 +279,7 @@ class Rig(object):
             # -- Cycle all the message connections looking for the
             # -- crab meta
             for attr in node.message.outputs(plugs=True):
-
-                # -- We're looking specifically for the crab identifer
+                # -- We"re looking specifically for the crab identifer
                 if attr.name(includeNode=False) != config.RIG_ROOT_LINK_ATTR:
                     continue
 
@@ -268,7 +293,7 @@ class Rig(object):
             # -- to the next parent
             node = node.getParent()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def node(self):
         """
         This returns the Rig transform node. This is expected to be the
@@ -282,7 +307,7 @@ class Rig(object):
         except AttributeError:
             return None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def guide_org(self):
         """
         Returns the transform node which is used to store all the guide
@@ -296,7 +321,7 @@ class Rig(object):
         except AttributeError:
             return None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def control_org(self):
         """
         Returns the transform which the control rig resides under.
@@ -309,7 +334,7 @@ class Rig(object):
         except AttributeError:
             return None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def skeleton_org(self):
         """
         Returns the transform node which the skeletal hierarchy
@@ -323,7 +348,7 @@ class Rig(object):
         except AttributeError:
             return None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def find_org(self, label):
         """
         This is a generic convenience function for finding org nodes which
@@ -334,13 +359,13 @@ class Rig(object):
 
         :return: pm.nt.Transform
         """
-        for child in self.node().getChildren(type='transform'):
-            if '_%s_' % label in child.name():
+        for child in self.node().getChildren(type="transform"):
+            if "_%s_" % label in child.name():
                 return child
 
         return None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def available_components(self):
         """
         This will return a list of component classes (not instanced)
@@ -349,7 +374,7 @@ class Rig(object):
         """
         return self.factories.components.plugins()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def available_behaviours(self):
         """
         This will return a list of component classes (not instanced)
@@ -358,7 +383,7 @@ class Rig(object):
         """
         return self.factories.behaviours.plugins()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def behaviours(self, unique_id=None):
         """
         This will return a list of component classes (not instanced)
@@ -370,22 +395,26 @@ class Rig(object):
         behaviours = list()
 
         for behaviour_data in all_behaviour_data:
-
             # -- If we do not recognise the behaviour, log it and continu
-            if behaviour_data.get('type', '') not in self.factories.behaviours.identifiers():
-                print('{} is not a recognised behaviour'.format(behaviour_data['type']))
+            if (
+                behaviour_data.get("type", "")
+                not in self.factories.behaviours.identifiers()
+            ):
+                print("{} is not a recognised behaviour".format(behaviour_data["type"]))
                 continue
 
             # -- Instance the behaviour
-            behaviour_class = self.factories.behaviours.request(behaviour_data['type'])
-            behaviour = behaviour_class(rig=self, instance_id=behaviour_data.get('id', None))
+            behaviour_class = self.factories.behaviours.request(behaviour_data["type"])
+            behaviour = behaviour_class(
+                rig=self, instance_id=behaviour_data.get("id", None)
+            )
 
             # -- Update the behaviour with all its option information
-            behaviour.options.update(behaviour_data.get('options', {}))
+            behaviour.options.update(behaviour_data.get("options", {}))
 
-            # -- If we're given a specific behaviour id to look for, and it matches
+            # -- If we"re given a specific behaviour id to look for, and it matches
             # -- then lets return it
-            if unique_id and behaviour_data.get('id') == unique_id:
+            if unique_id and behaviour_data.get("id") == unique_id:
                 return behaviour
 
             # -- Add the behaviour to the list
@@ -393,7 +422,7 @@ class Rig(object):
 
         return behaviours
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def serialise_behaviour(self, behaviour):
         """
         This will serialise any information from a behaviour that is assigned
@@ -401,7 +430,7 @@ class Rig(object):
         """
         pass
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def validate_behaviours(self, remove_invalid=False):
         """
         This will run behaviour validation - checking for any behaviours
@@ -435,7 +464,6 @@ class Rig(object):
         # -- Now cycle teh list of behaviours and check each one is capable
         # -- of building correctly
         for behaviour in self.behaviours():
-
             # -- We take the result only if our running result is True. This
             # -- is because having any ONE false result means the end result
             # -- needs to be false.
@@ -451,12 +479,8 @@ class Rig(object):
 
         return overall_result
 
-    # --------------------------------------------------------------------------
-    def add_component(self,
-                      component_type,
-                      parent=None,
-                      version=None,
-                      **options):
+    # ----------------------------------------------------------------------------------
+    def add_component(self, component_type, parent=None, version=None, **options):
         """
         This will add the given component type to the rig as a child
         of the parent. The component type must be available in the
@@ -477,7 +501,7 @@ class Rig(object):
         :type version: int or None
 
         :param options: Catch all for any keyword arguments being passed which
-            will then be passed directly to the component's option dictionary.
+            will then be passed directly to the component"s option dictionary.
 
         :return: component plugin instance
         """
@@ -488,9 +512,10 @@ class Rig(object):
         if component_type not in self.factories.components.identifiers():
             log.error(
                 (
-                    '%s is not a recognised component_type type. Check your '
-                    'plugin paths.'
-                ) % component_type
+                    "%s is not a recognised component_type type. Check your "
+                    "plugin paths."
+                )
+                % component_type
             )
             return None
 
@@ -510,7 +535,6 @@ class Rig(object):
             return plugin
 
         with utils.contexts.RestoredSelection():
-
             # -- Create the guide, generating a guide root and passing
             # -- that through as the parent
             result = plugin.create_guide(
@@ -524,9 +548,8 @@ class Rig(object):
             # -- value, in which case log an error
             if not result:
                 log.error(
-                    'The %s segment failed to create its guide successfully' % (
-                        component_type,
-                    ),
+                    "The %s segment failed to create its guide successfully"
+                    % (component_type,),
                 )
                 return None
 
@@ -535,12 +558,77 @@ class Rig(object):
 
             # -- Add a debug message to denote the success of the
             # -- component addition
-            log.debug(
-                'Successfully created component of type: %s' % component_type)
+            log.debug("Successfully created component of type: %s" % component_type)
 
             return plugin
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
+    def recreate_component(self, component):
+        # -- Store all the transforms of the joints
+        transforms = dict()
+        a_poses = dict()
+        t_poses = dict()
+        leaf_components = dict()
+
+        component_parent = component.skeletal_root().getParent()
+        component_joints = component.skeletal_joints()
+
+        for joint in component_joints:
+            transforms[joint.name()] = joint.getMatrix()
+
+            if joint.hasAttr("APose"):
+                a_poses[joint.name()] = joint.APose.get()
+
+            if joint.hasAttr("TPose"):
+                t_poses[joint.name()] = joint.TPose.get()
+
+        # -- We now need to store the skeletal hierarchy
+        for joint in component.skeletal_root().getChildren(ad=True, type="joint"):
+            # -- If this joint is a component joint we ignore it
+            if joint in component_joints:
+                continue
+
+            # -- If this joint is not a component joint, but its not a direct child
+            # -- of a component joint we also ignore it
+            if joint.getParent() not in component_joints:
+                continue
+
+            # -- To reach here we have a joint which is not part of this component but
+            # -- is an immediate child. Therefore we need to store it and unparent it
+            leaf_components[joint] = joint.getParent().name()
+            joint.setParent(None)
+
+        # -- Remove the component
+        component.remove()
+
+        # -- Add the component
+        new_component = self.add_component(
+            component.identifier, parent=component_parent, **component.options
+        )
+
+        # -- We now need to try and restore as much information as possible
+        for joint in new_component.skeletal_joints():
+            name = joint.name()
+
+            if name in transforms:
+                joint.setMatrix(transforms[name])
+
+            if name in a_poses:
+                if not joint.hasAttr("APose"):
+                    joint.addAttr("APose", at="matrix")
+                joint.APose.set(a_poses[name])
+
+            if name in t_poses:
+                if not joint.hasAttr("TPose"):
+                    joint.addAttr("TPose", at="matrix")
+                joint.TPose.set(t_poses[name])
+
+        # -- Now we need to set any parenting
+        for leaf_component, parent_name in leaf_components.items():
+            if pm.objExists(parent_name):
+                leaf_component.setParent(pm.PyNode(parent_name))
+
+    # ----------------------------------------------------------------------------------
     def edit(self):
         """
         Puts the rig into an editable state - removing the control rig
@@ -551,10 +639,10 @@ class Rig(object):
 
         :return: True if the rig enters edit mode successfully
         """
-        # -- If we're already in an editable state we do not need
+        # -- If we"re already in an editable state we do not need
         # -- to do anything more
         if self.is_editable():
-            log.info('Rig is already editable.')
+            log.info("Rig is already editable.")
             return True
 
         # -- Determine how many actions we will be processing so we can
@@ -570,27 +658,33 @@ class Rig(object):
         # -- processes to the oppotunity to snapshop the rig and
         # -- perform any pre-processes
         for proc in self.factories.processes.plugins():
-            self.performing_action.emit('Performing Snapshot : {}'.format(proc.identifier))
+            self.performing_action.emit(
+                "Performing Snapshot : {}".format(proc.identifier)
+            )
             proc(self).snapshot()
 
         # -- Now we must remove the control rig
-        self.performing_action.emit('Deleting control rig')
+        self.performing_action.emit("Deleting control rig")
         pm.delete(self.control_roots())
 
         for proc in self.factories.processes.plugins():
-            self.performing_action.emit('Running post-edit processes : {}'.format(proc.identifier))
+            self.performing_action.emit(
+                "Running post-edit processes : {}".format(proc.identifier)
+            )
             proc(self).post_edit()
 
         # -- Show all guides
         for skeleton_component_root in self.skeleton_roots():
             print(skeleton_component_root)
-            component_plugin = self.factories.components.find_from_node(skeleton_component_root)
+            component_plugin = self.factories.components.find_from_node(
+                skeleton_component_root
+            )
             guide_root = component_plugin.guide_root()
 
             if not guide_root:
                 continue
 
-            self.performing_action.emit('Linking Guides: {}'.format(guide_root))
+            self.performing_action.emit("Linking Guides: {}".format(guide_root))
 
             # -- Ensure the guide is visible
             guide_root.visibility.set(True)
@@ -602,7 +696,7 @@ class Rig(object):
         self.edit_complete.emit(True)
         return True
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def build(self):
         """
         This builds the rig. It first places the rig into an editable
@@ -613,17 +707,17 @@ class Rig(object):
         :return: True if the build was successful
         """
         # -- Log the action of starting a rig build
-        log.info('Commencing rig build.')
+        log.info("Commencing rig build.")
 
         # -- Track the start time
         start_time = time.time()
 
         # -- Create an attribute on the rig node to store the shape
         # -- information on
-        if not self.node().hasAttr('isClean'):
+        if not self.node().hasAttr("isClean"):
             self.node().addAttr(
-                'isClean',
-                at='bool',
+                "isClean",
+                at="bool",
             )
         self.node().isClean.set(False)
 
@@ -632,10 +726,10 @@ class Rig(object):
 
         # -- Check if our rig node has the built successfully attribute. This is crucual
         # -- for processes to know what state the rig is in
-        if not self.node().hasAttr('built_successfully'):
+        if not self.node().hasAttr("built_successfully"):
             self.node().addAttr(
-                'built_successfully',
-                at='bool',
+                "built_successfully",
+                at="bool",
                 dv=True,
             )
 
@@ -649,7 +743,7 @@ class Rig(object):
         action_count += len(self.factories.processes.plugins())
 
         # -- From this point onward we may start making edits to the rig
-        # -- so we set teh built_successfully flag to false until we're
+        # -- so we set teh built_successfully flag to false until we"re
         # -- complete
         self.node().built_successfully.set(False)
 
@@ -659,20 +753,23 @@ class Rig(object):
         # -- Run any validation before we start. If any validation fails then
         # -- we do not continue
         for proc in self.factories.processes.plugins():
-            self.performing_action.emit('Running Process : {}'.format(proc.identifier))
+            self.performing_action.emit("Running Process : {}".format(proc.identifier))
             result = proc(self).validate()
 
             if not result:
-                print('%s failed during validation. Please see script editor for details' % proc.identifier)
+                print(
+                    "%s failed during validation. Please see script editor for details"
+                    % proc.identifier
+                )
                 return False
 
         for proc in self.factories.processes.plugins():
-            self.performing_action.emit('Running Process : {}'.format(proc.identifier))
+            self.performing_action.emit("Running Process : {}".format(proc.identifier))
             proc(self).pre_build()
 
         # -- Hide all guides
         for guide_root in self.guide_roots():
-            self.performing_action.emit('Unlinking Guide : {}'.format(guide_root))
+            self.performing_action.emit("Unlinking Guide : {}".format(guide_root))
 
             guide_root.visibility.set(False)
 
@@ -683,7 +780,9 @@ class Rig(object):
         # -- Finally we can start cycling components and requested
         # -- a control build
         for skeleton_component_root in self.skeleton_roots():
-            self.performing_action.emit('Building Component : {}'.format(skeleton_component_root))
+            self.performing_action.emit(
+                "Building Component : {}".format(skeleton_component_root)
+            )
 
             # -- Attempt to find the specific control parent
             rig_parent = self.control_org()
@@ -696,9 +795,14 @@ class Rig(object):
 
             # -- Get a component class instance which is targeted at the
             # -- skeletal component root
-            component_plugin = self.factories.components.find_from_node(skeleton_component_root)
+            component_plugin = self.factories.components.find_from_node(
+                skeleton_component_root
+            )
 
-            print('Starting build of : %s (%s)' % (component_plugin.identifier, skeleton_component_root))
+            print(
+                "Starting build of : %s (%s)"
+                % (component_plugin.identifier, skeleton_component_root)
+            )
 
             try:
                 meta_node = component_plugin.meta()
@@ -707,9 +811,9 @@ class Rig(object):
                 if not meta_node.hasAttr(config.META_CONTENTS):
                     meta_node.addAttr(
                         config.META_CONTENTS,
-                        dt='string',
+                        dt="string",
                     )
-                    meta_node.attr(config.META_CONTENTS).set('[]')
+                    meta_node.attr(config.META_CONTENTS).set("[]")
 
                 # -- Snapshot the scene list
                 scene_list = set(mc.ls(dag=True))
@@ -724,24 +828,29 @@ class Rig(object):
 
                 # -- Capture the delta
                 new_scene_list = set(mc.ls(dag=True))
-                meta_node.attr(config.META_CONTENTS).set(str(list(new_scene_list - scene_list)))
+                meta_node.attr(config.META_CONTENTS).set(
+                    str(list(new_scene_list - scene_list))
+                )
 
                 if not result:
-                    print('%s returned False during build.' % component_plugin.identifier)
+                    print(
+                        "%s returned False during build." % component_plugin.identifier
+                    )
                     return False
 
             except:
                 traceback.print_exc()
                 return False
 
-            print('\tBuild complete')
+            print("\tBuild complete")
 
         # -- Now we need to apply any behaviours
         for behaviour in self.behaviours():
+            self.performing_action.emit(
+                "Building Behaviour : {}".format(behaviour.identifier)
+            )
 
-            self.performing_action.emit('Building Behaviour : {}'.format(behaviour.identifier))
-
-            print('Starting application of : %s' % behaviour.identifier)
+            print("Starting application of : %s" % behaviour.identifier)
 
             try:
                 # -- Finally apply the behaviour
@@ -751,17 +860,19 @@ class Rig(object):
                 traceback.print_exc()
                 return False
 
-            print('\tApplication complete')
+            print("\tApplication complete")
 
         # -- Mark the rig build as clean
         self.node().isClean.set(True)
 
         # -- Now the rig has been fully built we can run any post build
         # -- processes
-        for proc in self.factories.processes.plugins():
-            self.performing_action.emit('Running Process : {}'.format(proc.identifier))
+        for proc in sorted(
+            self.factories.processes.plugins(), key=operator.attrgetter("order")
+        ):
+            self.performing_action.emit("Running Process : {}".format(proc.identifier))
 
-            print('Starting Process : %s' % proc.identifier)
+            print("Starting Process : %s" % proc.identifier)
             try:
                 proc(self).post_build()
 
@@ -769,7 +880,7 @@ class Rig(object):
                 traceback.print_exc()
                 return False
 
-            print('\tProcess complete')
+            print("\tProcess complete")
 
         # -- To reach this point our rig build has been succesful, so we should
         # -- mark it as such
@@ -777,14 +888,14 @@ class Rig(object):
 
         # -- Calculate the time it took
         print(
-            'Rig took {} to build'.format(
+            "Rig took {} to build".format(
                 round(time.time() - start_time, 4),
             )
         )
 
         return True
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def is_editable(self):
         """
         Checks if the rig is considered to be in an editable or animatable
@@ -797,7 +908,7 @@ class Rig(object):
 
         return True
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyTypeChecker
     def add_behaviour(self, behaviour_type, index=None, **options):
         """
@@ -826,7 +937,7 @@ class Rig(object):
         """
         # -- Ensure the behaviour is accessible
         if behaviour_type not in self.factories.behaviours.identifiers():
-            log.error('%s could not be found.' % behaviour_type)
+            log.error("%s could not be found." % behaviour_type)
             return False
 
         # -- Get the current behaviour data
@@ -854,7 +965,7 @@ class Rig(object):
 
         return self.behaviours(unique_id=unique_id)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def guide_roots(self):
         """
         Returns all the active guide roots within the rig.
@@ -865,12 +976,11 @@ class Rig(object):
 
         for child in reversed(self.guide_org().getChildren(allDescendents=True)):
             if self.factories.component_abstract.is_component_root(child):
-
                 results.append(child)
 
         return results
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def control_roots(self):
         """
         Returns all the component roots within the control hierarchy
@@ -880,14 +990,13 @@ class Rig(object):
         """
         results = list()
 
-        for child in reversed(
-                self.control_org().getChildren(allDescendents=True)):
+        for child in reversed(self.control_org().getChildren(allDescendents=True)):
             if self.factories.component_abstract.is_component_root(child):
                 results.append(child)
 
         return results
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def skeleton_roots(self):
         """
         Returns all the component roots within the skeletal hierarchy
@@ -897,23 +1006,24 @@ class Rig(object):
         """
         results = list()
 
-        for child in reversed(
-                self.skeleton_org().getChildren(allDescendents=True)):
+        for child in reversed(self.skeleton_org().getChildren(allDescendents=True)):
             if self.factories.component_abstract.is_component_root(child):
                 results.append(child)
 
         return results
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def components(self):
         components = list()
 
         for skeleton_component_root in self.skeleton_roots():
-            components.append(self.factories.components.find_from_node(skeleton_component_root))
+            components.append(
+                self.factories.components.find_from_node(skeleton_component_root)
+            )
 
         return components
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     @classmethod
     def all(cls):
         """
@@ -923,11 +1033,11 @@ class Rig(object):
         """
         return [
             Rig(attr.node().attr(config.RIG_ROOT_LINK_ATTR).inputs()[0])
-            for attr in pm.ls('*.%s' % config.RIG_ROOT_LINK_ATTR, r=True)
+            for attr in pm.ls("*.%s" % config.RIG_ROOT_LINK_ATTR, r=True)
         ]
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def get():
     """
     Convenience function for getting the first crab rig in the scene

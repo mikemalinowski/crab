@@ -6,7 +6,7 @@ import json
 import uuid
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class Behaviour(object):
     """
     A behaviour is a rigging behaviour which may or may not have a dag element
@@ -15,7 +15,7 @@ class Behaviour(object):
     """
 
     # -- Unique identifier for the behaviur
-    identifier = ''
+    identifier = ""
     version = 0
 
     # -- The preview allows you to specify the location of a gif to show the user
@@ -27,7 +27,7 @@ class Behaviour(object):
     tooltips = dict()
 
     # -- This allows an icon to be defined
-    icon = utils.resources.get('behaviour.png')
+    icon = utils.resources.get("behaviour.png")
 
     # -- These allow you to mark certain options as being expected
     # -- to be fullfilled
@@ -37,22 +37,21 @@ class Behaviour(object):
     # -- then they should exist
     OPTIONAL_NODE_OPTIONS = []
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self, rig=None, instance_id=None):
-
         # -- This is a uuid for the behaviour
         self.uuid = instance_id or str(uuid.uuid4())
 
         # -- All the options should be defined within this
         # -- dictionary
         self.options = utils.types.AttributeDict()
-        self.options.description = 'unknown'
+        self.options.description = "unknown"
         self.options.side = config.MIDDLE
 
         # -- By default assume we do not have a root yet
         self.rig = rig
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def apply(self):
         """
         You should implement this function to build your behaviour. You may
@@ -62,7 +61,7 @@ class Behaviour(object):
         """
         return True
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def ui(self, parent=None):
         """
         This is an optional mechanism to implement a custom UI widget to be displayed
@@ -77,37 +76,38 @@ class Behaviour(object):
         """
         return None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     @classmethod
     def rich_help(cls):
         if cls.preview:
             return dict(
                 title=cls.identifier.title(),
                 gif=cls.preview,
-                description=cls.__doc__.strip() if cls.__doc__ else '',
+                description=cls.__doc__.strip() if cls.__doc__ else "",
             )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def save(self):
         """
         This will save any option data in the behaviour
         """
-        all_behaviour_data = json.loads(self.rig.meta().attr(config.BEHAVIOUR_DATA).get())
+        all_behaviour_data = json.loads(
+            self.rig.meta().attr(config.BEHAVIOUR_DATA).get()
+        )
 
         for behaviour_data in all_behaviour_data:
-
-            if behaviour_data.get('id') == self.uuid:
-                behaviour_data['options'] = self.options
+            if behaviour_data.get("id") == self.uuid:
+                behaviour_data["options"] = self.options
 
         # -- Now write the data into the attribute
         self.rig.meta().attr(config.BEHAVIOUR_DATA).set(
             json.dumps(all_behaviour_data),
         )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def remove(self):
         """
-        This will remove the behaviour with the given id. The id's of behaviours
+        This will remove the behaviour with the given id. The id"s of behaviours
         can be found by calling ```rig.assigned_behaviours()```.
 
         :param behaviour_id: uuid of the behaviour to remove
@@ -120,7 +120,7 @@ class Behaviour(object):
 
         # -- Look for a behaviour with the given behaviour id
         for idx, behaviour_data in enumerate(current_data):
-            if behaviour_data['id'] == self.uuid:
+            if behaviour_data["id"] == self.uuid:
                 current_data.pop(idx)
 
                 # -- Now write the data into the attribute
@@ -132,7 +132,7 @@ class Behaviour(object):
 
         return False
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def shift_order(self, shift_offset):
         """
         Behaviours are built in sequence, this method allows you to shift
@@ -150,13 +150,12 @@ class Behaviour(object):
 
         # -- Look for a behaviour with the given behaviour id
         for idx, behaviour_data in enumerate(current_data):
-            if behaviour_data['id'] == self.uuid:
-
+            if behaviour_data["id"] == self.uuid:
                 # -- Offset the data be the required amount
                 current_data.insert(
                     current_data.index(behaviour_data) + shift_offset,
                     current_data.pop(current_data.index(behaviour_data)),
-                    )
+                )
 
                 # -- Now write the data into the attribute
                 self.rig.meta().attr(config.BEHAVIOUR_DATA).set(
@@ -166,7 +165,7 @@ class Behaviour(object):
 
         return False
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def can_build(self, available_nodes):
         """
         This is a validation step, allowing the behaviour to decide if it
@@ -185,35 +184,36 @@ class Behaviour(object):
         all_options = self.REQUIRED_NODE_OPTIONS + self.OPTIONAL_NODE_OPTIONS
 
         for option in all_options:
-
             # -- Skip if the option does not exist
             if option not in self.options:
                 continue
 
-            declared_nodes = [n for n in self.options[option].split(';') if n]
+            declared_nodes = [n for n in self.options[option].split(";") if n]
 
             if not declared_nodes and option in self.REQUIRED_NODE_OPTIONS:
-                print('%s option requires a value' % option)
+                print("%s option requires a value" % option)
                 return False
 
             for declared_node in declared_nodes:
                 if declared_node not in available_nodes:
-                    print('%s could not be found (%s)' % (declared_node, self.options.description))
+                    print(
+                        "%s could not be found (%s)"
+                        % (declared_node, self.options.description)
+                    )
                     return False
 
         return True
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class BehaviourUI(qute.QWidget):
-
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self, behaviour_instance, parent):
         super(BehaviourUI, self).__init__(parent)
 
         self.behaviour_instance = behaviour_instance
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     @classmethod
     def unhandled_options(cls):
         """

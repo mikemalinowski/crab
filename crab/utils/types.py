@@ -1,6 +1,4 @@
-
-
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class AttributeDict(dict):
     """
     An AttributeDict is a dictionary where by its members can be accessed as
@@ -10,7 +8,7 @@ class AttributeDict(dict):
         .. code-block:: python
 
             >>> ad = AttributeDict()
-            >>> ad['foo'] = 10
+            >>> ad["foo"] = 10
 
             >>> print(ad.foo)
             10

@@ -1,17 +1,20 @@
 from .. import config
 from .basics import generic
 
-# ------------------------------------------------------------------------------
-def control(description,
-            side,
-            parent=None,
-            xform=None,
-            match_to=None,
-            shape=None,
-            lock_list=None,
-            hide_list=None,
-            rotation_order=None,
-            counter=1):
+
+# --------------------------------------------------------------------------------------
+def control(
+    description,
+    side,
+    parent=None,
+    xform=None,
+    match_to=None,
+    shape=None,
+    lock_list=None,
+    hide_list=None,
+    rotation_order=None,
+    counter=1,
+):
     """
     Creates a control structure - which is a structure which conforms to the
     following hierarchy:
@@ -44,6 +47,14 @@ def control(description,
         is only applied to the control.
     :type hide_list: A list of strings, or a string deliminated by ;
 
+    :param rotation_order: The rotation order that should be assigned to this
+        control by default
+    :type rotation_order: int
+
+    :param counter: [Optional] What counter should be tested for generating
+        the name of the rig element
+    :type counter: int
+
     :return: pm.nt.DependNode
     """
     prefixes = [
@@ -54,16 +65,15 @@ def control(description,
     ]
 
     for prefix in prefixes:
-
         # -- Declare any specific options for this iteration
         options = dict()
 
         # -- Controls are the only items which have shapes
         if prefix == config.CONTROL:
-            options['shape'] = shape
+            options["shape"] = shape
 
         parent = generic(
-            'transform',
+            "transform",
             prefix,
             description,
             side,
@@ -76,10 +86,10 @@ def control(description,
 
     # -- Check if we need to convert lock or hide data
     if hide_list and not isinstance(hide_list, list):
-        hide_list = hide_list.split(';')
+        hide_list = hide_list.split(";")
 
     if lock_list and not isinstance(lock_list, list):
-        lock_list = lock_list.split(';')
+        lock_list = lock_list.split(";")
 
     if hide_list:
         for attr_to_hide in hide_list:
@@ -94,8 +104,6 @@ def control(description,
     # -- Now expose the rotation order
     parent.rotateOrder.set(k=True)
 
-    parent.rotateOrder.set(
-        rotation_order or config.DEFAULT_CONTROL_ROTATION_ORDER
-    )
+    parent.rotateOrder.set(rotation_order or config.DEFAULT_CONTROL_ROTATION_ORDER)
 
     return parent

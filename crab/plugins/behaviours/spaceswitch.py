@@ -9,52 +9,53 @@ class SpaceSwitch(crab.Behaviour):
     This is meant as an example only to show how a behaviour
     can operate
     """
-    identifier = 'SpaceSwitch'
+    identifier = "SpaceSwitch"
     version = 1
 
     dict(
-        target='The name of the control which you want to add the spaceswitch to',
-        spaces='A list of target objects which should act as spaces',
-        labels='A list of labels to make up the space switch attribute. This should be in the same order as the Spaces option',
-        translation_only='If ticked, the rotation of the target will not be affected',
-        rotation_only='If ticked, the translation of the target will not be affected',
-        default_space='This should be an entry specified in "labels" (or Parent Label) and defines which space is active by default',
-        parent_label='All space switches expose their parent as a space, how do you want to label this?',
-        target_offsets='This can be used to define the specific location the target should jump to when active in this space. This should be in the form of Label=Node;Label=Node;'
+        target="The name of the control which you want to add the spaceswitch to",
+        spaces="A list of target objects which should act as spaces",
+        labels="A list of labels to make up the space switch attribute. This should be in the same order as the Spaces option",
+        translation_only="If ticked, the rotation of the target will not be affected",
+        rotation_only="If ticked, the translation of the target will not be affected",
+        default_space="This should be an entry specified in "labels" (or Parent Label) and defines which space is active by default",
+        parent_label="All space switches expose their parent as a space, how do you want to label this?",
+        target_offsets="This can be used to define the specific location the target should jump to when active in this space. This should be in the form of Label=Node;Label=Node;"
     )
 
     preview = os.path.join(
         os.path.dirname(__file__),
-        'spaceswitch.gif',
+        "spaceswitch.gif",
     )
 
-    REQUIRED_NODE_OPTIONS = ['target', 'spaces']
+    REQUIRED_NODE_OPTIONS = ["target", "spaces"]
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(SpaceSwitch, self).__init__(*args, **kwargs)
 
-        self.options.target = ''
-        self.options.spaces = ''
-        self.options.labels = ''
+        self.options.target = ""
+        self.options.spaces = ""
+        self.options.labels = ""
         self.options.translation_only = False
         self.options.rotation_only = False
-        self.options.default_space = ''
-        self.options.parent_label = 'Parent'
-        self.options.target_offsets = ''
+        self.options.default_space = ""
+        self.options.parent_label = "Parent"
+        self.options.target_offsets = ""
+        self.options.include_scale = False
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
     def apply(self):
 
         # -- Get a list of any target offsets
-        labels = [str(label) for label in self.options.labels.split(';') if label]
-        spaces = [space for space in self.options.spaces.split(';') if space]
+        labels = [str(label) for label in self.options.labels.split(";") if label]
+        spaces = [space for space in self.options.spaces.split(";") if space]
         target_offsets = [None for _ in spaces]
 
-        for target_data in self.options.target_offsets.split(';'):
-            if '=' in target_data:
-                target, offset = target_data.split('=')
+        for target_data in self.options.target_offsets.split(";"):
+            if "=" in target_data:
+                target, offset = target_data.split("=")
 
                 # -- If the target is a label rather than an objectd
                 # -- we just need to get the object from the label
@@ -75,12 +76,13 @@ class SpaceSwitch(crab.Behaviour):
                 pm.PyNode(space)
                 for space in spaces
             ],
-            labels=self.options.labels.split(';'),
+            labels=self.options.labels.split(";"),
             parent_label=self.options.parent_label,
             applied_space=self.options.default_space,
             translation_only=self.options.translation_only,
             rotation_only=self.options.rotation_only,
             target_offsets=target_offsets,
+            include_scale=self.options.include_scale,
         )
 
     # --------------------------------------------------------------------------
@@ -95,7 +97,8 @@ class SpaceSwitch(crab.Behaviour):
                parent_label,
                translation_only=False,
                rotation_only=False,
-               target_offsets=None):
+               target_offsets=None,
+               include_scale=False):
 
         # -- If there are no labels then we extract the description
         # -- from each space and use that as the labels
@@ -121,12 +124,12 @@ class SpaceSwitch(crab.Behaviour):
 
         # -- Add the space switch attribute
         target.addAttr(
-            'spaces',
-            at='enum',
-            enumName=':'.join(labels),
+            "spaces",
+            at="enum",
+            enumName=":".join(labels),
             k=True,
         )
-        space_attr = target.attr('spaces')
+        space_attr = target.attr("spaces")
         default_id = 0
 
         zero = crab.utils.hierarchy.find_above(target, crab.config.ZERO)
@@ -143,7 +146,7 @@ class SpaceSwitch(crab.Behaviour):
                 # -- Create a unique transform, as target offsets allow
                 # -- for multi use
                 space = crab.create.generic(
-                    node_type='transform',
+                    node_type="transform",
                     prefix=crab.config.MARKER,
                     description=crab.config.get_description(target),
                     side=crab.config.get_side(target),
@@ -171,11 +174,19 @@ class SpaceSwitch(crab.Behaviour):
                 skipTranslate=skip_translate,
             )
 
+            scale_cns = None
+            if include_scale:
+                scale_cns = pm.scaleConstraint(
+                    space,
+                    zero,
+                    maintainOffset=False,
+                )
+
             # -- Create the condition node
             condition = crab.create.generic(
-                node_type='condition',
+                node_type="condition",
                 prefix=crab.config.LOGIC,
-                description='%sSpaceSwitch' % description.replace(' ', ''),
+                description="%sSpaceSwitch" % description.replace(" ", ""),
                 side=side,
             )
             space_attr.connect(condition.firstTerm)
@@ -187,6 +198,9 @@ class SpaceSwitch(crab.Behaviour):
 
             # -- Hook the condition into the constraint
             condition.outColorR.connect(cns.getWeightAliasList()[-1])
+
+            if scale_cns:
+                condition.outColorR.connect(scale_cns.getWeightAliasList()[-1])
 
             # -- Check if this is the space we need to assign
             # -- as the default space
@@ -200,12 +214,12 @@ class SpaceSwitch(crab.Behaviour):
                     worldSpace=True,
                 )
 
-        for axis in ['X', 'Y', 'Z']:
+        for axis in ["X", "Y", "Z"]:
             if translation_only:
-                zero.attr('rotate%s' % axis).disconnect()
+                zero.attr("rotate%s" % axis).disconnect()
 
             if rotation_only:
-                zero.attr('translate%s' % axis).disconnect()
+                zero.attr("translate%s" % axis).disconnect()
 
         # -- Set the default space
         target.spaces.set(default_id)
@@ -218,11 +232,11 @@ class SpaceSwitch(crab.Behaviour):
         if not result:
             return False
 
-        for data in self.options.target_offsets.split(';'):
-            if '=' in data:
-                for node_name, label in data.split('='):
+        for data in self.options.target_offsets.split(";"):
+            if "=" in data:
+                for node_name, label in data.split("="):
                     if node_name.strip() not in available_nodes:
-                        print('Target offset %s cannot be found' % node_name)
+                        print("Target offset %s cannot be found" % node_name)
                         return False
 
         return True

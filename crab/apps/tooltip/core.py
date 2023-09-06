@@ -7,7 +7,7 @@ from ...vendor import qute
 def get_resource(name):
     return os.path.join(
         os.path.dirname(__file__),
-        'resources',
+        "resources",
         name,
     )
 
@@ -31,9 +31,9 @@ def show_tooltip(title=None, descriptive=None, graphic=None, instigator=None):
     """
     # -- TODO: This should be removed, its here only whilst
     # -- debugging
-    title = title or 'Test'
-    descriptive = descriptive or 'this is a demonstration of a tooltip'
-    graphic = graphic or get_resource('crab.gif')
+    title = title or "Test"
+    descriptive = descriptive or "this is a demonstration of a tooltip"
+    graphic = graphic or get_resource("crab.gif")
     pos = qute.QCursor.pos()
 
     # -- Ensure we have a parent - we use the maya window
@@ -108,14 +108,14 @@ class ToolTip(qute.QWidget):
         # -- Define the styling based on the css data
         qute.utilities.styling.apply(
             [
-                get_resource('tooltip.css')
+                get_resource("tooltip.css")
             ],
             apply_to=self,
         )
 
         # -- Load in the ui file
         self.ui = qute.utilities.designer.load(
-            get_resource('tooltip.ui'),
+            get_resource("tooltip.ui"),
         )
         self.layout().addWidget(self.ui)
 
@@ -136,7 +136,7 @@ class ToolTip(qute.QWidget):
     def hideEvent(self, *args, **kwargs):
         """
         Whenever this widget is hidden we explicitly stop the movie to ensure
-        we're being as optimal as possible.
+        we"re being as optimal as possible.
 
         :return:
         """

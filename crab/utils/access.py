@@ -3,7 +3,7 @@ import pymel.core as pm
 from .. import config
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def get_controls(current_only=False):
     """
     Returns all the controls in a rig
@@ -13,22 +13,22 @@ def get_controls(current_only=False):
 
     :return: List(pm.nt.Transform, ..)
     """
-    ns = ''
+    ns = ""
     recursive = True
-    
+
     if current_only:
         recursive = False
-        if pm.selected() and ':' in pm.selected()[0]:
-            ns = ':'.join(pm.selected()[0].name().split(':')[:-1]) + ':'
+        if pm.selected() and ":" in pm.selected()[0]:
+            ns = ":".join(pm.selected()[0].name().split(":")[:-1]) + ":"
 
     return [
         ctl
-        for ctl in pm.ls('%s%s_*' % (ns, config.CONTROL), r=recursive, type='transform')
+        for ctl in pm.ls("%s%s_*" % (ns, config.CONTROL), r=recursive, type="transform")
         if not isinstance(ctl, pm.nt.Constraint)
     ]
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def component_nodes(node, of_type=None):
     root = component_root(node)
 
@@ -44,17 +44,17 @@ def component_nodes(node, of_type=None):
     return all_nodes
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def component_root(node):
-    tag = '%s_' % config.RIG_COMPONENT
+    tag = "%s_" % config.RIG_COMPONENT
 
-    for item in reversed(node.longName().split('|')):
-        if item.startswith(tag) or ':' + tag in item:
+    for item in reversed(node.longName().split("|")):
+        if item.startswith(tag) or ":" + tag in item:
             return pm.PyNode(item)
 
 
-# ------------------------------------------------------------------------------
-def _filtered_children(node, match_string=None, node_type='transform'):
+# --------------------------------------------------------------------------------------
+def _filtered_children(node, match_string=None, node_type="transform"):
     """
     Private recursive function which finds all the children within the
     same component

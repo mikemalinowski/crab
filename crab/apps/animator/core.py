@@ -10,7 +10,7 @@ from ... import tools
 from ...vendor import qute
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences,PyPep8Naming,DuplicatedCode
 class CrabAnimator(qute.QWidget):
     """
@@ -18,7 +18,7 @@ class CrabAnimator(qute.QWidget):
     functionality of crab.Rig
     """
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self, parent=None):
         super(CrabAnimator, self).__init__(parent=parent or qute.mainWindow())
 
@@ -26,7 +26,7 @@ class CrabAnimator(qute.QWidget):
         self.setLayout(qute.slimify(qute.QVBoxLayout()))
 
         # -- Load in our ui file
-        self.ui = qute.loadUi(utils.get_resource('animator.ui'))
+        self.ui = qute.loadUi(utils.get_resource("animator.ui"))
         self.layout().addWidget(self.ui)
 
         # -- Give a pointer to our custom widgets
@@ -44,16 +44,16 @@ class CrabAnimator(qute.QWidget):
         # -- Apply our styling, defining some differences
         qute.applyStyle(
             [
-                'space',
-                utils.get_resource('animator.css')
+                "space",
+                utils.get_resource("animator.css")
             ],
             self,
             **{
-                '_BACKGROUND_': '30, 30, 30',
-                '_ALTBACKGROUND_': '70, 70, 70',
-                '_FOREGROUND_': '255, 78, 0',
-                '_HIGHLIGHT_': '255, 100, 10',
-                '_TEXT_': '255, 255, 255',
+                "_BACKGROUND_": "30, 30, 30",
+                "_ALTBACKGROUND_": "70, 70, 70",
+                "_FOREGROUND_": "255, 78, 0",
+                "_HIGHLIGHT_": "255, 100, 10",
+                "_TEXT_": "255, 255, 255",
             }
         )
 
@@ -63,7 +63,7 @@ class CrabAnimator(qute.QWidget):
         # -- Populate the tool list
         self.populateTools()
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def populateTools(self):
         """
         Populates the tool list. This will show
@@ -88,7 +88,8 @@ class CrabAnimator(qute.QWidget):
             try:
                 viability = tool.viable(node)
 
-            except: continue
+            except:
+                continue
 
             if viability == tool.PRIORITY_SHOW:
                 self.tools_to_prioritise.append(tool)
@@ -101,17 +102,16 @@ class CrabAnimator(qute.QWidget):
         self.tools_to_show.sort(key=lambda t: t.identifier)
 
         # -- Now we need to add the items to the list
-        default_icon = utils.get_resource('crab.png')
+        default_icon = utils.get_resource("crab.png")
 
         sorted_tools = list()
         for tool in self.tools_to_prioritise:
             sorted_tools.append(tool)
 
-        for tool in self.tools_to_show:#
+        for tool in self.tools_to_show:  #
             sorted_tools.append(tool)
 
         for tool in sorted_tools:
-
             # -- Create the item
             item = qute.QListWidgetItem(
                 qute.QIcon(tool.find_icon() or default_icon),
@@ -124,7 +124,7 @@ class CrabAnimator(qute.QWidget):
 
             self.ui.toolList.addItem(item)
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # noinspection PyUnusedLocal
     def runTool(self, *args, **kwargs):
         """
@@ -151,7 +151,7 @@ class CrabAnimator(qute.QWidget):
         except:
             print(sys.exc_info())
 
-    # ----------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def showOptions(self):
         """
         Shows the options panel for the active tool
@@ -171,7 +171,7 @@ class CrabAnimator(qute.QWidget):
             parent=self,
         )
 
-    # ------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def showHelp(self, *args, **kwargs):
         """
         This will attempt to show dynamic help for any item the user is focusing on
@@ -190,14 +190,13 @@ class CrabAnimator(qute.QWidget):
                 # -- Prioritise list widgets, and where found look for the item
                 # -- under the mouse
                 if isinstance(widget, qute.QListWidget):
-
                     # -- If we have an item under the mouse, lets switch this
-                    # -- to be the widget we're looking at
+                    # -- to be the widget we"re looking at
                     widget = widget.itemAt(widget.mapFromGlobal(qute.QCursor().pos()))
 
                 # -- If the widget is valid and it actually has some rich
                 # -- help data, we use it
-                if widget and hasattr(widget, 'rich_help') and widget.rich_help:
+                if widget and hasattr(widget, "rich_help") and widget.rich_help:
                     rich_help = widget.rich_help
                     break
 
@@ -205,17 +204,17 @@ class CrabAnimator(qute.QWidget):
         # -- then lets display a tool tip
         if rich_help:
             tooltip.show_tooltip(
-                rich_help.get('title'),
-                rich_help.get('description'),
-                rich_help.get('gif'),
+                rich_help.get("title"),
+                rich_help.get("description"),
+                rich_help.get("gif"),
                 self,
             )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def _getActivePlugin(self):
         item = self.ui.toolList.currentItem()
 
-        if not item or not hasattr(item, 'identifier'):
+        if not item or not hasattr(item, "identifier"):
             return None
 
         # -- Get the values from all the option elements
@@ -233,19 +232,19 @@ class CrabAnimator(qute.QWidget):
         return tool_plugin
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # noinspection PyPep8Naming,PyUnresolvedReferences
 class AnimationToolListWidget(qute.QListWidget):
     """
     Custom class which represents the list widget in the ui file.
     """
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(AnimationToolListWidget, self).__init__(*args, **kwargs)
         self.widget = None
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def mousePressEvent(self, event):
         super(AnimationToolListWidget, self).mousePressEvent(event)
 
@@ -266,14 +265,23 @@ class AnimationToolListWidget(qute.QListWidget):
 
 # ------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences
-class DockableAnimator(MayaQWidgetDockableMixin, qute.QMainWindow):
+class DockableAnimator(MayaQWidgetDockableMixin, qute.MemorableWindow):
+    WINDOW_IDENTIFIER = "crab_animator"
+
     def __init__(self, *args, **kwargs):
-        super(DockableAnimator, self).__init__(*args, **kwargs)
+        super(DockableAnimator, self).__init__(
+            identifier=DockableAnimator.WINDOW_IDENTIFIER, *args, **kwargs)
 
 
 # ------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences,PyUnusedLocal
 def launch(*args, **kwargs):
+    window_name = "{identifier}WorkspaceControl".format(
+        identifier=DockableAnimator.WINDOW_IDENTIFIER)
+
+    if pm.window(window_name, exists=True):
+        pm.deleteUI(window_name)
+
     window = DockableAnimator(parent=qute.mainWindow())
     widget = CrabAnimator(parent=window)
 
@@ -282,5 +290,5 @@ def launch(*args, **kwargs):
     window.setCentralWidget(widget)
 
     # -- Set the window properties
-    window.setWindowTitle('Crab')
+    window.setWindowTitle("Crab")
     window.show(dockable=True)

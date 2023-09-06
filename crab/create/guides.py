@@ -4,16 +4,18 @@ from .basics import generic
 from .. import config
 
 
-# ------------------------------------------------------------------------------
-def guide(description,
-          side,
-          parent=None,
-          xform=None,
-          translation_offset=None,
-          rotation_offset=None,
-          match_to=None,
-          link_to=None,
-          shape=None,):
+# --------------------------------------------------------------------------------------
+def guide(
+    description,
+    side,
+    parent=None,
+    xform=None,
+    translation_offset=None,
+    rotation_offset=None,
+    match_to=None,
+    link_to=None,
+    shape=None,
+):
     """
     Creates a control structure - which is a structure which conforms to the
     following hierarchy:
@@ -32,6 +34,14 @@ def guide(description,
     :param xform: Optional worldSpace matrix to apply to the object
     :type xform: pm.dt.Matrix
 
+    :param translation_offset: Optional local space translation offset to be
+        applied to the guide
+    :type translation_offset: pm.nt.Vector
+
+    :param rotation_offset: Optional local space rotation offset to be
+        applied to the guide
+    :type rotation_offset: pm.nt.Vector
+
     :param match_to: Optional node to match in worldspace
     :type match_to: pm.nt.DagNode
 
@@ -45,11 +55,11 @@ def guide(description,
     :return: pm.nt.DependNode
     """
     guide_node = generic(
-        'transform',
+        "transform",
         config.GUIDE,
         description,
         side,
-        shape=shape or 'cube',
+        shape=shape or "cube",
         parent=parent,
         xform=xform,
         match_to=match_to or parent,
@@ -68,11 +78,11 @@ def guide(description,
         curve.getShape().template.set(True)
 
         # -- Create the first cluster
-        pm.select('%s.cv[0]' % curve.name())
+        pm.select("%s.cv[0]" % curve.name())
         cls_root_handle, cls_root_xfo = pm.cluster()
 
         # -- Create the second cluster
-        pm.select('%s.cv[1]' % curve.name())
+        pm.select("%s.cv[1]" % curve.name())
         cls_target_handle, cls_target_xfo = pm.cluster()
 
         # -- Hide the clusters, as we do not want them
@@ -80,11 +90,11 @@ def guide(description,
         cls_root_xfo.visibility.set(False)
         cls_target_xfo.visibility.set(False)
 
-        # -- Ensure they're both children of the guide
+        # -- Ensure they"re both children of the guide
         cls_root_xfo.setParent(guide_node)
         cls_target_xfo.setParent(guide_node)
 
-        # -- Ensure the target is zero'd
+        # -- Ensure the target is zero"d
         cls_target_xfo.setMatrix(pm.dt.Matrix())
 
         # -- Constrain the root to the linked object

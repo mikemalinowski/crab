@@ -4,15 +4,17 @@ from . import basics
 from .. import config
 
 
-# ------------------------------------------------------------------------------
-def joint(description,
-          side,
-          parent=None,
-          xform=None,
-          match_to=None,
-          radius=3,
-          counter=1,
-          is_deformer=True):
+# --------------------------------------------------------------------------------------
+def joint(
+    description,
+    side,
+    parent=None,
+    xform=None,
+    match_to=None,
+    radius=3,
+    counter=1,
+    is_deformer=True,
+):
     """
     Creates a joint, ensuring the right parenting and radius
 
@@ -23,7 +25,7 @@ def joint(description,
     :type side: str
 
     :param parent: Optional parent to assign to the node
-    :type parent: pm.nt.DagNode
+    :type parent: pm.nt.DagNode or None
 
     :param xform: Optional worldSpace matrix to apply to the object
     :type xform: pm.dt.Matrix
@@ -49,7 +51,7 @@ def joint(description,
 
     # -- Create the joint
     new_joint = basics.generic(
-        'joint',
+        "joint",
         config.SKELETON,
         description,
         side,
@@ -69,7 +71,7 @@ def joint(description,
             worldSpace=True,
         )
 
-    # -- If we're given a matrix utilise that
+    # -- If we"re given a matrix utilise that
     if xform:
         new_joint.setMatrix(
             xform,
@@ -88,10 +90,10 @@ def joint(description,
     new_joint.radius.set(radius)
 
     if is_deformer:
-        if not pm.objExists('deformers'):
-            pm.sets(n='deformers', empty=True)
+        if not pm.objExists("deformers"):
+            pm.sets(n="deformers", empty=True)
 
-        deformer_set = pm.PyNode('deformers')
+        deformer_set = pm.PyNode("deformers")
 
         if isinstance(deformer_set, pm.nt.ObjectSet):
             deformer_set.addMembers([new_joint])

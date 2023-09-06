@@ -9,29 +9,32 @@ class SingularComponent(crab.Component):
     a guide along with a rig over that guide.
     """
 
-    identifier = 'Core : Singular'
-    legacy_identifiers = ['Singular']
+    identifier = "Core : Singular"
+    legacy_identifiers = ["Singular"]
     version = 1
 
     tooltips = dict(
-        description='A descriptive name to apply to all objects',
-        lock='Any control attributes you want to have locked',
-        hide='Any control attributes you want to have hidden from the channel box',
-        shape='An optional name of a crab defined shape (nurbs curve) to assign to the control',
-        side='Typically LF, MD or RT - denoting the side/location of the control'
+        description="A descriptive name to apply to all objects",
+        lock="Any control attributes you want to have locked",
+        hide="Any control attributes you want to have hidden from the channel box",
+        shape="An optional name of a crab defined shape (nurbs curve) to assign to the control",
+        side="Typically LF, MD or RT - denoting the side/location of the control"
     )
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(SingularComponent, self).__init__(*args, **kwargs)
 
-        self.options.lock = ''
-        self.options.hide = 'v;'
-        self.options.shape = 'cube'
+        self.options.lock = ""
+        self.options.hide = "v;"
+        self.options.shape = "cube"
 
         # -- This option is available to allow pre-existing joints
         # -- to be used in place of creating a new one
-        self.options.pre_existing_joint = ''
+        self.options.pre_existing_joint = ""
+
+        # -- Whether to mirror during joint creation
+        self.options.mirror = False
 
     # --------------------------------------------------------------------------
     def create_skeleton(self, parent):
@@ -44,7 +47,7 @@ class SingularComponent(crab.Component):
 
         :return: bool
         """
-        # -- If we're targeting a pre-existing joint then we need
+        # -- If we"re targeting a pre-existing joint then we need
         # -- to utilise it and update our options based upon on that
         # -- joint
         if self.options.pre_existing_joint:
@@ -66,12 +69,38 @@ class SingularComponent(crab.Component):
         # -- this component
         self.mark_as_skeletal_root(root_joint)
 
-        # -- We'll tag this joint with a label so we can easily
+        # -- We"ll tag this joint with a label so we can easily
         # -- find it from within the create_rig function.
         self.tag(
             target=root_joint,
-            label='RootJoint'
+            label="RootJoint"
         )
+
+        # -- Check if we need to mirror
+        if self.options.mirror:
+            copied_options = self.options.copy()
+
+            # -- Ensure we dont cycle forever
+            copied_options["mirror"] = False
+
+            # -- Switch the side
+            copied_options["side"] = crab.config.LEFT
+            if self.options.side == crab.config.LEFT:
+                copied_options["side"] = crab.config.RIGHT
+
+            if parent.name().endswith(self.options.side):
+                possible_new_parent = parent.name()[:-2] + copied_options["side"]
+
+                if pm.objExists(possible_new_parent):
+                    parent = pm.PyNode(possible_new_parent)
+                    pm.select(parent)
+
+            # -- Add the component
+            crab.get().add_component(
+                component_type=self.identifier,
+                parent=parent,
+                **copied_options
+            )
 
         # -- Select the tip joint
         pm.select(root_joint)
@@ -81,10 +110,10 @@ class SingularComponent(crab.Component):
     # --------------------------------------------------------------------------
     def create_rig(self, parent):
 
-        # -- We're given the skeleton component instance, so we can
+        # -- We"re given the skeleton component instance, so we can
         # -- utilise the find method to find the joint we need to build
         # -- a control against
-        root_joint = self.find_first('RootJoint')
+        root_joint = self.find_first("RootJoint")
 
         # -- Create a transform to use as a control
         node = crab.create.control(

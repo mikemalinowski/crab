@@ -2,14 +2,14 @@ import crab
 import pymel.core as pm
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class ToggleJointStyleTool(crab.RigTool):
 
-    identifier = 'joints_toggle_draw'
-    display_name = 'Toggle Draw'
-    icon = 'joints.png'
+    identifier = "joints_toggle_draw"
+    display_name = "Toggle Draw"
+    icon = "joints.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
         selected = pm.selected()
 

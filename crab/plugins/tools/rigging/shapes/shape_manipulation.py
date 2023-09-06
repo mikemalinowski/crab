@@ -2,14 +2,14 @@ import pymel.core as pm
 import crab
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class ShapeInvertXTool(crab.RigTool):
 
-    identifier = 'shape_invert_shape_x'
-    display_name = 'Invert Shape : X'
-    icon = 'shapes.png'
+    identifier = "shape_invert_shape_x"
+    display_name = "Invert Shape : X"
+    icon = "shapes.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
         invert_shapes(
             pm.selected(),
@@ -24,11 +24,11 @@ class ShapeInvertXTool(crab.RigTool):
 # ------------------------------------------------------------------------------
 class ShapeInvertYTool(crab.RigTool):
 
-    identifier = 'shape_invert_shape_y'
-    display_name = 'Invert Shape : Y'
-    icon = 'shapes.png'
+    identifier = "shape_invert_shape_y"
+    display_name = "Invert Shape : Y"
+    icon = "shapes.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
         invert_shapes(
             pm.selected(),
@@ -40,14 +40,14 @@ class ShapeInvertYTool(crab.RigTool):
         )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class ShapeInvertZTool(crab.RigTool):
 
-    identifier = 'shape_invert_shape_z'
-    display_name = 'Invert Shape : Z'
-    icon = 'shapes.png'
+    identifier = "shape_invert_shape_z"
+    display_name = "Invert Shape : Z"
+    icon = "shapes.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
         invert_shapes(
             pm.selected(),
@@ -59,14 +59,14 @@ class ShapeInvertZTool(crab.RigTool):
         )
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class ShapeMirrorXTool(crab.RigTool):
 
-    identifier = 'shape_mirror_x'
-    display_name = 'Mirror Shape: X'
-    icon = 'shapes.png'
+    identifier = "shape_mirror_x"
+    display_name = "Mirror Shape: X"
+    icon = "shapes.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
         if not pm.selected():
             return
@@ -94,7 +94,7 @@ class ShapeMirrorXTool(crab.RigTool):
                     )
 
             except:
-                print('%s does not have an alternate side' % source_node)
+                print("%s does not have an alternate side" % source_node)
 
             # -- Read the shape data from the current side
             shape_data = crab.utils.shapes.read(source_node)
@@ -114,7 +114,7 @@ class ShapeMirrorXTool(crab.RigTool):
                     # -- Get the worldspace position of the current cv
                     source_pos = source_shape.getCV(
                         idx,
-                        space='world',
+                        space="world",
                     )
 
                     # -- Set the position of the cv with the X axis
@@ -126,21 +126,21 @@ class ShapeMirrorXTool(crab.RigTool):
                             source_pos[1],
                             source_pos[2],
                         ],
-                        space='world',
+                        space="world",
                     )
 
                 # -- Update teh curve to propagate the change
                 target_shape.updateCurve()
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class ShapeMirrorYTool(crab.RigTool):
 
-    identifier = 'shape_mirror_y'
-    display_name = 'Mirror Shape: Y'
-    icon = 'shapes.png'
+    identifier = "shape_mirror_y"
+    display_name = "Mirror Shape: Y"
+    icon = "shapes.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
         if not pm.selected():
             return
@@ -171,7 +171,7 @@ class ShapeMirrorYTool(crab.RigTool):
                 pass
 
             if not target_node:
-                print('%s does not have an alternate side' % source_node)
+                print("%s does not have an alternate side" % source_node)
                 continue
 
             # -- Read the shape data from the current side
@@ -192,7 +192,7 @@ class ShapeMirrorYTool(crab.RigTool):
                     # -- Get the worldspace position of the current cv
                     source_pos = source_shape.getCV(
                         idx,
-                        space='world',
+                        space="world",
                     )
 
                     # -- Set the position of the cv with the X axis
@@ -204,21 +204,21 @@ class ShapeMirrorYTool(crab.RigTool):
                             source_pos[1] * -1,
                             source_pos[2],
                         ],
-                        space='world',
+                        space="world",
                     )
 
                 # -- Update teh curve to propagate the change
                 target_shape.updateCurve()
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class ShapeMirrorZTool(crab.RigTool):
 
-    identifier = 'shape_mirror_z'
-    display_name = 'Mirror Shape: Z'
-    icon = 'shapes.png'
+    identifier = "shape_mirror_z"
+    display_name = "Mirror Shape: Z"
+    icon = "shapes.png"
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
         if not pm.selected():
             return
@@ -246,7 +246,7 @@ class ShapeMirrorZTool(crab.RigTool):
                     )
 
             except:
-                print('%s does not have an alternate side' % source_node)
+                print("%s does not have an alternate side" % source_node)
 
             # -- Read the shape data from the current side
             shape_data = crab.utils.shapes.read(source_node)
@@ -266,7 +266,7 @@ class ShapeMirrorZTool(crab.RigTool):
                     # -- Get the worldspace position of the current cv
                     source_pos = source_shape.getCV(
                         idx,
-                        space='world',
+                        space="world",
                     )
 
                     # -- Set the position of the cv with the X axis
@@ -278,14 +278,14 @@ class ShapeMirrorZTool(crab.RigTool):
                             source_pos[1],
                             source_pos[2] * -1,
                         ],
-                        space='world',
+                        space="world",
                     )
 
                 # -- Update teh curve to propagate the change
                 target_shape.updateCurve()
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 class ShapeMirrorLeftToRightTool(crab.RigTool):
     """
     Most crab components are always built from left to right. This is a
@@ -293,38 +293,48 @@ class ShapeMirrorLeftToRightTool(crab.RigTool):
     side.
     """
 
-    identifier = 'shape_mirror_left_to_right'
-    display_name = 'Mirror Shape Left to Right'
-    icon = 'shapes.png'
+    identifier = "shape_mirror_left_to_right"
+    display_name = "Mirror Shape Left to Right"
+    icon = "shapes.png"
     tooltips = dict(
-        axis='Which axis should we mirror across (from positive to negative)',
+        axis="Which axis should we mirror across (from positive to negative)",
     )
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def __init__(self):
         super(ShapeMirrorLeftToRightTool, self).__init__()
-        self.options.axis = 'X' if pm.upAxis(q=True, axis=True).upper() == 'Y' else 'Y'
+        self.options.axis = "X" if pm.upAxis(q=True, axis=True).upper() == "Y" else "Y"
         self.options.selection_only = False
 
-    # --------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def run(self):
 
         # -- Get the Shape mirroring tool that matches
         # -- our axis as defined in the options
-        tool = crab.tools.rigging().request('shape_mirror_%s' % self.options.axis.lower())
+        tool = crab.tools.rigging().request(
+            "shape_mirror_%s" % self.options.axis.lower(),
+        )
 
         # -- Select the left controls using crabs naming conventions
         if self.options.selection_only:
 
-            # -- If we're running on selection only, then we dont need to manage
+            # -- If we"re running on selection only, then we dont need to manage
             # -- the selection
             pass
 
         else:
+            left_controls = pm.ls(
+                "%s_*_%s" % (
+                    crab.config.CONTROL,
+                    crab.config.LEFT,
+                ),
+                type="transform",
+            )
+
             pm.select(
                 [
                     control
-                    for control in pm.ls('%s_*_%s' % (crab.config.CONTROL, crab.config.LEFT), type='transform')
+                    for control in left_controls
                     if control.getShapes()
                 ]
             )
@@ -333,7 +343,7 @@ class ShapeMirrorLeftToRightTool(crab.RigTool):
         tool().run()
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def invert_shapes(nodes, inversion_axis):
 
     for node in nodes:
@@ -346,7 +356,7 @@ def invert_shapes(nodes, inversion_axis):
             invert_shape(shape, inversion_axis)
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def invert_shape(shape, inversion_axis):
     for idx, pos in enumerate(shape.getCVs()):
 

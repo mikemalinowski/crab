@@ -4,25 +4,25 @@ import pymel.core as pm
 
 # ------------------------------------------------------------------------------
 class AddFollicleBehaviour(crab.Behaviour):
-    identifier = 'Add Follicle'
+    identifier = "Add Follicle"
     version = 1
 
     tooltips = dict(
-        parent='The node to parent the follicle under',
-        surface='The name of the mesh or surface to attach to',
-        drive='Optionally a node to constrain to the follicle',
+        parent="The node to parent the follicle under",
+        surface="The name of the mesh or surface to attach to",
+        drive="Optionally a node to constrain to the follicle",
     )
 
-    REQUIRED_NODE_OPTIONS = ['parent', 'surface']
-    OPTIONAL_NODE_OPTIONS = ['drive']
+    REQUIRED_NODE_OPTIONS = ["parent", "surface"]
+    OPTIONAL_NODE_OPTIONS = ["drive"]
 
     # --------------------------------------------------------------------------
     def __init__(self, *args, **kwargs):
         super(AddFollicleBehaviour, self).__init__(*args, **kwargs)
 
-        self.options.parent = ''
-        self.options.surface = ''
-        self.options.drive = ''
+        self.options.parent = ""
+        self.options.surface = ""
+        self.options.drive = ""
 
     # --------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences
@@ -56,7 +56,7 @@ class AddFollicleBehaviour(crab.Behaviour):
             is_mesh = True
 
         follicle = crab.create.generic(
-            node_type='follicle',
+            node_type="follicle",
             prefix=crab.config.MECHANICAL,
             description=self.options.description,
             side=self.options.side,
@@ -66,12 +66,12 @@ class AddFollicleBehaviour(crab.Behaviour):
         follicle = follicle.getShape()
 
         if is_mesh:
-            surface.attr('outMesh').connect(follicle.inputMesh)
+            surface.attr("outMesh").connect(follicle.inputMesh)
 
         else:
-            surface.attr('local').connect(follicle.inputSurface)
+            surface.attr("local").connect(follicle.inputSurface)
 
-        surface.attr('worldMatrix[0]').connect(follicle.inputWorldMatrix)
+        surface.attr("worldMatrix[0]").connect(follicle.inputWorldMatrix)
 
         follicle.outTranslate.connect(follicle.getParent().translate)
         follicle.outRotate.connect(follicle.getParent().rotate)
@@ -81,18 +81,18 @@ class AddFollicleBehaviour(crab.Behaviour):
             # -- Set the UV positions
             if is_mesh:
                 u, v = surface.getUVAtPoint(
-                    drive.getTranslation(space='world'),
-                    space='world',
+                    drive.getTranslation(space="world"),
+                    space="world",
                 )
 
             else:
                 _, u, v = surface.closestPoint(
-                    drive.getTranslation(space='world'),
-                    space='world',
+                    drive.getTranslation(space="world"),
+                    space="world",
                 )
 
-            follicle.attr('parameterU').set(u)
-            follicle.attr('parameterV').set(v)
+            follicle.attr("parameterU").set(u)
+            follicle.attr("parameterV").set(v)
 
             pm.parentConstraint(
                 follicle.getParent(),

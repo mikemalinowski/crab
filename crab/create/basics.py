@@ -5,23 +5,25 @@ from ..utils import shapes
 from .. import config
 
 
-# ------------------------------------------------------------------------------
-def generic(node_type,
-            prefix,
-            description,
-            side,
-            parent=None,
-            xform=None,
-            match_to=None,
-            shape=None,
-            find_transform=False,
-            counter=1):
+# --------------------------------------------------------------------------------------
+def generic(
+    node_type,
+    prefix,
+    description,
+    side,
+    parent=None,
+    xform=None,
+    match_to=None,
+    shape=None,
+    find_transform=False,
+    counter=1,
+):
     """
     Convenience function for creating a node, generating the name using
     the unique name method and giving the ability to assign the parent and
     transform.
 
-    :param node_type: Type of node to create, such as 'transform'
+    :param node_type: Type of node to create, such as "transform"
     :type node_type: str
 
     :param prefix: Prefix to assign to the node name
@@ -67,17 +69,30 @@ def generic(node_type,
         ),
     )
 
-    # -- If we're given a matrix utilise that
+    # -- If we"re given a matrix utilise that
     if xform:
-        cmds.xform(node, matrix=xform, worldspace=True)
+        cmds.xform(
+            node,
+            matrix=xform,
+            worldspace=True,
+        )
 
     # -- Match the object to the target object if one
     # -- is given.
     if match_to:
-        target_matrix = cmds.xform(match_to.name(), query=True, matrix=True, worldSpace=True)
-        cmds.xform(node.name(), matrix=target_matrix, worldSpace=True)
+        target_matrix = cmds.xform(
+            pm.PyNode(match_to).name(),
+            query=True,
+            matrix=True,
+            worldSpace=True,
+        )
+        cmds.xform(
+            node.name(),
+            matrix=target_matrix,
+            worldSpace=True,
+        )
 
-    # -- Parent the node if we're given a parent
+    # -- Parent the node if we"re given a parent
     if parent:
         cmds.parent(node.name(), parent.name())
 
@@ -87,7 +102,7 @@ def generic(node_type,
     return node
 
 
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 def org(description, side, parent=None):
     """
     Creates a simple org node
@@ -104,7 +119,7 @@ def org(description, side, parent=None):
     """
     return generic(
         prefix=config.ORG,
-        node_type='transform',
+        node_type="transform",
         description=description,
         side=side,
         parent=parent,
