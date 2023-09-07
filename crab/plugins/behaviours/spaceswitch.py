@@ -18,7 +18,7 @@ class SpaceSwitch(crab.Behaviour):
         labels="A list of labels to make up the space switch attribute. This should be in the same order as the Spaces option",
         translation_only="If ticked, the rotation of the target will not be affected",
         rotation_only="If ticked, the translation of the target will not be affected",
-        default_space="This should be an entry specified in "labels" (or Parent Label) and defines which space is active by default",
+        default_space="This should be an entry specified in \"labels\" (or Parent Label) and defines which space is active by default",
         parent_label="All space switches expose their parent as a space, how do you want to label this?",
         target_offsets="This can be used to define the specific location the target should jump to when active in this space. This should be in the form of Label=Node;Label=Node;"
     )

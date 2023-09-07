@@ -84,7 +84,7 @@ def global_mirror(
 
     # Check to see all provided objects is an instance of pymel transform node,
     elif not all(map(lambda x: isinstance(x, pm.nt.Transform), transforms)):
-        raise ValueError("Passed node which wasn"t of type: Transform")
+        raise ValueError("Passed node which wasn't of type: Transform")
 
     # -- Ensure we have a mirror plane
     across = across or get_likely_mirror_plane(transforms[0])
@@ -92,7 +92,7 @@ def global_mirror(
     # Validate plane which to mirror across,
     if not across in ("XY", "YZ", "XZ"):
         raise ValueError(
-            "Keyword Argument: "across" not of accepted value ("XY", "YZ", "XZ")."
+            "Keyword Argument: \"across\" not of accepted value (\"XY\", \"YZ\", \"XZ\")."
         )
 
     stored_matrices = collections.OrderedDict()

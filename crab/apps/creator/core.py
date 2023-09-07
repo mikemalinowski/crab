@@ -115,8 +115,8 @@ class CrabCreator(qute.QWidget):
 
         self.ui.editTab.tabBar().setStyleSheet(
             (
-                "QTabBar::tab{max-height: 30px; min-height: 30px;""
-                ""max-width: 30px; min-width: 30px; padding: 2px;}"
+                "QTabBar::tab{max-height: 30px; min-height: 30px;"
+                "max-width: 30px; min-width: 30px; padding: 2px;}"
             ),
         )
 

@@ -12,6 +12,7 @@ class ColorControlsProcess(crab.Process):
     # -- Define the identifier for the plugin
     identifier = "ColourControls"
     version = 1
+    order = 100
 
     # ----------------------------------------------------------------------------------
     # noinspection PyUnresolvedReferences

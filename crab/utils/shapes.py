@@ -130,14 +130,14 @@ def apply(node, data):
         # -- Create a curve with the given cv"s
         transform = pm.curve(
             p=[
-                refine_from_up_axis(p, up_axis=data.get("up_axis", "z"))
+                p # refine_from_up_axis(p, up_axis=data.get("up_axis", "z"))
                 for p in curve_data["cvs"]
             ],
             d=curve_data["degree"],
             k=curve_data["knots"],
             # per=curve_data["form"],
         )
-
+        print(123131231)
         # -- Parent the shape under the node
         shape = transform.getShape()
 
@@ -170,6 +170,7 @@ def refine_from_up_axis(position, up_axis="z"):
 
     :return: List of length 3
     """
+    return position
     # -- Get the current axis setting
     current_up_axis = pm.upAxis(q=True, axis=True)
 
